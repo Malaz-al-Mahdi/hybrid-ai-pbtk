@@ -1,0 +1,11 @@
+Random Forest LOO-CV  (n = 19 chemicals)
+==================================================
+RMSE (original scale) : 186.7042  uL/min/10^6 cells
+R^2  (original scale) : -0.0814
+Spearman rho          : 0.1229  (p = 6.1615e-01)
+
+Feature importances (mean across LOO folds):
+  MW                  : 0.3309
+  logP                : 0.1981
+  Fup                 : 0.2729
+  Rblood2plasma       : 0.1982
