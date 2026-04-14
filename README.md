@@ -12,18 +12,28 @@ Random Forest und anschliessender PBTK-Simulation uber das R-Paket
 │   ├── pilot_chemicals_full.csv     # 20 Chemikalien, komplette httk-Daten
 │   ├── pilot_chemicals_masked.csv   # Gleiche Daten, Clint = NA
 │   ├── rf_clint_predictions.csv     # LOO-CV Vorhersagen vs. Wahrheit
-│   └── pilot_chemicals_imputed.csv  # Tabelle mit RF-imputiertem Clint
+│   ├── pilot_chemicals_imputed.csv  # Tabelle mit RF-imputiertem Clint
+│   └── toxcast_ac50_pilot.csv       # ToxCast AC50-Zusammenfassung
 ├── scripts/
 │   ├── 01_extract_httk_data.R       # Schritt 1: Datenextraktion aus httk
 │   ├── 02_rf_predict_clint.py       # Schritt 2: RF-Training + LOO-CV
 │   ├── 03_httk_pbtk_simulation.R    # Schritt 3: PBTK nativ vs. RF-imputed
+│   ├── 04_reverse_dosimetry.R       # Schritt 4: Reverse TK (MC-AED)
+│   ├── 04b_aed_analysis.py          # Schritt 4b: AED-Visualisierung
 │   └── run_pipeline.ps1             # Gesamte Pipeline starten
 ├── results/                         # Ergebnisse, Plots, Metriken
 │   ├── rf_loo_cv_metrics.txt
 │   ├── rf_loo_cv_scatter.png
 │   ├── pbtk_comparison.csv
 │   ├── pbtk_comparison.png
-│   └── pbtk_curves/                 # Konzentrations-Zeit-Kurven pro Chemikalie
+│   ├── pbtk_curves/                 # Konzentrations-Zeit-Kurven pro Chemikalie
+│   ├── aed_monte_carlo.csv          # AED-Quantile pro Chemikalie
+│   ├── aed_mc_samples.csv           # Volle MC-Stichproben
+│   ├── aed_distributions.png        # Boxplots nativ vs. RF
+│   ├── aed_paired_comparison.png    # Paarvergleich nativ vs. RF
+│   ├── aed_variability_fan.png      # Populationsvariabilitat
+│   ├── aed_cumulative.png           # Kumulative AED-Verteilung
+│   └── aed_summary_report.csv       # Zusammenfassungsbericht
 ├── requirements.txt                 # Python-Abhangigkeiten
 └── README.md
 ```
@@ -75,6 +85,12 @@ python 02_rf_predict_clint.py
 
 # Schritt 3: PBTK-Simulationen durchfuhren
 Rscript 03_httk_pbtk_simulation.R
+
+# Schritt 4: Reverse Dosimetry (Monte Carlo AED)
+Rscript 04_reverse_dosimetry.R
+
+# Schritt 4b: AED-Visualisierung
+python 04b_aed_analysis.py
 ```
 
 ## Workflow-Beschreibung
@@ -101,6 +117,23 @@ Rscript 03_httk_pbtk_simulation.R
 - Vergleicht Cmax, AUC, Css zwischen beiden Tracks
 - Berechnet Fold-Change-Zusammenfassung
 - Erstellt Konzentrations-Zeit-Kurven pro Chemikalie
+
+### Schritt 4 -- Reverse Dosimetry (`04_reverse_dosimetry.R`)
+
+- Implementiert **In-Vitro-to-In-Vivo-Extrapolation (IVIVE)** via Reverse Toxicokinetics
+- Fur jede Pilot-Chemikalie: ToxCast-Daten aus `example.toxcast` (aktive Assays, `hitc == 1`)
+- Konservative Zielkonzentration: **5. Perzentil der AC50-Verteilung** (sensibelster Endpunkt)
+- `calc_mc_oral_equiv()` mit **1000 Monte-Carlo-Samples** pro Chemikalie
+  - Propagiert Populationsvariabilitat in Clint, Fup, Korpergewicht, etc.
+- Zwei Tracks: **httk-native** vs. **RF-imputed** (Clint-Skalierung)
+- Ergebnisse: AED-Quantile (Median, 5., 95. Perzentil) in mg/kg/Tag
+
+### Schritt 4b -- AED-Analyse (`04b_aed_analysis.py`)
+
+- Paarvergleich native vs. RF-imputed AED (Scatter mit Fehlerbalken, 3-fold-Envelope)
+- Populationsvariabilitats-Fanchart (5.--95. Perzentil-Band)
+- Kumulative AED-Verteilung uber alle Pilot-Chemikalien
+- Zusammenfassungsbericht als CSV
 
 ## Pilot-Chemikalien (20)
 
