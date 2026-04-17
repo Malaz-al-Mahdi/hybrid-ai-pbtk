@@ -1,0 +1,20 @@
+Chemical,MAE_ngmL,RMSE_ngmL,R2
+Bisphenol-a,1.0558,1.1468,-0.3361
+Acetochlor,1.7498,1.8381,-1.4881
+4-(butan-2-yl)phenol,1.0218,1.1901,-0.0965
+Caffeine,5.9142,6.6471,-3.5891
+Carbamazepine,1.4972,1.7223,-0.2335
+Chlorpyrifos,1.0195,1.1817,-0.076
+Imidacloprid,1.6938,2.8614,-0.0639
+Pentachlorophenol,0.1601,0.184,-0.0614
+Phenacetin,1.4633,2.5909,-0.4578
+Phenytoin,3.1999,3.3126,-1.6169
+"2,4-d",65.4922,67.4866,-11.6156
+Atrazine,45.5818,56.7506,-1.7275
+Diuron,2.2762,2.3642,-1.8708
+Diclofenac sodium,4.9566,5.1501,-2.1459
+Thiram,4.7832,5.2742,-0.5712
+Trichlorfon,3.9819,4.841,-1.9987
+O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,0.5264,0.6076,-0.4287
+Dichlorvos,44.8701,47.4963,-0.8556
+Coumaphos,6.5294,8.1501,-1.1864
