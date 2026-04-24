@@ -456,27 +456,33 @@ def evaluate_trained_model(
     Reconstruction metrics after training on the full dataset.
     """
     rows = []
+    n = len(df)
+    t_tens = torch.tensor(t_eval, dtype=torch.float32)
     model.eval()
     with torch.no_grad():
-        for i in range(len(df)):
+        for i in range(n):
             feat_t = torch.tensor(feat_sc[i])
             C_true = trajs[i]
             C_max  = float(C_true.max()) if float(C_true.max()) > 1e-9 else 1.0
             C0_n   = torch.tensor(C_true[0] / C_max, dtype=torch.float32)
-            t_tens = torch.tensor(t_eval, dtype=torch.float32)
             C_pred = model(feat_t, C0_n, t_tens).numpy() * C_max
             C_pred = np.where(np.isfinite(C_pred), C_pred, C_true)
 
             mae = float(np.mean(np.abs(C_pred - C_true)))
             rmse = float(np.sqrt(np.mean((C_pred - C_true) ** 2)))
-            r2 = float(r2_score(C_true, C_pred))
+            try:
+                r2 = float(r2_score(C_true, C_pred))
+            except Exception:
+                r2 = float("nan")
             rows.append({
                 "Chemical": df.iloc[i]["Compound"],
                 "MAE_ngmL": round(mae, 4),
                 "RMSE_ngmL": round(rmse, 4),
-                "R2": round(r2, 4),
+                "R2": round(r2, 4) if np.isfinite(r2) else None,
                 "Evaluation": "train_reconstruction",
             })
+            if (i + 1) % 50 == 0 or (i + 1) == n:
+                print(f"    evaluated {i+1:4d}/{n}", flush=True)
     return pd.DataFrame(rows)
 
 
@@ -491,20 +497,67 @@ def plot_curves(
     out_path: Path,
     n_show: int = 8,
 ) -> None:
-    """Plot true vs. predicted C(t) for a selection of chemicals."""
+    """Plot true vs. predicted C(t) for a selection of chemicals.
+
+    Uses joint multi-chemical training: in each epoch we iterate through
+    every chemical once and accumulate gradient updates.  This gives clear
+    progress output and is roughly equivalent to `n_epochs` full passes
+    over the dataset.
+    """
+    import time as _time
     model = NeuralODETK()
     opt   = optim.Adam(model.parameters(), lr=LR, weight_decay=1e-5)
     feat_sc = scaler.transform(features_arr).astype(np.float32)
 
-    # Train on all chemicals for the plot (normalised per chemical)
-    for j in range(len(df)):
-        feat_t  = torch.tensor(feat_sc[j])
-        C_true  = torch.tensor(trajs[j], dtype=torch.float32)
-        t_tens  = torch.tensor(t_eval,   dtype=torch.float32)
-        C_max   = float(C_true.max()) if float(C_true.max()) > 1e-9 else 1.0
-        train_one_chemical(model, feat_t, C_true, t_tens,
-                           torch.tensor(float(trajs[j][0]) / C_max),
-                           opt, n_epochs=400, patience=60)
+    n_chems = len(df)
+    # Scale epochs with dataset size: small pilots → more epochs, big sets → fewer
+    if n_chems <= 50:
+        n_epochs = 150
+    elif n_chems <= 200:
+        n_epochs = 40
+    else:
+        n_epochs = 15
+    print(f"  Joint training on {n_chems} chemicals for {n_epochs} epochs …")
+
+    # Pre-compute per-chemical tensors to avoid allocating every epoch
+    feat_tensors = [torch.tensor(feat_sc[j]) for j in range(n_chems)]
+    t_tens       = torch.tensor(t_eval, dtype=torch.float32)
+    C_tensors    = []
+    C0_tensors   = []
+    C_maxes      = []
+    for j in range(n_chems):
+        C_true = torch.tensor(trajs[j], dtype=torch.float32)
+        C_max  = float(C_true.max()) if float(C_true.max()) > 1e-9 else 1.0
+        C_tensors.append(C_true / C_max)
+        C0_tensors.append(torch.tensor(float(trajs[j][0]) / C_max,
+                                       dtype=torch.float32))
+        C_maxes.append(C_max)
+
+    crit = nn.MSELoss()
+    t_start = _time.time()
+    for epoch in range(n_epochs):
+        epoch_loss = 0.0
+        nan_hits   = 0
+        for j in range(n_chems):
+            opt.zero_grad()
+            C_pred = model(feat_tensors[j], C0_tensors[j], t_tens)
+            loss   = crit(C_pred, C_tensors[j])
+            if not torch.isfinite(loss):
+                nan_hits += 1
+                continue
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            opt.step()
+            epoch_loss += float(loss.item())
+        elapsed = _time.time() - t_start
+        eta     = elapsed / (epoch + 1) * (n_epochs - epoch - 1)
+        print(
+            f"    epoch {epoch+1:3d}/{n_epochs}  "
+            f"mean_loss={epoch_loss / max(n_chems - nan_hits, 1):.5f}  "
+            f"nan_skipped={nan_hits:3d}  "
+            f"elapsed={elapsed:6.1f}s  ETA={eta:6.1f}s",
+            flush=True,
+        )
 
     n_cols = 4
     n_rows = (n_show + n_cols - 1) // n_cols

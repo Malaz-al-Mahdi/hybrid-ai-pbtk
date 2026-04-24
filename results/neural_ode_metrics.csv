@@ -1,20 +1,778 @@
-Chemical,MAE_ngmL,RMSE_ngmL,R2
-Bisphenol-a,1.0558,1.1468,-0.3361
-Acetochlor,1.7498,1.8381,-1.4881
-4-(butan-2-yl)phenol,1.0218,1.1901,-0.0965
-Caffeine,5.9142,6.6471,-3.5891
-Carbamazepine,1.4972,1.7223,-0.2335
-Chlorpyrifos,1.0195,1.1817,-0.076
-Imidacloprid,1.6938,2.8614,-0.0639
-Pentachlorophenol,0.1601,0.184,-0.0614
-Phenacetin,1.4633,2.5909,-0.4578
-Phenytoin,3.1999,3.3126,-1.6169
-"2,4-d",65.4922,67.4866,-11.6156
-Atrazine,45.5818,56.7506,-1.7275
-Diuron,2.2762,2.3642,-1.8708
-Diclofenac sodium,4.9566,5.1501,-2.1459
-Thiram,4.7832,5.2742,-0.5712
-Trichlorfon,3.9819,4.841,-1.9987
-O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,0.5264,0.6076,-0.4287
-Dichlorvos,44.8701,47.4963,-0.8556
-Coumaphos,6.5294,8.1501,-1.1864
+Chemical,MAE_ngmL,RMSE_ngmL,R2,Evaluation
+Aldicarb,34.2282,61.4748,-0.0157,train_reconstruction
+Anilazine,1.0014,1.1025,-0.2809,train_reconstruction
+Bisphenol-a,1.0432,1.1361,-0.3115,train_reconstruction
+Fluazinam,1.0528,1.1654,-0.6626,train_reconstruction
+Flufenacet,1.052,1.1682,-0.2104,train_reconstruction
+Tributyl phosphate,19.1874,19.4548,-11.8066,train_reconstruction
+"""7,12-dimethylbenz(a)anthracene""",0.284,0.332,0.4197,train_reconstruction
+Metronidazole,1.2069,3.031,-0.0108,train_reconstruction
+Thalidomide,1.4888,2.9351,-0.0299,train_reconstruction
+"1,3-dinitrobenzene",37.7774,60.2822,-0.0211,train_reconstruction
+"2,2',6,6'-tetrachlorobisphenol a",0.0946,0.1129,-1.0227,train_reconstruction
+Clopyralid,38.1745,67.4288,-0.0133,train_reconstruction
+Famoxadone,0.337,0.3853,-0.3878,train_reconstruction
+"Methyl 2,4-dihydroxy-3,6-dimethylbenzoate",0.8399,2.0023,-0.2119,train_reconstruction
+Monocrotophos,19.4561,54.4923,-0.0129,train_reconstruction
+Piragliatin,1.4227,1.9456,-0.0694,train_reconstruction
+"2,2-bis(4-hydroxyphenyl)-1,1,1-trichloroethane (hpte)",0.2719,0.3262,0.0044,train_reconstruction
+"2,4-d",66.3017,68.2806,-11.9142,train_reconstruction
+"2,4-db",38.6696,39.0664,-18.3824,train_reconstruction
+2-phenylphenol,52.0494,53.2152,-14.158,train_reconstruction
+6-desisopropylatrazine,35.6734,63.0027,-0.0155,train_reconstruction
+Abamectin,0.5928,0.6807,-2.1884,train_reconstruction
+Acephate,14.5301,57.4354,-0.0431,train_reconstruction
+Acetamiprid,24.7556,39.8459,-0.0302,train_reconstruction
+Acetochlor,0.8232,1.1705,-0.0091,train_reconstruction
+Acifluorfen,28.3157,28.6426,-13.7289,train_reconstruction
+Alachlor,0.7161,0.8751,-0.0081,train_reconstruction
+Malathion,0.8304,1.6433,-0.0468,train_reconstruction
+Ametryn,3.6268,3.9211,-0.3949,train_reconstruction
+Amitraz,1.4347,1.5448,-1.1384,train_reconstruction
+Mesotrione,53.4159,87.1568,-0.0079,train_reconstruction
+Atrazine,39.8458,51.6254,-1.2571,train_reconstruction
+Azinphos-methyl,1.1263,1.3904,-0.066,train_reconstruction
+Azoxystrobin,1.6376,1.7968,-0.4104,train_reconstruction
+Bendiocarb,1.6151,2.1727,-0.1097,train_reconstruction
+Bensulfuron-methyl,18.1334,19.3689,-0.5717,train_reconstruction
+Bensulide,0.4214,0.5,0.0082,train_reconstruction
+Bentazone,119.6286,122.0603,-17.3826,train_reconstruction
+Bifenazate,0.7957,1.086,-0.0064,train_reconstruction
+Bifenthrin,0.5075,0.5422,0.664,train_reconstruction
+Mgk,31.0505,31.3889,-15.8206,train_reconstruction
+Boscalid,1.3937,1.4938,-0.5046,train_reconstruction
+Bromacil,64.2474,85.0272,-1.0823,train_reconstruction
+Bromoxynil,1.0887,1.4484,-0.0276,train_reconstruction
+Buprofezin,3.4686,4.1781,0.0116,train_reconstruction
+Butachlor,0.3175,0.3711,0.0196,train_reconstruction
+Butralin,0.2104,0.2407,-0.0333,train_reconstruction
+Butylate,0.4651,0.5346,-0.0138,train_reconstruction
+Carbaryl,1.0056,1.6129,-0.0073,train_reconstruction
+Carboxin,1.469,1.8589,-0.1177,train_reconstruction
+Chlorethoxyfos,0.284,0.3377,0.0146,train_reconstruction
+Chloridazon,38.3218,65.5312,-0.0137,train_reconstruction
+Chlorpropham,0.6888,0.8796,-0.0034,train_reconstruction
+Chlorpyrifos-methyl,0.6158,0.6895,-0.268,train_reconstruction
+Cinmethylin,0.3489,0.3954,-0.0902,train_reconstruction
+Clofentezine,63.4226,64.027,-22.706,train_reconstruction
+Clomazone,1.517,1.7177,-0.2689,train_reconstruction
+Cloprop,98.93,100.6746,-18.6505,train_reconstruction
+Clothianidin,1.2371,2.7138,-0.0108,train_reconstruction
+Coumaphos,5.7794,7.3339,-0.7704,train_reconstruction
+Cyanazine,32.1104,45.6466,-0.0906,train_reconstruction
+Cyclanilide,12.6991,17.0832,-0.0106,train_reconstruction
+Cycloate,0.6125,0.6848,-0.115,train_reconstruction
+Cyproconazole,1.4072,1.5204,-0.4212,train_reconstruction
+Cyprodinil,1.0906,1.2301,-0.0687,train_reconstruction
+Cyromazine,20.5399,41.0163,-0.0086,train_reconstruction
+"D-cis,trans-allethrin",5.238,5.5579,-4.5001,train_reconstruction
+Dazomet,1.2137,2.7496,-0.0101,train_reconstruction
+Diazinon,0.7196,0.791,-0.2483,train_reconstruction
+Diazoxon,1.1655,1.8163,-0.0136,train_reconstruction
+Dicamba,41.9692,58.3915,-0.2412,train_reconstruction
+Dichlobenil,58.9921,63.0503,-5.9341,train_reconstruction
+Dichloran,90.9149,91.7337,-27.3477,train_reconstruction
+Dichlorprop,85.1271,85.9272,-26.0849,train_reconstruction
+Diclofop-methyl,7.2031,7.3038,-4.7158,train_reconstruction
+Diclosulam,11.9173,12.6639,-0.6394,train_reconstruction
+Dicofol,2.142,2.4363,-0.8526,train_reconstruction
+Dicrotophos,20.8908,55.2915,-0.0129,train_reconstruction
+Diethylhexyl phthalate (dehp),0.2004,0.3604,0.8318,train_reconstruction
+Diethyltoluamide,1.3406,1.7874,-0.0647,train_reconstruction
+Difenoconazole,0.4907,0.5487,-0.4194,train_reconstruction
+Difenzoquat metilsulfate,23.9153,47.6871,-0.0088,train_reconstruction
+Dimethenamid,1.4161,1.8313,-0.0935,train_reconstruction
+Dimethoate,1.4506,2.6939,-0.0278,train_reconstruction
+Dimethomorph,1.511,1.6493,-0.3997,train_reconstruction
+Dimethyl phthalate,23.5491,40.634,-0.022,train_reconstruction
+Diniconazole,12.8172,12.9966,-8.2652,train_reconstruction
+Diphenylamine,0.7514,0.8989,-0.0182,train_reconstruction
+Dithiopyr,0.6489,0.7477,-0.3776,train_reconstruction
+Diuron,1.3394,1.5317,-0.2051,train_reconstruction
+Emamectin benzoate,0.5108,0.8656,0.8656,train_reconstruction
+Endosulfan,15.3978,16.3746,-4.6283,train_reconstruction
+Eptc,0.8498,1.0694,-0.0116,train_reconstruction
+Esfenvalerate,0.4938,0.5318,0.6819,train_reconstruction
+Ethalfluralin,3.9162,3.9695,-2.5171,train_reconstruction
+Ethametsulfuron methyl,224.6412,232.2808,-11.8235,train_reconstruction
+Ethofumesate,1.35,1.5286,-0.2297,train_reconstruction
+Ethoprop,0.8164,0.9039,-0.1807,train_reconstruction
+Etoxazole,1.4273,1.5585,-0.4698,train_reconstruction
+Etridiazole,0.7167,0.9701,-0.013,train_reconstruction
+Fenamidone,1.5205,1.6427,-0.459,train_reconstruction
+Fenamiphos,0.9388,1.0881,-0.0864,train_reconstruction
+Fenarimol,1.1531,1.2467,-0.5671,train_reconstruction
+Fenbuconazole,1.1852,1.2734,-0.467,train_reconstruction
+Fenhexamid,0.8686,0.9592,-0.2009,train_reconstruction
+Fenitrothion,3.46,3.7365,-0.428,train_reconstruction
+Fenoxaprop-ethyl,8.532,8.6496,-5.3214,train_reconstruction
+Fenoxycarb,0.9284,1.041,-0.2076,train_reconstruction
+Fenthion,0.475,0.5593,0.0028,train_reconstruction
+Fipronil,15.2962,15.6096,-7.4078,train_reconstruction
+Fluazifop-p-butyl,0.3126,0.3718,0.0128,train_reconstruction
+Triclosan,0.3411,0.3885,-0.0768,train_reconstruction
+Fludioxonil,0.6314,0.7084,-0.0973,train_reconstruction
+Triflumizole,2.5513,2.9049,-0.508,train_reconstruction
+Flumetralin,1.9045,1.9299,-0.5422,train_reconstruction
+Flumetsulam,3.1987,3.536,-0.6037,train_reconstruction
+Flumioxazin,1.8074,1.9271,-0.6384,train_reconstruction
+Fluometuron,1.3432,1.6524,-0.1125,train_reconstruction
+Fluoxastrobin,0.7137,0.7872,-0.7179,train_reconstruction
+Fluroxypyr,2.2799,2.5952,-0.4381,train_reconstruction
+Fluroxypyr-meptyl,9.135,9.2604,-5.6134,train_reconstruction
+Flusilazole,0.8798,0.9553,-0.5258,train_reconstruction
+Flutolanil,0.8653,0.9398,-0.4848,train_reconstruction
+Foramsulfuron,166.9878,216.0085,-0.0107,train_reconstruction
+Forchlorfenuron,1.1089,1.2124,-0.2929,train_reconstruction
+Formetanate hydrochloride,0.9511,3.0784,-0.0121,train_reconstruction
+Fosthiazate,31.4792,49.5372,-0.0226,train_reconstruction
+Halosulfuron-methyl,619.3631,751.3715,-2.0195,train_reconstruction
+Hexaconazole,0.7072,0.775,-0.3805,train_reconstruction
+Hexazinone,1.2389,1.9779,-0.0176,train_reconstruction
+Hexythiazox,0.9926,1.2691,-0.0244,train_reconstruction
+Icaridin,1.2371,1.5473,-0.0788,train_reconstruction
+Imazalil,23.6888,24.0058,-12.8611,train_reconstruction
+Imazamox,39.8134,74.3946,-0.0095,train_reconstruction
+Imazapic,20.127,29.18,-0.0724,train_reconstruction
+Imazapyr,21.7975,48.6043,-0.0089,train_reconstruction
+Imazaquin,1.9692,2.2834,-0.3331,train_reconstruction
+Imazethapyr,1.7593,2.3932,-0.1274,train_reconstruction
+Imidacloprid,1.205,2.7877,-0.0098,train_reconstruction
+Indoxacarb,0.371,0.427,-0.6516,train_reconstruction
+Iodosulfuron-methyl-sodium,12.5386,12.9787,-1.5148,train_reconstruction
+Iprodione,3.7628,4.0268,-0.5222,train_reconstruction
+Isazofos,0.7328,0.8028,-0.306,train_reconstruction
+Isoxaben,0.6671,0.7331,-0.3231,train_reconstruction
+Isoxaflutole,1.8702,2.0343,-0.5128,train_reconstruction
+Lactofen,5.2997,5.3731,-2.7072,train_reconstruction
+Lindane,28.4466,28.7714,-14.8611,train_reconstruction
+Linuron,0.9892,1.1278,-0.1252,train_reconstruction
+Ethylparaben,1.1592,1.562,-0.0341,train_reconstruction
+Mcpa,51.2683,51.8264,-20.8295,train_reconstruction
+Mesosulfuron-methyl,22.1901,23.2756,-1.4442,train_reconstruction
+"""2,4-dinitrotoluene""",63.8616,87.8348,-0.6237,train_reconstruction
+Metalaxyl,22.2032,36.2916,-0.0118,train_reconstruction
+Methidathion,1.5217,1.855,-0.1584,train_reconstruction
+Methoxychlor,0.179,0.2075,-0.2426,train_reconstruction
+Methoxyfenozide,0.8563,0.9295,-0.4594,train_reconstruction
+Methyl parathion,1.4391,1.5511,-0.4566,train_reconstruction
+Metolachlor,0.9626,1.14,-0.0663,train_reconstruction
+Metribuzin,1.3615,2.1148,-0.0302,train_reconstruction
+Metsulfuron-methyl,2.0758,2.2371,-0.6205,train_reconstruction
+Mevinphos,1.0733,2.9787,-0.0097,train_reconstruction
+"""tris(1,3-dichloro-2-propyl) phosphate (tdcpp)""",2.7321,2.9755,-0.7493,train_reconstruction
+Molinate,34.1108,36.7493,-5.1218,train_reconstruction
+Monobutyl phthalate,35.6121,49.5187,-0.2615,train_reconstruction
+Myclobutanil,1.2928,1.4146,-0.3305,train_reconstruction
+Napropamide,2.2597,2.4443,-0.3988,train_reconstruction
+Niclosamide,2.1092,2.3076,-0.4382,train_reconstruction
+Norflurazon,1.5136,1.7618,-0.2175,train_reconstruction
+Oryzalin,1.3891,1.515,-0.4343,train_reconstruction
+Oxadiazon,6.268,6.358,-4.0614,train_reconstruction
+Oxamyl,18.09,61.9405,-0.0292,train_reconstruction
+Oxasulfuron,3.119,3.4313,-0.8228,train_reconstruction
+Oxyfluorfen,5.6386,5.8249,-4.1594,train_reconstruction
+Oxytetracycline dihydrate,97.151,124.184,-0.2686,train_reconstruction
+Paclobutrazol,1.1003,1.2046,-0.2845,train_reconstruction
+Parathion,0.7704,0.8417,-0.4499,train_reconstruction
+Pendimethalin,0.4873,0.5617,0.0534,train_reconstruction
+Penoxsulam,103.2482,104.4297,-20.3746,train_reconstruction
+Permethrin,0.2422,0.2889,0.6842,train_reconstruction
+Phenoxyethanol,54.3013,83.6125,-0.0089,train_reconstruction
+Phosalone,0.4723,0.5309,-0.3494,train_reconstruction
+Picloram,45.8662,64.5554,-0.0654,train_reconstruction
+Piperonyl butoxide,0.2461,0.2815,0.0107,train_reconstruction
+Pirimicarb,1.6872,2.205,-0.1394,train_reconstruction
+Pirimiphos-methyl,0.4772,0.5347,-0.1092,train_reconstruction
+Prochloraz,0.6169,0.6828,-0.506,train_reconstruction
+Prodiamine,2.2524,2.5188,-0.3754,train_reconstruction
+Prometon,1.3781,1.4777,-0.4936,train_reconstruction
+Prometryn,0.8757,0.9682,-0.1921,train_reconstruction
+Propamocarb hydrochloride,1.1264,3.0099,-0.0094,train_reconstruction
+Propanil,1.2262,1.3329,-0.3537,train_reconstruction
+Propazine,1.3593,1.4704,-0.412,train_reconstruction
+Propetamphos,0.7921,0.8669,-0.3758,train_reconstruction
+Propoxur,1.8412,2.3769,-0.1776,train_reconstruction
+Propyzamide,1.0233,1.1056,-0.4132,train_reconstruction
+Prosulfuron,7.6052,8.1261,-0.7701,train_reconstruction
+Pymetrozine,1.256,3.068,-0.0132,train_reconstruction
+Pyraclostrobin,1.1284,1.2519,-0.2054,train_reconstruction
+Pyridaben,0.0432,0.0508,0.1706,train_reconstruction
+Pyrimethanil,1.2145,1.3947,-0.1632,train_reconstruction
+Pyriproxyfen,3.1111,3.5337,-0.0371,train_reconstruction
+Pyrithiobac-sodium,223.518,317.411,-0.3953,train_reconstruction
+Quinclorac,75.6102,77.0444,-16.7603,train_reconstruction
+Quinoxyfen,8.1235,8.2351,-5.6438,train_reconstruction
+Resmethrin,0.7339,0.7517,0.3541,train_reconstruction
+Rimsulfuron,34.1957,66.4224,-0.0107,train_reconstruction
+Rotenone,0.9864,1.0949,-0.3996,train_reconstruction
+s-bioallethrin,2.7953,3.4063,-1.144,train_reconstruction
+Sethoxydim,0.4349,0.4874,-0.3214,train_reconstruction
+Simazine,1.431,1.822,-0.1048,train_reconstruction
+Spiroxamine,1.6898,1.9359,-0.0356,train_reconstruction
+Sulfentrazone,1.5685,2.5921,-0.0499,train_reconstruction
+Tebufenozide,0.5041,0.5612,-0.3441,train_reconstruction
+Tebufenpyrad,0.6337,0.7219,-0.269,train_reconstruction
+Tebupirimfos,1.3578,1.4741,-0.3868,train_reconstruction
+Tebuthiuron,1.367,2.0436,-0.0386,train_reconstruction
+Tefluthrin,2.5639,2.7447,-0.6185,train_reconstruction
+Tepraloxydim,0.6976,0.7979,-0.0593,train_reconstruction
+Terbacil,2.0729,2.3451,-0.4128,train_reconstruction
+Tetramethrin,0.2672,0.3037,-0.1178,train_reconstruction
+Thiabendazole,40.2865,54.5236,-0.7604,train_reconstruction
+Thiacloprid,1.8416,2.7301,-0.1089,train_reconstruction
+Thiamethoxam,21.2287,57.6913,-0.0129,train_reconstruction
+Thiazopyr,0.7116,0.7798,-0.3734,train_reconstruction
+Thidiazuron,163.1866,174.5616,-6.2239,train_reconstruction
+Thiobencarb,4.0995,6.1457,-0.2189,train_reconstruction
+Thiophanate-methyl,1.5456,2.3441,-0.0586,train_reconstruction
+Triadimefon,1.3665,1.5166,-0.2909,train_reconstruction
+Triadimenol,33.0829,40.4094,-1.8428,train_reconstruction
+Triasulfuron,2.9561,3.2944,-0.7289,train_reconstruction
+Tribufos,0.072,0.0903,-0.1692,train_reconstruction
+Triclopyr,100.8894,102.7174,-18.3012,train_reconstruction
+Warfarin,91.6643,92.6602,-24.2402,train_reconstruction
+Trifloxysulfuron-sodium,571.3583,578.6938,-26.8559,train_reconstruction
+Pk 11195,0.2496,0.2841,-0.1223,train_reconstruction
+Triflusulfuron-methyl,0.8513,0.9372,-0.218,train_reconstruction
+Triticonazole,1.0781,1.1699,-0.3466,train_reconstruction
+Vinclozolin,0.8586,1.1256,-0.007,train_reconstruction
+Zoxamide,26.9157,27.226,-13.686,train_reconstruction
+"""n-phenyl-1,4-benzenediamine""",1.3377,1.539,-0.1934,train_reconstruction
+"""4,4'-methylenebis(n,n-dimethylaniline)""",4.0231,4.5128,-0.0983,train_reconstruction
+"""4,4'-oxydianiline""",46.0211,71.3165,-0.0144,train_reconstruction
+2-benzylideneoctanal,0.4932,0.5533,-0.1574,train_reconstruction
+"""1,3-diphenylguanidine""",12.0862,17.2142,-0.1272,train_reconstruction
+N-ethyl-3-methylaniline,1.503,1.7375,-0.2271,train_reconstruction
+"""heptachlor epoxide, isomer b""",3.0988,3.138,-1.6112,train_reconstruction
+Di(2-ethylhexyl)adipate,0.0601,0.0726,-0.6819,train_reconstruction
+Azelaic acid di(2-ethylhexyl) ester,0.1633,0.1787,-3.038,train_reconstruction
+Acetaminophen,1.2786,2.8941,-0.0114,train_reconstruction
+5-heptyldihydro-2(3h)-furanone,0.954,1.0413,-0.2877,train_reconstruction
+Tamoxifen,0.5622,0.5911,0.605,train_reconstruction
+Dibutyl hexanedioate,0.5148,0.6479,-0.0125,train_reconstruction
+Methyl 1h-benzimidazol-2-ylcarbamate,1.1829,2.1966,-0.0094,train_reconstruction
+4-methylphenol,1.1606,1.9059,-0.0108,train_reconstruction
+Dimethyl succinate,1.7817,3.3604,-0.3713,train_reconstruction
+Tebuconazole,0.8557,0.9297,-0.4529,train_reconstruction
+Resorcinol,1.1015,2.6549,-0.0095,train_reconstruction
+Phenol,1.172,2.2376,-0.0089,train_reconstruction
+Mepanipyrim,44.3131,45.0305,-16.1637,train_reconstruction
+"""n,n'-methylenebis(acrylamide)""",15.4806,49.9661,-0.0206,train_reconstruction
+Triethylene glycol diacetate,1.5378,3.164,-0.2949,train_reconstruction
+Dimethyl glutarate,0.9354,2.7633,-0.0176,train_reconstruction
+2-[2-(2-ethoxyethoxy)ethoxy]ethanol,19.6892,47.2292,-0.0092,train_reconstruction
+Erythromycin,15.5426,17.795,-0.0275,train_reconstruction
+Triphenyl phosphate,0.6554,0.7436,-0.1644,train_reconstruction
+Di-n-octyl phthalate,0.445,0.542,0.6443,train_reconstruction
+Benzophenone,1.1521,1.2514,-0.3464,train_reconstruction
+"3,3'-dimethoxybenzidine",38.1593,56.135,-0.0333,train_reconstruction
+O-tolidine,42.6921,58.6846,-0.5404,train_reconstruction
+Aspirin,30.5252,55.7623,-0.0182,train_reconstruction
+P-cresidine,1.2575,2.055,-0.0176,train_reconstruction
+2-tert-butyl-4-methoxy-phenol,1.1398,1.2376,-0.3466,train_reconstruction
+Antipyrine,1.3524,2.9532,-0.0161,train_reconstruction
+Candoxatril,0.7267,0.7953,-0.36,train_reconstruction
+Triamcinolone,1.4175,2.4643,-0.0276,train_reconstruction
+Theophylline,1.07,3.0701,-0.0098,train_reconstruction
+Zamifenacin,0.2267,0.2682,0.0862,train_reconstruction
+"""2,6-di-tert-butylphenol""",6.6375,6.7278,-6.6175,train_reconstruction
+Pyrene,0.2315,0.2645,-0.0167,train_reconstruction
+Diallyl phthalate,9.006,12.2034,-0.095,train_reconstruction
+Rifampicin,11.264,14.015,-0.0136,train_reconstruction
+Flutamide,0.9947,1.0908,-0.2575,train_reconstruction
+Ethinylestradiol,30.5005,30.8402,-15.4287,train_reconstruction
+Volinanserin,0.957,1.1493,-0.0527,train_reconstruction
+"""4-(1,1,3,3-tetramethylbutyl)phenol""",0.209,0.2404,0.0372,train_reconstruction
+Diisopropyl methylphosphonate (dimp),20.1127,36.8206,-0.0081,train_reconstruction
+"""(2s,3s)-n-[2-methoxy-5-(trifluoromethoxy)benzyl]-2-phenylpiperidin-3-amine""",14.0784,14.5273,-6.6416,train_reconstruction
+Diphenhydramine hydrochloride,46.6481,89.8511,-0.0083,train_reconstruction
+8-hydroxyquinoline,1.1878,1.8551,-0.0152,train_reconstruction
+Monuron,1.3027,1.9313,-0.0318,train_reconstruction
+Benodanil,1.3454,1.4763,-0.3294,train_reconstruction
+Carbofuran,29.9744,45.1543,-0.0441,train_reconstruction
+4-octylphenol,0.259,0.2997,0.1052,train_reconstruction
+2-hydroxy-4-(octyloxy)benzophenone,0.0746,0.089,0.2936,train_reconstruction
+Chlorthal-dimethyl,0.461,0.5146,-0.2003,train_reconstruction
+Vernolate,0.6805,0.7531,-0.1823,train_reconstruction
+Oxytetracycline hydrochloride,41.7919,76.2517,-0.0343,train_reconstruction
+Benzo[b]fluoranthene,0.1345,0.155,0.2839,train_reconstruction
+Fluoranthene,0.1977,0.2275,0.0747,train_reconstruction
+O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,0.4999,0.574,-0.2752,train_reconstruction
+"""1,5-diaminonaphthalene""",26.3779,54.8359,-0.0186,train_reconstruction
+Tridemorph,0.2672,0.3085,0.2271,train_reconstruction
+Benzyl hydrogen phthalate,61.2682,62.6253,-14.3991,train_reconstruction
+"""1,2-benzisothiazolin-3-one""",2.6856,3.2606,-0.4163,train_reconstruction
+Chlorpyrifos,1.0099,1.1685,-0.052,train_reconstruction
+Phorate,30.4845,30.8171,-16.0095,train_reconstruction
+Carbamazepine,1.153,1.5732,-0.0291,train_reconstruction
+Azidothymidine,1.2764,3.0147,-0.0133,train_reconstruction
+Octrizole,0.8287,0.9153,-0.4927,train_reconstruction
+Butam,1.0926,1.2602,-0.1283,train_reconstruction
+3-phenoxybenzoic acid,24.8975,25.1743,-14.9859,train_reconstruction
+2-chloro-2'-deoxyadenosine,21.3299,48.0397,-0.0098,train_reconstruction
+Genistein,1.3423,1.4506,-0.4161,train_reconstruction
+9-phenanthrol,0.9136,1.0137,-0.1739,train_reconstruction
+"""p,p'-ddt""",0.1541,0.2797,0.8752,train_reconstruction
+Reserpine,79.3059,80.254,-13.5571,train_reconstruction
+Pirinixic acid,8.1565,8.8447,-0.5547,train_reconstruction
+"""2,4-dinitrophenol""",175.2207,188.5641,-5.7266,train_reconstruction
+6-propyl-2-thiouracil,1.1316,3.1123,-0.0094,train_reconstruction
+"""n-[(3r)-1-azabicyclo[2.2.2]oct-3-yl]-2,3-dihydro-1,4-benzodioxine-6-carboxamide""",1.4502,2.0341,-0.0654,train_reconstruction
+"""1,2-dinitrobenzene""",2.0012,2.3736,-0.3086,train_reconstruction
+Haloperidol,0.4591,0.5124,-0.2131,train_reconstruction
+Prednisone,1.3957,2.259,-0.0316,train_reconstruction
+"""2-methyl-4,6-dinitrophenol""",188.0655,189.6534,-34.1675,train_reconstruction
+Hexamethyl-p-rosaniline chloride,4.7536,5.2164,-0.8915,train_reconstruction
+Carbosulfan,0.303,0.3479,-0.2571,train_reconstruction
+Ethion,2.8706,2.9616,-1.463,train_reconstruction
+Diethylstilbestrol (des),0.1609,0.1851,0.056,train_reconstruction
+Benz[a]anthracene,0.0724,0.0839,0.1932,train_reconstruction
+Phenytoin,2.0638,2.331,-0.2957,train_reconstruction
+"""2,6-dimethylphenol""",1.3406,1.6832,-0.097,train_reconstruction
+Progesterone,0.688,0.7568,-0.2585,train_reconstruction
+"""2,6-diethylaniline""",1.3592,1.5216,-0.2612,train_reconstruction
+Dibutylphthalate,0.2961,0.3365,-0.0267,train_reconstruction
+Caffeine,1.32,3.1246,-0.0141,train_reconstruction
+Pyrimethamine,1.4986,1.6417,-0.3707,train_reconstruction
+Fluridone ,1.2569,1.3627,-0.3763,train_reconstruction
+Sulfasalazine,13.0562,13.9309,-0.5828,train_reconstruction
+4-aminoazobenzene,1.008,1.0945,-0.3429,train_reconstruction
+Dieldrin,3.5458,3.5918,-1.9783,train_reconstruction
+"""2,6-dinitrotoluene""",1.4775,1.8858,-0.1133,train_reconstruction
+Androstenedione,1.1974,1.4206,-0.1154,train_reconstruction
+3-hydroxyfluorene,1.1278,1.2301,-0.3106,train_reconstruction
+Didecyl dimethyl ammonium chloride,99.1212,100.0264,-26.3759,train_reconstruction
+Endrin,3.5582,3.6044,-1.9611,train_reconstruction
+"""p,p'-ddd""",0.8473,0.8606,0.0812,train_reconstruction
+Phosmet,1.4092,1.545,-0.3498,train_reconstruction
+Lovastatin,0.5237,0.5851,-0.495,train_reconstruction
+Phenolphthalein,1.205,1.3689,-0.1839,train_reconstruction
+Bisphenol b,0.7133,0.791,-0.1645,train_reconstruction
+"""o,p'-ddt""",0.1634,0.2765,0.87,train_reconstruction
+Simvastatin,0.5108,0.5853,-0.3741,train_reconstruction
+4-(2-methylbutan-2-yl)phenol,1.4056,1.5455,-0.2261,train_reconstruction
+Clodinafop-propargyl,0.6055,0.6834,-0.0765,train_reconstruction
+"""4,4'-methylene bis(2-methylaniline)""",1.571,1.8894,-0.1836,train_reconstruction
+Norethindrone,51.4645,53.4588,-9.2278,train_reconstruction
+N-nitrosodiphenylamine,1.2339,1.3301,-0.4249,train_reconstruction
+Fluconazole ,1.2472,2.8303,-0.0111,train_reconstruction
+"""2,6-dimethylaniline""",1.2686,1.9889,-0.0217,train_reconstruction
+Pentachlorophenol,0.1569,0.18,-0.0157,train_reconstruction
+"""2,4,6-trichlorophenol""",0.7958,0.8726,-0.2603,train_reconstruction
+Dinoseb,38.6347,39.0407,-18.2028,train_reconstruction
+2-anisidine,35.6623,62.7954,-0.0168,train_reconstruction
+Quinoline,1.3335,1.8759,-0.0475,train_reconstruction
+Ethoxyquin,1.2913,1.3925,-0.419,train_reconstruction
+2-naphthylamine,1.6113,1.863,-0.2547,train_reconstruction
+Coumarin,67.1667,94.5036,-0.018,train_reconstruction
+Benzidine,1.9855,2.5491,-0.2118,train_reconstruction
+Propylparaben,1.055,1.2255,-0.1088,train_reconstruction
+Butylparaben,0.7969,0.8954,-0.1183,train_reconstruction
+Tri(ethylene glycol) bis(2-ethylhexanoate),1.3876,1.5019,-0.5588,train_reconstruction
+2-methylphenol,1.1781,1.9,-0.0126,train_reconstruction
+"""2,4,5-trichlorophenol""",0.8849,0.9788,-0.1836,train_reconstruction
+Eugenol,0.8105,1.7131,-0.0576,train_reconstruction
+Isoeugenol,0.9541,1.1904,-0.0269,train_reconstruction
+4-tert-butylphenol,0.9103,1.043,-0.098,train_reconstruction
+Nitrobenzene,1.3356,1.9941,-0.0351,train_reconstruction
+3-nitrotoluene,1.5894,1.7813,-0.3201,train_reconstruction
+2-methoxy-5-nitroaniline,1.5023,2.2801,-0.0539,train_reconstruction
+4-(butan-2-yl)phenol,1.1506,1.2714,-0.2514,train_reconstruction
+Methylparaben,0.9437,1.9022,-0.0198,train_reconstruction
+4-nitrotoluene,1.6424,1.8469,-0.3266,train_reconstruction
+Diltiazem hydrochloride,1.8476,2.256,-0.2331,train_reconstruction
+Dexamethasone,1.6841,2.088,-0.1749,train_reconstruction
+Diclofenac,0.3196,0.3654,-0.0022,train_reconstruction
+Ibuprofen,1.2677,1.3877,-0.3226,train_reconstruction
+Tolbutamide,5.7,6.153,-0.5291,train_reconstruction
+Naproxen,3.2564,3.5799,-0.2427,train_reconstruction
+Atenolol,1.352,2.9843,-0.0175,train_reconstruction
+Diclofenac sodium,2.5108,3.2746,-0.2719,train_reconstruction
+"2,2'-methylenebis(ethyl-6-tert-butylphenol)",0.2072,0.3861,0.8296,train_reconstruction
+Buspirone,1.7506,1.8604,-0.6677,train_reconstruction
+Metoprolol,1.3249,1.9709,-0.0346,train_reconstruction
+"2,2,4-trimethyl-1,3-pentanediol diisobutyrate",5.4182,5.5616,-4.0191,train_reconstruction
+Phenacetin,1.2185,2.1583,-0.0116,train_reconstruction
+Furosemide,177.1422,179.6068,-24.0444,train_reconstruction
+"2,3,6-trimethylphenol",0.8314,1.4208,-0.0336,train_reconstruction
+Oxazepam,2.548,2.7522,-0.5775,train_reconstruction
+Sulpiride,22.9751,41.656,-0.0171,train_reconstruction
+Methylprednisolone,1.8798,2.2899,-0.2408,train_reconstruction
+Prednisolone,1.8389,2.322,-0.1946,train_reconstruction
+Troglitazone,2.3482,2.6732,-0.2179,train_reconstruction
+Cyclosporin a,28.5082,33.8742,-1.5974,train_reconstruction
+3-chloro-4-methylaniline,1.2085,1.9204,-0.0156,train_reconstruction
+Famotidine,19.2984,58.4607,-0.0177,train_reconstruction
+Omeprazole,1.782,1.999,-0.3678,train_reconstruction
+Propofol,0.5526,0.732,-0.0405,train_reconstruction
+Zileuton,3.2738,3.9522,-0.5555,train_reconstruction
+Codeine,1.4608,2.4778,-0.0345,train_reconstruction
+Ranitidine,1.4396,2.9567,-0.0245,train_reconstruction
+Aminopyrine,1.5224,2.5815,-0.0414,train_reconstruction
+Ketoconazole,0.4733,0.5305,-0.4633,train_reconstruction
+Tacrine,1.1415,1.4174,-0.0653,train_reconstruction
+Digoxin,42.9247,49.6435,-0.2839,train_reconstruction
+Methotrexate,68.5491,106.9679,-0.0763,train_reconstruction
+Nicotine,1.4876,2.4706,-0.0387,train_reconstruction
+Tetracycline,57.4846,98.4957,-0.0427,train_reconstruction
+Valproic acid,2.2111,2.5657,-0.1411,train_reconstruction
+Busulphan,1.124,3.0904,-0.0095,train_reconstruction
+Chlorambucil,1.8195,2.2757,-0.1945,train_reconstruction
+Chloramphenicol,1.7922,2.6179,-0.0985,train_reconstruction
+Ciprofloxacin,1.2153,2.9222,-0.0105,train_reconstruction
+Colchicine,1.4797,2.4086,-0.0373,train_reconstruction
+Dapsone,57.9261,91.1817,-0.0074,train_reconstruction
+Didanosine,12.6537,53.0101,-0.0479,train_reconstruction
+Edaravone,1.2527,2.0274,-0.0174,train_reconstruction
+Estradiol,6.5273,8.5192,-0.44,train_reconstruction
+Finasteride,1.3772,1.4698,-0.5621,train_reconstruction
+Fluorescein,35.959,48.7154,-0.6059,train_reconstruction
+Glipizide,12.4957,13.177,-0.9282,train_reconstruction
+Glyburide,3.5571,3.7149,-1.2814,train_reconstruction
+Indomethacin,0.8493,0.9527,-0.4707,train_reconstruction
+Isoniazide,0.9133,3.1023,-0.0143,train_reconstruction
+Levonorgestrel,1.3389,1.4312,-0.538,train_reconstruction
+Melatonin,35.3424,72.5319,-0.013,train_reconstruction
+"4-nonylphenol, branched",2.2178,2.5593,-2.2918,train_reconstruction
+Mifepristone,0.2631,0.302,-0.3363,train_reconstruction
+Nitrofurantoin,44.3703,107.1661,-0.011,train_reconstruction
+Physostigmine,1.3264,2.1794,-0.0224,train_reconstruction
+Quercetin,1.4442,2.4209,-0.0327,train_reconstruction
+"4,4'-(isopropylidenebis(4,1-phenyleneoxy))dianiline",0.3973,0.4543,0.7678,train_reconstruction
+Tolcapone,1.4485,1.5744,-0.3971,train_reconstruction
+Triamcinolone acetonide,1.615,1.7712,-0.4064,train_reconstruction
+Triamterene,51.6168,83.9542,-0.0082,train_reconstruction
+Hexachlorophene,0.3505,0.48,0.7408,train_reconstruction
+Aminoglutethimide,0.6595,3.1878,-0.0445,train_reconstruction
+Aminopterin,28.954,62.0567,-0.011,train_reconstruction
+Cycloheximide,1.235,2.8091,-0.0106,train_reconstruction
+Diethylphthalate,1.1612,1.5744,-0.0327,train_reconstruction
+Fenpropathrin,0.1166,0.1362,0.0796,train_reconstruction
+Fenvalerate,0.2233,0.2849,0.7907,train_reconstruction
+Gibberellic_acid,94.9675,141.7893,-0.0317,train_reconstruction
+Nalidixic_acid,1.3155,2.1738,-0.0207,train_reconstruction
+Strychnine,1.3945,1.9646,-0.0542,train_reconstruction
+Apomorphine hydrochloride hydrate,5.7844,5.9853,-3.0241,train_reconstruction
+Gemfibrozil,0.3501,0.4023,0.0017,train_reconstruction
+Hydrochlorothiazide,85.7336,142.5615,-0.024,train_reconstruction
+"1,2,3,4,5,6-hexachlorocyclohexane",28.3291,28.6549,-14.8055,train_reconstruction
+Azathioprine,66.8405,119.6454,-0.0117,train_reconstruction
+Daidzein,1.1163,1.2102,-0.3577,train_reconstruction
+Tamoxifen citrate,575.3789,580.5008,-29.9522,train_reconstruction
+Meso-hexestrol,14.5827,14.7785,-9.7662,train_reconstruction
+4-chloro-3-methylphenol,43.4908,45.7801,-7.3421,train_reconstruction
+Estrone,51.6197,52.4642,-16.4833,train_reconstruction
+Kaempferol,1.0836,1.7538,-0.0079,train_reconstruction
+Zearalenone,0.5785,0.7509,-0.0199,train_reconstruction
+5alpha-dihydrotestosterone,0.7527,0.8734,-0.048,train_reconstruction
+Apigenin,7.6424,11.4187,-0.1212,train_reconstruction
+Trimethyl phosphate,0.9377,3.0847,-0.0128,train_reconstruction
+Nordihydroguaiaretic acid,4.1618,6.4376,-0.111,train_reconstruction
+"2,2'-bisphenol f",0.7374,0.943,-0.0036,train_reconstruction
+2-ethylhexylparaben,0.4449,0.5642,-0.0348,train_reconstruction
+Caprolactam,17.2815,65.594,-0.0733,train_reconstruction
+"2,4,5-trichlorophenoxyacetic acid",48.1134,48.6054,-20.2499,train_reconstruction
+C.i. solvent yellow 14,25.8947,26.1894,-14.5234,train_reconstruction
+"2,4-dihydroxybenzophenone",1.4138,1.6148,-0.221,train_reconstruction
+Carabersat,20.3954,26.1143,-1.2328,train_reconstruction
+17-methyltestosterone,1.098,1.1807,-0.4808,train_reconstruction
+"4,4'-sulfonyldiphenol",266.2839,376.4156,-0.006,train_reconstruction
+Tris(2-chloroethyl) phosphate,35.1813,57.062,-0.0162,train_reconstruction
+Benzylparaben,0.6572,0.8531,-0.0079,train_reconstruction
+Triphenylphosphine oxide,40.5016,46.9356,-2.608,train_reconstruction
+(6)-gingerol,0.6573,0.9463,-0.0526,train_reconstruction
+1-benzylquinolinium chloride,1.1615,2.8476,-0.0094,train_reconstruction
+1-dodecyl-2-pyrrolidinone,0.5019,0.5588,-0.2269,train_reconstruction
+1-naphthol,52.8739,56.4655,-5.9775,train_reconstruction
+"1,2-dimethyl-3-nitrobenzene",2.3939,4.1573,-0.0988,train_reconstruction
+"1,2,3-benzotriazole",50.0041,74.4261,-0.0154,train_reconstruction
+"1,4-bis(n-isopropylamino)anthraquinone",40.2844,40.7037,-17.6959,train_reconstruction
+17alpha-estradiol,6.5832,8.589,-0.4511,train_reconstruction
+17beta-trenbolone,1.1141,1.2927,-0.1243,train_reconstruction
+"2',4',5',7'-tetrabromofluorescein",0.7319,0.7571,0.4959,train_reconstruction
+2-(4-hydroxybenzyl)phenol,0.9405,1.1226,-0.0546,train_reconstruction
+2-(thiocyanomethylthio)benzothiazole,15.7926,21.2035,-0.7989,train_reconstruction
+2-[4-(diethylamino)-2-hydroxybenzoyl]benzoic acid,10.5069,11.645,-0.1775,train_reconstruction
+2-amino-5-azotoluene,2.3615,2.5979,-0.3045,train_reconstruction
+2-aminoanthraquinone,1.0005,1.1046,-0.2219,train_reconstruction
+2-chloro-4-phenylphenol,18.576,18.8038,-12.5444,train_reconstruction
+2-chloro-n-phenylacetamide,1.1244,2.1188,-0.0082,train_reconstruction
+2-ethyl-3-hydroxy-4h-pyran-4-one,0.6963,2.8041,-0.0506,train_reconstruction
+2-hydroxy-4-methoxybenzophenone,0.8371,0.9176,-0.3051,train_reconstruction
+2-mercaptobenzimidazole,34.9247,54.8512,-0.0293,train_reconstruction
+2-mercaptobenzothiazole,1.5259,1.7544,-0.2409,train_reconstruction
+2-methoxy-4-propylphenol,1.3917,1.576,-0.2396,train_reconstruction
+2-methoxyphenol,1.0054,2.3357,-0.0142,train_reconstruction
+2-methylaniline,21.9624,42.7701,-0.0271,train_reconstruction
+2-tert-butyl-4-ethylphenol,0.5424,0.7228,-0.0491,train_reconstruction
+2-tert-butyl-4-methylphenol,0.9388,1.031,-0.2413,train_reconstruction
+2-tert-butyl-5-methylphenol,0.9284,1.0443,-0.1413,train_reconstruction
+2-tert-butylphenol,10.346,13.8805,-0.162,train_reconstruction
+"2,2'-methylenebis(4-methyl-6-tert-butylphenol)",0.436,0.4833,0.5396,train_reconstruction
+Dichlorvos,20.1056,35.0392,-0.0099,train_reconstruction
+"2,2',4,4'-tetrahydroxybenzophenone",1.5591,1.7111,-0.3841,train_reconstruction
+Diisobutyl phthalate,0.4834,0.6351,-0.1027,train_reconstruction
+Dipentyl phthalate,0.0883,0.1119,-0.4371,train_reconstruction
+"2,3-dihydro-2,2-dimethyl-7-benzofuranol",31.4271,46.3295,-0.0681,train_reconstruction
+"2,3,4-trihydroxbenzophenone",0.9397,1.299,-0.0072,train_reconstruction
+"Dipropyl 2,5-pyridinedicarboxylate",0.6156,0.8697,-0.0615,train_reconstruction
+"2,4-di-tert-butylphenol",0.1336,0.157,0.0772,train_reconstruction
+"2,4,4'-trihydroxybenzophenone",1.4902,1.6293,-0.3797,train_reconstruction
+"2,4,6-trimethylphenol",0.692,1.475,-0.1776,train_reconstruction
+"2,5-bis(2-methylbutan-2-yl)benzene-1,4-diol",0.2088,0.2389,-0.0793,train_reconstruction
+"2,5-di-tert-butylbenzene-1,4-diol",2.9495,3.728,-1.3456,train_reconstruction
+"2,6,10-trimethyl-2,6,10-triazaundecane",263.7988,380.8685,-0.109,train_reconstruction
+Enterolactone,0.8669,1.3169,-0.0125,train_reconstruction
+3-dimethylaminophenol,53.4167,76.5947,-0.0229,train_reconstruction
+3-iodo-2-propynyl-n-butylcarbamate,0.8666,1.8227,-0.0367,train_reconstruction
+3-isopropylphenol,1.081,1.2481,-0.1242,train_reconstruction
+3-methylaniline,1.0826,2.2769,-0.0094,train_reconstruction
+3-tert-butylphenol,0.8492,1.0178,-0.0353,train_reconstruction
+"3,3'-dimethoxybenzidine dihydrochloride",128.8423,191.6442,-0.0554,train_reconstruction
+"3,3'-dimethylbenzidine dihydrochloride",2.4263,3.4353,-0.2551,train_reconstruction
+"3,3',5,5'-tetrabromobisphenol a",0.1438,0.1745,-0.3826,train_reconstruction
+"3,4-dichloronitrobenzene",2.89,4.7807,-0.1752,train_reconstruction
+"3,5-dichloroaniline",0.8913,1.2538,-0.0058,train_reconstruction
+"3,5-dichlorosalicyl-3,4-dichloroanullide",3.8176,3.8688,-2.262,train_reconstruction
+"3,5,3'-triiodothyronine",16.5594,16.7982,-4.2132,train_reconstruction
+4-(2-phenylpropan-2-yl)-n-[4-(2-phenylpropan-2-yl)phenyl]aniline,0.7944,0.8585,0.171,train_reconstruction
+4-(hexyloxy)phenol,1.8956,2.4092,-0.003,train_reconstruction
+4-aminobenzoic acid,22.2311,48.2208,-0.0169,train_reconstruction
+4-anilinophenol,0.9697,1.3073,-0.0118,train_reconstruction
+4-butylaniline,1.1282,1.2655,-0.1953,train_reconstruction
+4-butyloxyaniline,1.7533,2.372,-0.1327,train_reconstruction
+4-butylphenol,0.5801,0.8419,-0.1139,train_reconstruction
+"4-chloro-1,2-diaminobenzene",1.2817,2.365,-0.0143,train_reconstruction
+4-chloroanulline,43.915,63.0266,-0.0481,train_reconstruction
+4-cumylphenol,0.7681,0.8479,-0.1977,train_reconstruction
+4-ethoxyaniline,1.2797,2.3911,-0.0139,train_reconstruction
+4-heptylphenol,0.5644,0.6436,-0.0354,train_reconstruction
+4-hexylanilline,0.4118,0.5725,-0.2949,train_reconstruction
+4-hexyloxyanilline,0.6507,0.8057,-0.0018,train_reconstruction
+4-hydroxy-3-methoxybenzaldehyde,1.5327,2.8401,-0.3982,train_reconstruction
+4-hydroxytamoxifen,0.1059,0.1246,-0.1917,train_reconstruction
+4-methylbenzophenone,0.7147,1.0106,-0.0253,train_reconstruction
+4-nitrophenol,1.7952,2.144,-0.2477,train_reconstruction
+4-nitrosodiphenylamine,0.9098,1.1668,-0.0151,train_reconstruction
+Loratadine,0.1481,0.1715,-0.1355,train_reconstruction
+4-pentylaniline,0.9865,1.0779,-0.2803,train_reconstruction
+4-propylanilline,1.4882,1.7373,-0.2072,train_reconstruction
+4-tert-butylaniline,1.3188,1.5106,-0.1959,train_reconstruction
+"4,4'-(9h-fluorene-9,9-diyl)diphenol",10.9446,13.8847,-1.0399,train_reconstruction
+Methomyl,1.1604,2.7754,-0.0092,train_reconstruction
+"4,4'-methylenebis(2,6-diethylaniline)",0.3321,0.3847,-0.1194,train_reconstruction
+"4,4'-methylenedianiline",1.7396,2.2974,-0.1404,train_reconstruction
+"4,4',4''-ethane-1,1,1-triyltriphenol",1.0683,1.1612,-0.3308,train_reconstruction
+5-amino-2-methylphenol,1.1296,2.6734,-0.0091,train_reconstruction
+5hpp-33,0.4385,0.4922,-0.1015,train_reconstruction
+6-thioguanine,20.1274,58.8407,-0.0192,train_reconstruction
+Acetophenone,42.5571,64.3872,-0.0233,train_reconstruction
+Acetyl tributyl citrate,0.3622,0.4278,0.0129,train_reconstruction
+Acibenzolar-s-methyl,0.9122,1.1375,-0.0242,train_reconstruction
+Adriamycin hydrochloride,88.7362,101.1567,-0.0848,train_reconstruction
+Aldoxycarb,16.8512,52.4072,-0.0183,train_reconstruction
+Allura red c.i.16035,112.5783,114.307,-17.398,train_reconstruction
+Amiodarone hydrochloride,40.8445,52.0368,-0.5794,train_reconstruction
+N-phenyl-1-naphthylamine,0.4367,0.5059,-0.0009,train_reconstruction
+Asulam,39.6101,99.1638,-0.012,train_reconstruction
+Auramine hydrochloride,2.6024,3.2831,-0.3701,train_reconstruction
+Azamethiphos,0.9445,2.6613,-0.1403,train_reconstruction
+Nicotinic acid,1.1458,2.8895,-0.0093,train_reconstruction
+Basic blue 7,50.1771,51.7429,-8.6305,train_reconstruction
+Benzocaine,0.8236,2.1161,-0.1769,train_reconstruction
+Benzyl salicylate,1.7671,2.2058,-0.0158,train_reconstruction
+Besonprodil,0.5493,0.6147,-0.5929,train_reconstruction
+Bicalutamide,30.9485,31.4762,-11.5457,train_reconstruction
+Biochanin a,0.7231,1.1314,-0.0581,train_reconstruction
+Bisdemethoxycurcumin,8.0689,10.9738,-0.0847,train_reconstruction
+Bisphenol af,0.5059,0.5971,0.0009,train_reconstruction
+Bispyribac-sodium,579.5161,788.3908,-0.8598,train_reconstruction
+Bromocresol green sodium salt,185.4869,188.4681,-11.9655,train_reconstruction
+Bromocriptine mesylate,3.827,4.1292,-1.2615,train_reconstruction
+C.i. basic red 9 monohydrochloride,2.351,3.4169,-0.2222,train_reconstruction
+C.i. disperse orange 37,56.2877,56.859,-19.5367,train_reconstruction
+C.i. solvent orange 7,11.7309,11.8917,-8.0221,train_reconstruction
+C.i. solvent red 49,0.0483,0.0579,-0.0682,train_reconstruction
+Phenylparaben,0.8243,1.0161,-0.017,train_reconstruction
+C8-18-alkydimethylbenzyl ammonium chlorides,0.9821,1.1398,-0.0915,train_reconstruction
+Pioglitazone hydrochloride,7.6571,8.4542,-1.2668,train_reconstruction
+Cariporide mesylate,44.7088,79.1027,-0.0089,train_reconstruction
+Carminic acid,34.3158,48.2186,-0.1138,train_reconstruction
+Catechol,2.4552,3.0402,-0.3565,train_reconstruction
+Chlorhexidine diacetate,312.9125,316.0775,-22.0154,train_reconstruction
+Chlorophacinone,18.0058,18.2533,-9.5969,train_reconstruction
+Chlorothalonil,18.1695,25.1891,-0.3383,train_reconstruction
+Chlorotrianisene,1.2274,1.245,-0.0506,train_reconstruction
+Chlorpromazine hydrochloride,224.7253,248.4837,-4.1702,train_reconstruction
+Chrysin,0.6287,0.9071,-0.0757,train_reconstruction
+Cj-013610,213.1854,260.667,-0.0155,train_reconstruction
+Clofibrate,1.4086,1.7126,-0.0079,train_reconstruction
+Clomipramine hydrochloride,123.0398,140.4095,-3.0642,train_reconstruction
+Sb236057a,0.9651,1.1144,-0.987,train_reconstruction
+Clopyralid-olamine,33.2049,54.8272,-0.0185,train_reconstruction
+Clotrimazole,0.2309,0.2642,0.0138,train_reconstruction
+Corticosterone,1.8642,2.1707,-0.306,train_reconstruction
+Cp-544439,1.8577,2.0065,-0.5493,train_reconstruction
+Cp-634384,44.6969,45.1708,-18.2553,train_reconstruction
+Cp-671305,41.5289,42.7674,-9.3818,train_reconstruction
+Curcumin,4.5678,7.6167,-0.0495,train_reconstruction
+Cyazofamid,2.78,3.2687,-0.5244,train_reconstruction
+Cyclopamine,0.1359,0.1568,-0.0649,train_reconstruction
+Cyclophosphamide monohydrate,22.9559,40.1686,-0.009,train_reconstruction
+Cyfluthrin,0.4242,0.4827,0.5679,train_reconstruction
+Cymoxanil,1.0933,2.7708,-0.0096,train_reconstruction
+Cyproterone acetate,1.1672,1.2488,-0.7471,train_reconstruction
+Cytarabine hydrochloride,0.8574,3.1724,-0.0752,train_reconstruction
+Daminozide,0.7911,3.1664,-0.0641,train_reconstruction
+Darbufelone mesylate,608.3852,631.6322,-11.1099,train_reconstruction
+Deethylatrazine,30.9793,51.8634,-0.0236,train_reconstruction
+Denatonium saccharide,47.3756,69.1012,-0.038,train_reconstruction
+Dexamethasone sodium phosphate,3.591,3.833,-1.2535,train_reconstruction
+Dibutyl decanedioate,0.4825,0.5492,-0.9537,train_reconstruction
+Dichlorophen,1.1998,1.3446,-0.2233,train_reconstruction
+Trichlorfon,0.9838,2.8146,-0.0137,train_reconstruction
+Diflubenzuron,21.6792,21.9783,-11.987,train_reconstruction
+Trifloxystrobin,0.758,0.9074,-0.0218,train_reconstruction
+Triglycidyl isocyanurate,2.4526,3.8866,-0.623,train_reconstruction
+Diphenamid,22.6875,31.469,-0.3516,train_reconstruction
+Diphenolic acid,20.3285,23.3823,-2.6328,train_reconstruction
+"1,2-diphenoxyethane",13.4776,15.2461,-2.7662,train_reconstruction
+Disulfiram,0.6525,0.7238,-0.1648,train_reconstruction
+Dl-norgestrel,1.3273,1.4206,-0.5196,train_reconstruction
+Econazole nitrate,16.1348,17.2837,-1.0321,train_reconstruction
+Elzasonan,0.3199,0.3665,-0.4742,train_reconstruction
+Enadoline,1.2752,1.4149,-0.2655,train_reconstruction
+Endothal,17.7934,28.476,-0.0153,train_reconstruction
+Octanoic acid,47.5608,49.4266,-9.1498,train_reconstruction
+Eosin,4.3392,4.4849,-0.7396,train_reconstruction
+Epoxiconazole,44.3265,46.21,-8.2853,train_reconstruction
+Equilin,0.9433,1.0222,-0.3889,train_reconstruction
+Exifone,66.0028,87.1382,-0.0262,train_reconstruction
+Fabesetron hydrochloride,3.2269,3.7606,-0.661,train_reconstruction
+C.i. direct red 81 disodium salt,42.0771,42.9976,-6.2141,train_reconstruction
+Fd&c green no. 3,2.67,2.7272,0.2692,train_reconstruction
+Fd&c yellow 6,60.5095,73.5249,-0.0043,train_reconstruction
+Fenofibrate,0.1862,0.2206,0.033,train_reconstruction
+Fenoxaprop-(2s)-ethyl,0.2901,0.3397,0.023,train_reconstruction
+Fenoxaprop-p-ethyl,0.2883,0.3402,0.0201,train_reconstruction
+"Fenpyroximate (z,e)",0.4012,0.4672,-0.3365,train_reconstruction
+Fenuron,1.2833,2.5606,-0.0128,train_reconstruction
+Fluazifop-butyl,0.3145,0.3713,0.017,train_reconstruction
+Flufenpyr-ethyl,0.4514,0.5817,-0.0507,train_reconstruction
+Fomesafen,65.0428,65.8813,-17.5926,train_reconstruction
+Haloxyfop-methyl,0.4823,0.5693,0.0029,train_reconstruction
+Hydramethylnon,71.7426,79.6114,-3.5647,train_reconstruction
+Hydroxyflutamide,31.3057,42.0972,-0.7446,train_reconstruction
+Hydroxyprogesterone caproate,0.1127,0.132,0.101,train_reconstruction
+Ilepatril,1.4724,1.6954,-0.2257,train_reconstruction
+Ingliforib,13.6911,14.7895,-1.261,train_reconstruction
+Ipconazole,0.4356,0.5035,-0.0039,train_reconstruction
+Isofenphos,0.4543,0.5454,0.0049,train_reconstruction
+Isopropalin,6.8759,7.1827,-3.9276,train_reconstruction
+Isoproterenol hydrochloride,19.6295,79.1678,-0.056,train_reconstruction
+Isoproturon,26.4489,36.7371,-0.3663,train_reconstruction
+Laurocapram,0.1607,0.1856,0.4495,train_reconstruction
+Lauryl gallate,8.1302,8.2441,-5.2212,train_reconstruction
+Leucomalachite green,1.9967,2.0229,-0.9189,train_reconstruction
+Levothyroxine,2.1389,2.1822,0.2578,train_reconstruction
+Picoxystrobin,0.7719,0.8498,-0.2194,train_reconstruction
+Malaoxon,0.9006,2.0742,-0.0288,train_reconstruction
+Melengestrol acetate,1.0753,1.1625,-0.3871,train_reconstruction
+Metamitron,24.9516,52.0949,-0.0148,train_reconstruction
+Methenamine,59.2894,119.9308,-0.0094,train_reconstruction
+Propachlor,0.8839,1.7538,-0.0306,train_reconstruction
+Methyl 2-aminobenzoate,1.1042,2.2281,-0.3207,train_reconstruction
+Propiconazole,0.8332,0.9059,-0.423,train_reconstruction
+Methyl red,1.1031,1.187,-0.4626,train_reconstruction
+Methyl salicylate,1.0074,1.4847,-0.0075,train_reconstruction
+Methylene blue,1.4426,2.7757,-0.0261,train_reconstruction
+Michler's ketone,0.6587,0.7306,-0.1658,train_reconstruction
+Resveratrol,10.8557,14.4579,-0.1598,train_reconstruction
+Monolinuron,37.6328,52.4157,-0.2268,train_reconstruction
+Monomethyl phthalate,44.1523,72.9389,-0.0114,train_reconstruction
+Morin hydrate,372.5983,375.6725,-39.0481,train_reconstruction
+N-benzyladenine,70.9436,99.0893,-0.0862,train_reconstruction
+N-ethylaniline,1.4171,1.8259,-0.0958,train_reconstruction
+N-methyl-2-pyrrolidone,4.0441,14.4801,-0.02,train_reconstruction
+Sodium saccharin hydrate,23.545,72.1857,-0.115,train_reconstruction
+N-vinyl-2-pyrrolidone,18.9688,45.7056,-0.012,train_reconstruction
+Naphthalen-2-yl 2-aminobenzoate,0.7647,0.9068,-0.0291,train_reconstruction
+Nelivaptan,2.1279,2.2178,-1.8184,train_reconstruction
+Sulisobenzone,20.3204,22.288,-0.2867,train_reconstruction
+Nilutamide,23.903,30.1648,-1.4508,train_reconstruction
+Nitrofurazone,21.2923,51.9143,-0.0115,train_reconstruction
+Oleyl sarcosine,0.3881,0.4604,0.4255,train_reconstruction
+Oxyphenisatin,41.5162,42.0818,-16.2831,train_reconstruction
+P-xylenol blue,16.3266,16.5716,-8.6757,train_reconstruction
+Paraoxon,28.2404,42.5432,-0.0363,train_reconstruction
+Pd-0333941,1.0727,1.2432,0.0537,train_reconstruction
+Pebulate,4.4148,6.2147,-0.5415,train_reconstruction
+Pharmagsid_48505,53.6431,54.2143,-19.5749,train_reconstruction
+Pharmagsid_48510,0.3092,0.3615,-0.4732,train_reconstruction
+Phenobarbital sodium,86.6502,161.2296,-0.011,train_reconstruction
+Phenol red,1.407,1.5171,-0.4249,train_reconstruction
+Phenol red sodium salt,129.1519,174.6685,-0.0236,train_reconstruction
+Phenolphthalin,13.0271,14.0555,-0.4203,train_reconstruction
+Phenothiazine,18.8351,19.0596,-12.944,train_reconstruction
+Celecoxib,2.0513,2.2264,-0.4404,train_reconstruction
+Trinexapac-ethyl,2.3914,2.97,-0.3317,train_reconstruction
+Triclocarban,1.0665,1.2207,-0.1666,train_reconstruction
+Secbumeton,1.2765,1.3713,-0.4638,train_reconstruction
+Pravastatin sodium,86.6369,125.3873,-0.1112,train_reconstruction
+Procymidone,1.3255,1.4185,-0.5236,train_reconstruction
+Hexanedihydrazide,1.1158,3.1155,-0.0093,train_reconstruction
+Propargite,0.1965,0.2262,-0.1899,train_reconstruction
+Diethylenetriamine,0.7826,3.1072,-0.0239,train_reconstruction
+Propoxycarbazone-sodium,360.048,368.5628,-16.5508,train_reconstruction
+Propyl gallate,1.658,2.137,-0.1411,train_reconstruction
+Pyraflufen-ethyl,11.1158,14.8328,-0.4696,train_reconstruction
+Raloxifene hydrochloride,2.6954,2.9182,-0.8047,train_reconstruction
+Tembotrione,62.8181,84.8747,-0.3596,train_reconstruction
+Rhodamine 6g,458.8664,462.774,-34.5571,train_reconstruction
+Phenthoate,0.6053,0.7772,-0.01,train_reconstruction
+Tetrabromophenolphthalein ethyl ester,0.8412,0.8654,0.4276,train_reconstruction
+Sodium 2-mercaptobenzothiolate,2.1514,2.8089,-0.2346,train_reconstruction
+Sodium 4-nitrophenolate,1.4826,3.1091,-0.0317,train_reconstruction
+Sodium dehydroacetate,243.728,391.1137,-0.0183,train_reconstruction
+"4,4'-sulfonylbis[2-(prop-2-en-1-yl)phenol]",0.9899,1.2979,-0.0189,train_reconstruction
+Sulfamethazine,120.4087,177.6933,-0.0224,train_reconstruction
+Sulfaquinoxaline,288.551,291.0605,-36.4226,train_reconstruction
+Sulfotepp,0.5257,0.6142,-0.0069,train_reconstruction
+Hexyl salicylate,5.3381,8.4338,-0.244,train_reconstruction
+Surinabant,1.7036,1.7265,-0.2196,train_reconstruction
+2-ethylhexanoic acid,1.4794,1.6451,-0.3015,train_reconstruction
+Terbufos,0.3586,0.4039,-0.112,train_reconstruction
+Testosterone propionate,1.5272,1.9144,-0.0416,train_reconstruction
+Isopropanol,1.0232,3.1162,-0.0122,train_reconstruction
+Tetrahydrocurcumin,0.8931,1.6376,-0.0247,train_reconstruction
+Theobromine,2.3081,3.8045,-0.5479,train_reconstruction
+Thiram,2.7417,4.2577,-0.0239,train_reconstruction
+Tolazamide,57.4779,62.4782,-4.718,train_reconstruction
+Tralkoxydim,7.6999,8.1074,-4.6379,train_reconstruction
+Trelanserin,1.827,1.9171,-0.9523,train_reconstruction
+Triazophos,1.0125,1.1068,-0.2817,train_reconstruction
+Terbuthylazine,1.1641,1.2577,-0.395,train_reconstruction
+Triethylene glycol dimethyl ether,23.3689,71.5288,-0.0239,train_reconstruction
+Ethanol,0.8661,3.0903,-0.0168,train_reconstruction
+4-(n-methyl-n-nitrosamino)-1-(3-pyridyl)-1-butanone,1.4448,2.5133,-0.0306,train_reconstruction
+"4-hydroxy-2,2,6,6-tetramethylpiperidin-1-yl)oxidanyl",1.3893,2.6177,-0.0219,train_reconstruction
+2-butyloctan-1-ol,0.2407,0.3171,-0.4779,train_reconstruction
+Mestranol,0.5627,0.6238,-0.3829,train_reconstruction
+(4-methoxyphenyl)methanol,0.9009,2.4914,-0.0248,train_reconstruction
+"(2z)-3,7-dimethylocta-2,6-dien-1-ol",37.3817,37.7695,-19.3803,train_reconstruction
+4-n-nonylphenol,0.0676,0.085,-0.2127,train_reconstruction
+Mizolastine,1.5275,1.6299,-0.8702,train_reconstruction
+4-morpholinecarboxaldehyde,0.6967,3.178,-0.0355,train_reconstruction
+2-butoxyethanol,1.1886,2.6618,-0.0092,train_reconstruction
+"4,4'-(oxydiethylene)bis(morpholine)",1.3855,3.034,-0.0206,train_reconstruction
+Metconazole,0.7492,0.8191,-0.4224,train_reconstruction
+Tetramethylthiuram monosulfide,1.1572,2.5737,-0.009,train_reconstruction
+Triethoxyoctylsilane,0.283,0.3218,-0.196,train_reconstruction
+1-(2-hydroxyethyl)pyrrolidin-2-one,1.0017,3.4422,-0.0153,train_reconstruction
+"6-phenyl-1,3,5-triazine-2,4-diamine",1.6426,2.4127,-0.0772,train_reconstruction
+N-dodecanoyl-n-methylglycine,0.8438,0.9386,-0.1449,train_reconstruction
+"Ethyl 2-cyano-3,3-diphenylacrylate",0.7919,1.2259,-0.0299,train_reconstruction
+"2,6-di-tert-butyl-4-[(dimethylamino)methyl]phenol",0.5343,0.6065,-0.0496,train_reconstruction
+Saccharin,2.0843,2.8472,-0.1842,train_reconstruction
+C.i.disperse yellow 42,2.1999,2.7853,-0.2704,train_reconstruction
