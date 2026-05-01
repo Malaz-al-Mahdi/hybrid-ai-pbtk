@@ -1,10 +1,31 @@
-Random Forest LOO-CV  (n = 19 chemicals)
-==================================================
-RMSE (original scale) : 187.6763  uL/min/10^6 cells
-R^2  (original scale) : -0.0927
-Spearman rho          : 0.1071  (p = 6.6251e-01)
+Clint Prediction  --  LOO-CV  (n = 19 chemicals)
+Best model: GradientBoosting
+====================================================
 
-Feature importances (mean across LOO folds):
-  MW                  : 0.3709
-  logP                : 0.3228
-  Fup                 : 0.3063
+PRIMARY METRIC (log10 scale  --  recommended for TK data)
+  R^2  log10           : -0.2567
+  RMSE log10           : 1.6423  log10 units
+  Spearman rho         : 0.1615  (p = 5.0879e-01)
+  Geom. mean fold-error: 18.06x
+  Within 2-fold        : 11 %
+  Within 3-fold        : 32 %
+
+ORIGINAL SCALE (informative; note: Thiram outlier Clint=816)
+  RMSE (uL/min/10^6)   : 167.8284
+  R^2                  : 0.1262
+  Spearman rho         : 0.1615  (p = 5.0879e-01)
+
+Model comparison (log10-R^2):
+  RandomForest         : -0.2672
+  GradientBoosting     : -0.2567
+
+RF Feature importances (mean across LOO folds):
+  log10_MW            : 0.1875
+  MW                  : 0.1760
+  MW_x_Fup            : 0.1105
+  MW_x_logP           : 0.1092
+  logP_x_Fup          : 0.1063
+  sqrt_Fup            : 0.0970
+  log10_Fup           : 0.0879
+  logP                : 0.0657
+  logP^2              : 0.0599
