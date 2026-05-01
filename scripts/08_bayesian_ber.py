@@ -24,7 +24,7 @@ distributions per chemical.
 
 Architecture
 ~~~~~~~~~~~~
-  - Input: 4 physicochemical features (MW, logP, Fup, Rblood2plasma)
+  - Input: 3 physicochemical features (MW, logP, Fup)
   - 3 hidden layers with Dropout(p=0.3) and ReLU activations
   - Output: log10(Clint)
   - Training: MSE loss + L2 regularisation
@@ -103,7 +103,7 @@ class BayesianMLP(nn.Module):
     """
     def __init__(
         self,
-        n_in:       int   = 4,
+        n_in:       int   = 3,
         hidden:     list  = None,
         p_dropout:  float = DROPOUT_P,
     ):
@@ -330,10 +330,15 @@ def plot_posterior_top5(result_df: pd.DataFrame, out_path: Path) -> None:
     """
     df = result_df.dropna(subset=["BER_median"]).nsmallest(5, "BER_median")
 
+    if len(df) == 0:
+        print(f"  WARNING: no chemicals with valid BER_median - skipping {out_path.name}")
+        return
+
     from scipy.stats import gaussian_kde
 
-    fig, axes = plt.subplots(1, len(df), figsize=(4 * len(df), 4), sharey=False)
-    if len(df) == 1:
+    n_cols = max(len(df), 1)
+    fig, axes = plt.subplots(1, n_cols, figsize=(4 * n_cols, 4), sharey=False)
+    if n_cols == 1:
         axes = [axes]
 
     for ax, (_, row) in zip(axes, df.iterrows()):
@@ -404,7 +409,7 @@ def plot_clint_uncertainty(
 
 def main() -> None:
     print("=" * 65)
-    print("Step 8 – Bayesian BER (MC Dropout Uncertainty Analysis)")
+    print("Step 8 - Bayesian BER (MC Dropout Uncertainty Analysis)")
     print("=" * 65, "\n")
 
     # ─ Load data ─────────────────────────────────────────────────────────────
@@ -417,7 +422,7 @@ def main() -> None:
         print(f"AED/BER results:  {len(aed_ber)} rows")
 
     # ─ Feature matrix ────────────────────────────────────────────────────────
-    feature_cols = ["MW", "logP", "Fup", "Rblood2plasma"]
+    feature_cols = ["MW", "logP", "Fup"]
     target_col   = next((c for c in ("Clint_final", "Clint", "Clint_RF")
                          if c in pilot.columns), None)
     if target_col is None:
@@ -432,19 +437,19 @@ def main() -> None:
     print(f"Training samples: {len(X)}")
 
     # ─ Train Bayesian MLP ────────────────────────────────────────────────────
-    print(f"\nTraining BNN ({EPOCHS} epochs max, dropout p={DROPOUT_P}) …")
+    print(f"\nTraining BNN ({EPOCHS} epochs max, dropout p={DROPOUT_P}) ...")
     model, scaler_X, scaler_y = train_bayesian_mlp(X, y)
     print("Training complete.")
 
     # ─ MC Dropout posterior sampling ─────────────────────────────────────────
-    print(f"Sampling {N_MC} posterior draws per chemical …")
+    print(f"Sampling {N_MC} posterior draws per chemical ...")
     pilot_sub  = pilot.loc[sub.index].reset_index(drop=True)
     X_pilot    = sub[available].values.astype(np.float32)
     mc_samples = mc_predict(model, X_pilot, scaler_X, scaler_y, n_mc=N_MC)
     print(f"Posterior samples shape: {mc_samples.shape}")
 
     # ─ BER propagation ───────────────────────────────────────────────────────
-    print("Propagating Clint uncertainty → AED → BER …")
+    print("Propagating Clint uncertainty -> AED -> BER ...")
     result_df = propagate_to_ber(mc_samples, pilot_sub, aed_ber)
 
     # ─ Save CSV (drop raw samples) ───────────────────────────────────────────
@@ -468,10 +473,10 @@ def main() -> None:
     cols = [c for c in cols if c in show.columns]
     print(show[cols].to_string(index=False))
     print("\nOutputs saved to results/")
-    print("  bayesian_ber.csv                  – full posterior BER summary")
-    print("  ber_credible_intervals.png         – waterfall + 90 % CI")
-    print("  ber_posterior_top5.png             – density plots, top-5 chemicals")
-    print("  clint_posterior_uncertainty.png    – BNN Clint uncertainty scatter")
+    print("  bayesian_ber.csv                  - full posterior BER summary")
+    print("  ber_credible_intervals.png         - waterfall + 90 % CI")
+    print("  ber_posterior_top5.png             - density plots, top-5 chemicals")
+    print("  clint_posterior_uncertainty.png    - BNN Clint uncertainty scatter")
     print("\nDone.\n")
 
 

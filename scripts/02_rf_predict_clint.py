@@ -2,7 +2,7 @@
 02_rf_predict_clint.py
 ----------------------
 Trains a Random Forest regressor to predict hepatic intrinsic clearance (Clint)
-from physicochemical descriptors (MW, logP, Fup, Rblood2plasma).
+from physicochemical descriptors (MW, logP, Fup).
 
 Evaluation strategy:
   - Leave-One-Out Cross-Validation (LOO-CV) on the 20 pilot chemicals
@@ -48,7 +48,7 @@ print(f"Loaded {len(df)} chemicals from {FULL_CSV.name}")
 print(df[["CAS", "Compound", "Clint"]].to_string(index=False))
 print()
 
-FEATURES = ["MW", "logP", "Fup", "Rblood2plasma"]
+FEATURES = ["MW", "logP", "Fup"]
 TARGET = "Clint"
 
 # Keep all rows with a known target. Missing feature values are imputed.

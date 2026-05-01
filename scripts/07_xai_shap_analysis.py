@@ -81,7 +81,7 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
     print("\n── A) RF Clint prediction – SHAP analysis ──")
 
     # Features used in Step 2
-    feature_cols = ["MW", "logP", "Fup", "Rblood2plasma"]
+    feature_cols = ["MW", "logP", "Fup"]
     available    = [c for c in feature_cols if c in pilot.columns]
 
     target_col = None
@@ -181,10 +181,9 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
 
     # ─ Plot 3 & 4: Dependence plots ───────────────────────────────────────────
     for feat_main, feat_interact in [
-        ("logP",         "Fup"),
-        ("Fup",          "logP"),
-        ("MW",           "logP"),
-        ("Rblood2plasma","Fup"),
+        ("logP", "Fup"),
+        ("Fup",  "logP"),
+        ("MW",   "logP"),
     ]:
         if feat_main not in available:
             continue
@@ -242,7 +241,7 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     ber_sub = ber_df[ber_df["BER"].notna() & (ber_df["BER"] > 0)].copy()
 
     # Merge with pilot descriptors (CAS-based)
-    merge_cols = ["MW", "logP", "Fup", "Rblood2plasma"]
+    merge_cols = ["MW", "logP", "Fup"]
     cas_col    = "CAS" if "CAS" in pilot.columns else None
     if cas_col and "CAS" in ber_sub.columns:
         merged = ber_sub.merge(
