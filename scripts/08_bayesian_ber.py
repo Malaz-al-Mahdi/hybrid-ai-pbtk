@@ -239,7 +239,9 @@ def propagate_to_ber(
                 row_ber = match.iloc[0]
                 aed_ref = float(row_ber.get("AED_median", np.nan))
                 ac50_ref = float(row_ber.get("AC50_5pct_uM", 1.0))
-                exp_ref  = float(row_ber.get("Exposure_median_mg_kg_day", np.nan))
+                # Spalte heisst SEEM_mg_kg_day (Fallback auf alten Namen fuer Rueckwaertskompatibilitaet)
+                exp_ref = float(row_ber.get("SEEM_mg_kg_day",
+                            row_ber.get("Exposure_median_mg_kg_day", np.nan)))
 
         # Posterior Clint samples (n_mc,)
         clint_samples = 10.0 ** log10_clint_samples[:, i]

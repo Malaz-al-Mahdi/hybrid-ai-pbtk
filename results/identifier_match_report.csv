@@ -1,0 +1,778 @@
+DTXSID,CAS,Compound,has_SEEM,SEEM_mg_kg_day,AED_median,BER,concern,in_aed_ber,has_BER
+DTXSID0039223,116-06-3,Aldicarb,True,1.313e-06,0.028335,66856.8164508759,MINIMAL (BER>100),True,True
+DTXSID9020089,101-05-3,Anilazine,True,1.453e-07,0.51555,20217481.0736407,MINIMAL (BER>100),True,True
+DTXSID7020182,80-05-7,Bisphenol-a,True,5.856e-05,0.2442,18427.2540983607,MINIMAL (BER>100),True,True
+DTXSID7032551,79622-59-6,Fluazinam,True,6.555e-08,0.17495,15733028.2227307,MINIMAL (BER>100),True,True
+DTXSID2032552,142459-58-3,Flufenacet,True,1.473e-07,11.31,372175831.636117,MINIMAL (BER>100),True,True
+DTXSID3021986,126-73-8,Tributyl phosphate,True,1.987e-05,0.017605,2189.38097634625,MINIMAL (BER>100),True,True
+DTXSID1020510,57-97-6,"""7,12-dimethylbenz(a)anthracene""",True,8.279e-06,0.08135,39068.1241695857,MINIMAL (BER>100),True,True
+DTXSID2020892,443-48-1,Metronidazole,True,1.219e-07,22.21,809831829.368335,MINIMAL (BER>100),True,True
+DTXSID9022524,50-35-1,Thalidomide,True,5.593e-07,0.42825,3485070.62399428,MINIMAL (BER>100),True,True
+DTXSID9024065,99-65-0,"1,3-dinitrobenzene",True,1.853e-05,0.19715,31329.4657312466,MINIMAL (BER>100),True,True
+DTXSID3021770,79-95-8,"2,2',6,6'-tetrachlorobisphenol a",True,3.135e-07,0.9039,11732854.8644338,MINIMAL (BER>100),True,True
+DTXSID9029221,1702-17-6,Clopyralid,True,2.968e-07,0.0004355,8807.95148247978,MINIMAL (BER>100),True,True
+DTXSID8034588,131807-57-3,Famoxadone,True,1.646e-07,0.63915,15999088.6998785,MINIMAL (BER>100),True,True
+DTXSID9041653,4707-47-5,"Methyl 2,4-dihydroxy-3,6-dimethylbenzoate",True,0.0001883,75.645,2283404.14232607,MINIMAL (BER>100),True,True
+DTXSID9034816,6923-22-4,Monocrotophos,True,1.876e-07,0.00082845,16461.8869936034,MINIMAL (BER>100),True,True
+DTXSID3048520,625114-41-2,Piragliatin,True,1.506e-07,3.704,101085657.370518,MINIMAL (BER>100),True,True
+DTXSID8022325,2971-36-0,"2,2-bis(4-hydroxyphenyl)-1,1,1-trichloroethane (hpte)",True,,1.4655,,no_exposure_data,True,False
+DTXSID0020442,94-75-7,"2,4-d",True,,0.01462,,no_exposure_data,True,False
+DTXSID7024035,94-82-6,"2,4-db",True,,0.0043085,,no_exposure_data,True,False
+DTXSID2021151,90-43-7,2-phenylphenol,True,,0.013005,,no_exposure_data,True,False
+DTXSID0037495,1007-28-9,6-desisopropylatrazine,True,,0.13885,,no_exposure_data,True,False
+DTXSID8023892,71751-41-2,Abamectin,False,,0.3127,,no_exposure_data,True,False
+DTXSID8023846,30560-19-1,Acephate,True,,0.28825,,no_exposure_data,True,False
+DTXSID0034300,135410-20-7,Acetamiprid,True,,0.18315,,no_exposure_data,True,False
+DTXSID8023848,34256-82-1,Acetochlor,True,,5.7855,,no_exposure_data,True,False
+DTXSID0020022,50594-66-6,Acifluorfen,True,,0.01423,,no_exposure_data,True,False
+DTXSID1022265,15972-60-8,Alachlor,True,,3.64,,no_exposure_data,True,False
+DTXSID4020791,121-75-5,Malathion,True,,204.2,,no_exposure_data,True,False
+DTXSID1023869,834-12-8,Ametryn,True,,0.036425,,no_exposure_data,True,False
+DTXSID5023871,33089-61-1,Amitraz,True,,0.1743,,no_exposure_data,True,False
+DTXSID7032424,104206-82-8,Mesotrione,True,,0.54775,,no_exposure_data,True,False
+DTXSID9020112,1912-24-9,Atrazine,True,,0.03294,,no_exposure_data,True,False
+DTXSID3020122,86-50-0,Azinphos-methyl,True,,6.337,,no_exposure_data,True,False
+DTXSID0032520,131860-33-8,Azoxystrobin,True,,1.5585,,no_exposure_data,True,False
+DTXSID9032327,22781-23-3,Bendiocarb,True,,2.975,,no_exposure_data,True,False
+DTXSID7024164,83055-99-6,Bensulfuron-methyl,True,,0.03237,,no_exposure_data,True,False
+DTXSID9032329,741-58-2,Bensulide,True,,3.281,,no_exposure_data,True,False
+DTXSID0023901,25057-89-0,Bentazone,True,,0.01283,,no_exposure_data,True,False
+DTXSID5032525,149877-41-8,Bifenazate,True,,4.5005,,no_exposure_data,True,False
+DTXSID9020160,82657-04-3,Bifenthrin,True,,0.000179,,no_exposure_data,True,False
+DTXSID6032562,113-48-4,Mgk,True,,0.002835,,no_exposure_data,True,False
+DTXSID6034392,188425-85-6,Boscalid,True,,0.486,,no_exposure_data,True,False
+DTXSID4022020,314-40-9,Bromacil,True,,0.03472,,no_exposure_data,True,False
+DTXSID3022162,1689-84-5,Bromoxynil,True,,5.726,,no_exposure_data,True,False
+DTXSID8034401,69327-76-0,Buprofezin,True,,0.02194,,no_exposure_data,True,False
+DTXSID3034402,23184-66-9,Butachlor,True,,0.99155,,no_exposure_data,True,False
+DTXSID3032337,33629-47-9,Butralin,True,,0.29945,,no_exposure_data,True,False
+DTXSID7023936,2008-41-5,Butylate,True,,0.3625,,no_exposure_data,True,False
+DTXSID9020247,63-25-2,Carbaryl,True,,5.824,,no_exposure_data,True,False
+DTXSID0023951,5234-68-4,Carboxin,True,,2.6905,,no_exposure_data,True,False
+DTXSID2032344,54593-83-8,Chlorethoxyfos,True,,7.41,,no_exposure_data,True,False
+DTXSID3034872,1698-60-8,Chloridazon,True,,0.2665,,no_exposure_data,True,False
+DTXSID7020764,101-21-3,Chlorpropham,True,,3.46,,no_exposure_data,True,False
+DTXSID6032352,5598-13-0,Chlorpyrifos-methyl,True,,0.25095,,no_exposure_data,True,False
+DTXSID3034456,87818-31-3,Cinmethylin,True,,0.23435,,no_exposure_data,True,False
+DTXSID9023881,74115-24-5,Clofentezine,True,,0.0035835,,no_exposure_data,True,False
+DTXSID1032355,81777-89-1,Clomazone,True,,0.3714,,no_exposure_data,True,False
+DTXSID9034232,101-10-0,Cloprop,True,,0.01065,,no_exposure_data,True,False
+DTXSID2034465,210880-92-5,Clothianidin,True,,4.518,,no_exposure_data,True,False
+DTXSID2020347,56-72-4,Coumaphos,True,,0.67025,,no_exposure_data,True,False
+DTXSID1023990,21725-46-2,Cyanazine,True,,0.104,,no_exposure_data,True,False
+DTXSID5032600,113136-77-9,Cyclanilide,True,,0.4015,,no_exposure_data,True,False
+DTXSID6032356,1134-23-2,Cycloate,True,,0.136,,no_exposure_data,True,False
+DTXSID0032601,94361-06-5,Cyproconazole,True,,0.19615,,no_exposure_data,True,False
+DTXSID1032359,121552-61-2,Cyprodinil,True,,0.0801,,no_exposure_data,True,False
+DTXSID6023999,66215-27-8,Cyromazine,True,,0.23445,,no_exposure_data,True,False
+DTXSID8035180,584-79-2,"D-cis,trans-allethrin",True,,0.002094,,no_exposure_data,True,False
+DTXSID7024902,533-74-4,Dazomet,True,,7.731,,no_exposure_data,True,False
+DTXSID9020407,333-41-5,Diazinon,True,,1.134,,no_exposure_data,True,False
+DTXSID5037523,962-58-3,Diazoxon,True,,14.24,,no_exposure_data,True,False
+DTXSID4024018,1918-00-9,Dicamba,True,,0.12385,,no_exposure_data,True,False
+DTXSID5032365,1194-65-6,Dichlobenil,True,,0.021275,,no_exposure_data,True,False
+DTXSID2020426,99-30-9,Dichloran,True,,0.0024285,,no_exposure_data,True,False
+DTXSID0020440,120-36-5,Dichlorprop,True,,0.0050215,,no_exposure_data,True,False
+DTXSID0032605,51338-27-3,Diclofop-methyl,True,,0.0015595,,no_exposure_data,True,False
+DTXSID4034528,145701-21-9,Diclosulam,True,,0.03315,,no_exposure_data,True,False
+DTXSID4020450,115-32-2,Dicofol,True,,0.062755,,no_exposure_data,True,False
+DTXSID9023914,141-66-2,Dicrotophos,True,,0.31415,,no_exposure_data,True,False
+DTXSID5020607,117-81-7,Diethylhexyl phthalate (dehp),True,,0.0001718,,no_exposure_data,True,False
+DTXSID2021995,134-62-3,Diethyltoluamide,True,,0.67315,,no_exposure_data,True,False
+DTXSID4032372,119446-68-3,Difenoconazole,True,,0.7846,,no_exposure_data,True,False
+DTXSID6024048,43222-48-6,Difenzoquat metilsulfate,True,,0.72125,,no_exposure_data,True,False
+DTXSID4032376,87674-68-8,Dimethenamid,True,,3.547,,no_exposure_data,True,False
+DTXSID7020479,60-51-5,Dimethoate,True,,3.526,,no_exposure_data,True,False
+DTXSID7034545,110488-70-5,Dimethomorph,True,,2.722,,no_exposure_data,True,False
+DTXSID3022455,131-11-3,Dimethyl phthalate,True,,0.27985,,no_exposure_data,True,False
+DTXSID2040363,83657-24-3,Diniconazole,True,,0.003047,,no_exposure_data,True,False
+DTXSID4021975,122-39-4,Diphenylamine,True,,0.2193,,no_exposure_data,True,False
+DTXSID9032379,97886-45-8,Dithiopyr,True,,0.1631,,no_exposure_data,True,False
+DTXSID0020446,330-54-1,Diuron,True,,1.0065,,no_exposure_data,True,False
+DTXSID0034566,155569-91-8,Emamectin benzoate,False,,0.003461,,no_exposure_data,True,False
+DTXSID1020560,115-29-7,Endosulfan,True,,0.02082,,no_exposure_data,True,False
+DTXSID1024091,759-94-4,Eptc,True,,0.3548,,no_exposure_data,True,False
+DTXSID4032667,66230-04-4,Esfenvalerate,True,,0.0001436,,no_exposure_data,True,False
+DTXSID8032386,55283-68-6,Ethalfluralin,True,,0.0008163,,no_exposure_data,True,False
+DTXSID9034573,97780-06-8,Ethametsulfuron methyl,True,,0.014675,,no_exposure_data,True,False
+DTXSID8034580,26225-79-6,Ethofumesate,True,,2.208,,no_exposure_data,True,False
+DTXSID4032611,13194-48-4,Ethoprop,True,,0.59175,,no_exposure_data,True,False
+DTXSID8034586,153233-91-1,Etoxazole,True,,0.176,,no_exposure_data,True,False
+DTXSID3032547,2593-15-9,Etridiazole,True,,0.7418,,no_exposure_data,True,False
+DTXSID2034590,161326-34-7,Fenamidone,True,,0.34975,,no_exposure_data,True,False
+DTXSID3024102,22224-92-6,Fenamiphos,True,,2.479,,no_exposure_data,True,False
+DTXSID2032390,60168-88-9,Fenarimol,True,,0.1069,,no_exposure_data,True,False
+DTXSID8032548,114369-43-6,Fenbuconazole,True,,0.82035,,no_exposure_data,True,False
+DTXSID3032549,126833-17-8,Fenhexamid,True,,1.9465,,no_exposure_data,True,False
+DTXSID4032613,122-14-5,Fenitrothion,True,,0.070005,,no_exposure_data,True,False
+DTXSID2032392,66441-23-4,Fenoxaprop-ethyl,True,,0.0020635,,no_exposure_data,True,False
+DTXSID7032393,72490-01-8,Fenoxycarb,True,,0.1729,,no_exposure_data,True,False
+DTXSID8020620,55-38-9,Fenthion,True,,1.0995,,no_exposure_data,True,False
+DTXSID4034609,120068-37-3,Fipronil,True,,0.0086735,,no_exposure_data,True,False
+DTXSID0034855,79241-46-6,Fluazifop-p-butyl,True,,2.837,,no_exposure_data,True,False
+DTXSID5032498,3380-34-5,Triclosan,True,,0.29255,,no_exposure_data,True,False
+DTXSID2032398,131341-86-1,Fludioxonil,True,,0.19765,,no_exposure_data,True,False
+DTXSID2032500,68694-11-1,Triflumizole,True,,0.3615,,no_exposure_data,True,False
+DTXSID7032553,62924-70-3,Flumetralin,True,,0.0005593,,no_exposure_data,True,False
+DTXSID4032615,98967-40-9,Flumetsulam,True,,0.30225,,no_exposure_data,True,False
+DTXSID7032555,103361-09-7,Flumioxazin,True,,0.3317,,no_exposure_data,True,False
+DTXSID8020628,2164-17-2,Fluometuron,True,,1.557,,no_exposure_data,True,False
+DTXSID2034625,361377-29-9,Fluoxastrobin,True,,0.4464,,no_exposure_data,True,False
+DTXSID2034627,69377-81-7,Fluroxypyr,True,,0.2111,,no_exposure_data,True,False
+DTXSID5034303,81406-37-3,Fluroxypyr-meptyl,True,,0.002139,,no_exposure_data,True,False
+DTXSID3024235,85509-19-9,Flusilazole,True,,0.13585,,no_exposure_data,True,False
+DTXSID8024109,66332-96-5,Flutolanil,True,,0.21905,,no_exposure_data,True,False
+DTXSID7034753,173159-57-4,Foramsulfuron,True,,0.0801,,no_exposure_data,True,False
+DTXSID1034634,68157-60-8,Forchlorfenuron,True,,0.5,,no_exposure_data,True,False
+DTXSID4032405,23422-53-9,Formetanate hydrochloride,True,,15.315,,no_exposure_data,True,False
+DTXSID0034930,98886-44-3,Fosthiazate,True,,0.33275,,no_exposure_data,True,False
+DTXSID9034650,100784-20-1,Halosulfuron-methyl,True,,0.009187,,no_exposure_data,True,False
+DTXSID4034653,79983-71-4,Hexaconazole,True,,0.33785,,no_exposure_data,True,False
+DTXSID4024145,51235-04-2,Hexazinone,True,,2.6115,,no_exposure_data,True,False
+DTXSID7024299,78587-05-0,Hexythiazox,True,,0.7755,,no_exposure_data,True,False
+DTXSID0034227,119515-38-7,Icaridin,True,,1.771,,no_exposure_data,True,False
+DTXSID8024151,35554-44-0,Imazalil,True,,0.006669,,no_exposure_data,True,False
+DTXSID3034664,114311-32-9,Imazamox,True,,0.81565,,no_exposure_data,True,False
+DTXSID5034270,104098-48-8,Imazapic,True,,0.5537,,no_exposure_data,True,False
+DTXSID8034665,81334-34-1,Imazapyr,True,,0.8681,,no_exposure_data,True,False
+DTXSID3024152,81335-37-7,Imazaquin,True,,0.53635,,no_exposure_data,True,False
+DTXSID3024287,81335-77-5,Imazethapyr,True,,1.7405,,no_exposure_data,True,False
+DTXSID5032442,138261-41-3,Imidacloprid,True,,1.633,,no_exposure_data,True,False
+DTXSID1032690,173584-44-6,Indoxacarb,True,,0.50005,,no_exposure_data,True,False
+DTXSID2034673,144550-36-7,Iodosulfuron-methyl-sodium,True,,0.061555,,no_exposure_data,True,False
+DTXSID3024154,36734-19-7,Iprodione,True,,0.058195,,no_exposure_data,True,False
+DTXSID7034676,42509-80-8,Isazofos,True,,0.5169,,no_exposure_data,True,False
+DTXSID8024159,82558-50-7,Isoxaben,True,,0.7605,,no_exposure_data,True,False
+DTXSID5034723,141112-29-0,Isoxaflutole,True,,0.529,,no_exposure_data,True,False
+DTXSID7024160,77501-63-4,Lactofen,True,,0.0018925,,no_exposure_data,True,False
+DTXSID2020686,58-89-9,Lindane,True,,0.009398,,no_exposure_data,True,False
+DTXSID2024163,330-55-2,Linuron,True,,1.366,,no_exposure_data,True,False
+DTXSID9022528,120-47-8,Ethylparaben,True,,4.0735,,no_exposure_data,True,False
+DTXSID4024195,94-74-6,Mcpa,True,,0.0060475,,no_exposure_data,True,False
+DTXSID6034712,208465-21-8,Mesosulfuron-methyl,True,,0.056195,,no_exposure_data,True,False
+DTXSID0020529,121-14-2,"""2,4-dinitrotoluene""",True,,0.040825,,no_exposure_data,True,False
+DTXSID6024175,57837-19-1,Metalaxyl,True,,0.43515,,no_exposure_data,True,False
+DTXSID5020819,950-37-8,Methidathion,True,,1.429,,no_exposure_data,True,False
+DTXSID9020827,72-43-5,Methoxychlor,True,,0.17705,,no_exposure_data,True,False
+DTXSID3032628,161050-58-4,Methoxyfenozide,True,,0.5322,,no_exposure_data,True,False
+DTXSID1020855,298-00-0,Methyl parathion,True,,0.42425,,no_exposure_data,True,False
+DTXSID4022448,51218-45-2,Metolachlor,True,,3.8695,,no_exposure_data,True,False
+DTXSID6024204,21087-64-9,Metribuzin,True,,0.45415,,no_exposure_data,True,False
+DTXSID6023864,74223-64-6,Metsulfuron-methyl,True,,0.37775,,no_exposure_data,True,False
+DTXSID2032683,7786-34-7,Mevinphos,True,,4.303,,no_exposure_data,True,False
+DTXSID9026261,13674-87-8,"""tris(1,3-dichloro-2-propyl) phosphate (tdcpp)""",True,,0.07143,,no_exposure_data,True,False
+DTXSID6024206,2212-67-1,Molinate,True,,0.014545,,no_exposure_data,True,False
+DTXSID4040002,131-70-4,Monobutyl phthalate,True,,0.09524,,no_exposure_data,True,False
+DTXSID8024315,88671-89-0,Myclobutanil,True,,0.8842,,no_exposure_data,True,False
+DTXSID5024211,15299-99-7,Napropamide,True,,0.069885,,no_exposure_data,True,False
+DTXSID7040362,50-65-7,Niclosamide,True,,0.088695,,no_exposure_data,True,False
+DTXSID8024234,27314-13-2,Norflurazon,True,,1.639,,no_exposure_data,True,False
+DTXSID8024238,19044-88-3,Oryzalin,True,,0.18595,,no_exposure_data,True,False
+DTXSID3024239,19666-30-9,Oxadiazon,True,,0.001277,,no_exposure_data,True,False
+DTXSID6021086,23135-22-0,Oxamyl,True,,0.42615,,no_exposure_data,True,False
+DTXSID4034364,144651-06-9,Oxasulfuron,True,,0.3251,,no_exposure_data,True,False
+DTXSID7024241,42874-03-3,Oxyfluorfen,True,,0.00291,,no_exposure_data,True,False
+DTXSID4023412,6153-64-6,Oxytetracycline dihydrate,True,,0.6044,,no_exposure_data,True,False
+DTXSID2024242,76738-62-0,Paclobutrazol,True,,0.4633,,no_exposure_data,True,False
+DTXSID7021100,56-38-2,Parathion,True,,0.19975,,no_exposure_data,True,False
+DTXSID7024245,40487-42-1,Pendimethalin,True,,0.064955,,no_exposure_data,True,False
+DTXSID0034803,219714-96-2,Penoxsulam,True,,0.01739,,no_exposure_data,True,False
+DTXSID8022292,52645-53-1,Permethrin,True,,0.624,,no_exposure_data,True,False
+DTXSID9021976,122-99-6,Phenoxyethanol,True,,0.12035,,no_exposure_data,True,False
+DTXSID1024259,2310-17-0,Phosalone,True,,0.39795,,no_exposure_data,True,False
+DTXSID1021160,1918-02-1,Picloram,True,,0.18215,,no_exposure_data,True,False
+DTXSID1021166,51-03-6,Piperonyl butoxide,True,,0.83995,,no_exposure_data,True,False
+DTXSID1032569,23103-98-2,Pirimicarb,True,,2.5115,,no_exposure_data,True,False
+DTXSID0024266,29232-93-7,Pirimiphos-methyl,True,,1.108,,no_exposure_data,True,False
+DTXSID4024270,67747-09-5,Prochloraz,True,,0.26455,,no_exposure_data,True,False
+DTXSID1034210,29091-21-2,Prodiamine,True,,0.074015,,no_exposure_data,True,False
+DTXSID6022341,1610-18-0,Prometon,True,,0.1966,,no_exposure_data,True,False
+DTXSID4024272,7287-19-6,Prometryn,True,,0.1498,,no_exposure_data,True,False
+DTXSID6034849,25606-41-1,Propamocarb hydrochloride,True,,5.1425,,no_exposure_data,True,False
+DTXSID8022111,709-98-8,Propanil,True,,0.4421,,no_exposure_data,True,False
+DTXSID3021196,139-40-2,Propazine,True,,0.30665,,no_exposure_data,True,False
+DTXSID7032470,31218-83-4,Propetamphos,True,,0.2208,,no_exposure_data,True,False
+DTXSID7021948,114-26-1,Propoxur,True,,0.9833,,no_exposure_data,True,False
+DTXSID2020420,23950-58-5,Propyzamide,True,,0.27335,,no_exposure_data,True,False
+DTXSID9034868,94125-34-5,Prosulfuron,True,,0.079935,,no_exposure_data,True,False
+DTXSID2032637,123312-89-0,Pymetrozine,True,,5.165,,no_exposure_data,True,False
+DTXSID7032638,175013-18-0,Pyraclostrobin,True,,0.22935,,no_exposure_data,True,False
+DTXSID5032573,96489-71-3,Pyridaben,True,,0.65835,,no_exposure_data,True,False
+DTXSID8034877,53112-28-0,Pyrimethanil,True,,0.40995,,no_exposure_data,True,False
+DTXSID1032640,95737-68-1,Pyriproxyfen,True,,0.0439,,no_exposure_data,True,False
+DTXSID8032673,123343-16-8,Pyrithiobac-sodium,True,,0.036995,,no_exposure_data,True,False
+DTXSID6032641,84087-01-4,Quinclorac,True,,0.01487,,no_exposure_data,True,False
+DTXSID2034881,124495-18-7,Quinoxyfen,True,,0.0015575,,no_exposure_data,True,False
+DTXSID7022253,10453-86-8,Resmethrin,True,,0.00014425,,no_exposure_data,True,False
+DTXSID1032642,122931-48-0,Rimsulfuron,True,,0.7519,,no_exposure_data,True,False
+DTXSID6021248,83-79-4,Rotenone,True,,0.28285,,no_exposure_data,True,False
+DTXSID2039336,28434-00-6,s-bioallethrin,True,,0.06607,,no_exposure_data,True,False
+DTXSID9024304,74051-80-2,Sethoxydim,True,,0.28545,,no_exposure_data,True,False
+DTXSID4021268,122-34-9,Simazine,True,,0.9569,,no_exposure_data,True,False
+DTXSID1034212,118134-30-8,Spiroxamine,True,,0.05669,,no_exposure_data,True,False
+DTXSID6032645,122836-35-5,Sulfentrazone,True,,5.6835,,no_exposure_data,True,False
+DTXSID4034948,112410-23-8,Tebufenozide,True,,0.5305,,no_exposure_data,True,False
+DTXSID0034223,119168-77-3,Tebufenpyrad,True,,0.1642,,no_exposure_data,True,False
+DTXSID1032482,96182-53-5,Tebupirimfos,True,,0.1793,,no_exposure_data,True,False
+DTXSID3024316,34014-18-1,Tebuthiuron,True,,1.5845,,no_exposure_data,True,False
+DTXSID5032577,79538-32-2,Tefluthrin,True,,0.2185,,no_exposure_data,True,False
+DTXSID7034252,149979-41-9,Tepraloxydim,True,,0.17785,,no_exposure_data,True,False
+DTXSID8024317,5902-51-2,Terbacil,True,,0.24815,,no_exposure_data,True,False
+DTXSID6032649,7696-12-0,Tetramethrin,True,,0.39765,,no_exposure_data,True,False
+DTXSID0021337,148-79-8,Thiabendazole,True,,0.03524,,no_exposure_data,True,False
+DTXSID7034961,111988-49-9,Thiacloprid,True,,0.6981,,no_exposure_data,True,False
+DTXSID2034962,153719-23-4,Thiamethoxam,True,,0.4069,,no_exposure_data,True,False
+DTXSID1032488,117718-60-2,Thiazopyr,True,,0.81735,,no_exposure_data,True,False
+DTXSID0032651,51707-55-2,Thidiazuron,True,,0.009574,,no_exposure_data,True,False
+DTXSID6024337,28249-77-6,Thiobencarb,True,,0.08921,,no_exposure_data,True,False
+DTXSID1024338,23564-05-8,Thiophanate-methyl,True,,1.3635,,no_exposure_data,True,False
+DTXSID3023897,43121-43-3,Triadimefon,True,,1.561,,no_exposure_data,True,False
+DTXSID0032493,55219-65-3,Triadimenol,True,,0.059455,,no_exposure_data,True,False
+DTXSID0024345,82097-50-5,Triasulfuron,True,,0.53375,,no_exposure_data,True,False
+DTXSID1024174,78-48-8,Tribufos,True,,1.275,,no_exposure_data,True,False
+DTXSID0032497,55335-06-3,Triclopyr,True,,0.01424,,no_exposure_data,True,False
+DTXSID5023742,81-81-2,Warfarin,True,,0.008207,,no_exposure_data,True,False
+DTXSID8040222,199119-58-9,Trifloxysulfuron-sodium,True,,0.003207,,no_exposure_data,True,False
+DTXSID7041097,85532-75-8,Pk 11195,True,,0.6266,,no_exposure_data,True,False
+DTXSID2032502,126535-15-7,Triflusulfuron-methyl,True,,11.745,,no_exposure_data,True,False
+DTXSID0032655,131983-72-7,Triticonazole,True,,0.35975,,no_exposure_data,True,False
+DTXSID4022361,50471-44-8,Vinclozolin,True,,2.6955,,no_exposure_data,True,False
+DTXSID9032581,156052-68-5,Zoxamide,True,,0.0064205,,no_exposure_data,True,False
+DTXSID7025895,101-54-2,"""n-phenyl-1,4-benzenediamine""",True,,1.4425,,no_exposure_data,True,False
+DTXSID5020869,101-61-1,"""4,4'-methylenebis(n,n-dimethylaniline)""",True,,0.03455,,no_exposure_data,True,False
+DTXSID0021094,101-80-4,"""4,4'-oxydianiline""",True,,0.19465,,no_exposure_data,True,False
+DTXSID4026684,101-86-0,2-benzylideneoctanal,True,,0.13215,,no_exposure_data,True,False
+DTXSID3025178,102-06-7,"""1,3-diphenylguanidine""",True,,0.2701,,no_exposure_data,True,False
+DTXSID4021848,102-27-2,N-ethyl-3-methylaniline,True,,0.93765,,no_exposure_data,True,False
+DTXSID1024126,1024-57-3,"""heptachlor epoxide, isomer b""",True,,0.0009091,,no_exposure_data,True,False
+DTXSID0020606,103-23-1,Di(2-ethylhexyl)adipate,True,,0.1567,,no_exposure_data,True,False
+DTXSID3026697,103-24-2,Azelaic acid di(2-ethylhexyl) ester,True,,0.03871,,no_exposure_data,True,False
+DTXSID2020006,103-90-2,Acetaminophen,True,,0.39345,,no_exposure_data,True,False
+DTXSID4034287,104-67-6,5-heptyldihydro-2(3h)-furanone,True,,0.3898,,no_exposure_data,True,False
+DTXSID1034187,10540-29-1,Tamoxifen,True,,0.0010695,,no_exposure_data,True,False
+DTXSID2021866,105-99-7,Dibutyl hexanedioate,True,,0.5698,,no_exposure_data,True,False
+DTXSID4024729,10605-21-7,Methyl 1h-benzimidazol-2-ylcarbamate,True,,6.317,,no_exposure_data,True,False
+DTXSID7021869,106-44-5,4-methylphenol,True,,6.248,,no_exposure_data,True,False
+DTXSID5025152,106-65-0,Dimethyl succinate,True,,1895.5,,no_exposure_data,True,False
+DTXSID9032113,107534-96-3,Tebuconazole,True,,0.16575,,no_exposure_data,True,False
+DTXSID2021238,108-46-3,Resorcinol,True,,6.1655,,no_exposure_data,True,False
+DTXSID5021124,108-95-2,Phenol,True,,1.396,,no_exposure_data,True,False
+DTXSID4042121,110235-47-7,Mepanipyrim,True,,0.00816,,no_exposure_data,True,False
+DTXSID8025595,110-26-9,"""n,n'-methylenebis(acrylamide)""",True,,0.3588,,no_exposure_data,True,False
+DTXSID3026223,111-21-7,Triethylene glycol diacetate,True,,1080.5,,no_exposure_data,True,False
+DTXSID3025122,1119-40-0,Dimethyl glutarate,True,,34.83,,no_exposure_data,True,False
+DTXSID3024368,112-50-5,2-[2-(2-ethoxyethoxy)ethoxy]ethanol,True,,0.28295,,no_exposure_data,True,False
+DTXSID4022991,114-07-8,Erythromycin,True,,0.6566,,no_exposure_data,True,False
+DTXSID1021952,115-86-6,Triphenyl phosphate,True,,0.1725,,no_exposure_data,True,False
+DTXSID1021956,117-84-0,Di-n-octyl phthalate,True,,0.00016825,,no_exposure_data,True,False
+DTXSID0021961,119-61-9,Benzophenone,True,,0.37945,,no_exposure_data,True,False
+DTXSID3025091,119-90-4,"3,3'-dimethoxybenzidine",True,,0.1397,,no_exposure_data,True,False
+DTXSID5024059,119-93-7,O-tolidine,True,,0.042925,,no_exposure_data,True,False
+DTXSID5020108,50-78-2,Aspirin,True,,3.028,,no_exposure_data,True,False
+DTXSID1020350,120-71-8,P-cresidine,True,,3.2155,,no_exposure_data,True,False
+DTXSID7040788,121-00-6,2-tert-butyl-4-methoxy-phenol,True,,0.2881,,no_exposure_data,True,False
+DTXSID6021117,60-80-0,Antipyrine,True,,0.50725,,no_exposure_data,True,False
+DTXSID6047286,123122-55-4,Candoxatril,True,,6.081,,no_exposure_data,True,False
+DTXSID1040742,124-94-7,Triamcinolone,True,,9.2255,,no_exposure_data,True,False
+DTXSID5021336,58-55-9,Theophylline,True,,0.4437,,no_exposure_data,True,False
+DTXSID9047257,127308-82-1,Zamifenacin,True,,0.96575,,no_exposure_data,True,False
+DTXSID6027052,128-39-2,"""2,6-di-tert-butylphenol""",True,,0.0009479,,no_exposure_data,True,False
+DTXSID3024289,129-00-0,Pyrene,True,,0.056385,,no_exposure_data,True,False
+DTXSID7020392,131-17-9,Diallyl phthalate,True,,0.057985,,no_exposure_data,True,False
+DTXSID6021244,13292-46-1,Rifampicin,True,,0.12305,,no_exposure_data,True,False
+DTXSID7032004,13311-84-7,Flutamide,True,,0.69855,,no_exposure_data,True,False
+DTXSID5020576,57-63-6,Ethinylestradiol,True,,0.00693,,no_exposure_data,True,False
+DTXSID6047363,139290-65-6,Volinanserin,True,,5.3925,,no_exposure_data,True,False
+DTXSID9022360,140-66-9,"""4-(1,1,3,3-tetramethylbutyl)phenol""",True,,0.2606,,no_exposure_data,True,False
+DTXSID5024051,1445-75-6,Diisopropyl methylphosphonate (dimp),True,,0.2493,,no_exposure_data,True,False
+DTXSID9047251,145742-28-5,"""(2s,3s)-n-[2-methoxy-5-(trifluoromethoxy)benzyl]-2-phenylpiperidin-3-amine""",True,,0.040785,,no_exposure_data,True,False
+DTXSID4020537,147-24-0,Diphenhydramine hydrochloride,True,,0.36865,,no_exposure_data,True,False
+DTXSID5020730,148-24-3,8-hydroxyquinoline,True,,3.0415,,no_exposure_data,True,False
+DTXSID0020311,150-68-5,Monuron,True,,0.7812,,no_exposure_data,True,False
+DTXSID7041623,15310-01-7,Benodanil,True,,1.2265,,no_exposure_data,True,False
+DTXSID9020249,1563-66-2,Carbofuran,True,,0.2147,,no_exposure_data,True,False
+DTXSID9022312,1806-26-4,4-octylphenol,True,,0.1027,,no_exposure_data,True,False
+DTXSID9027441,1843-05-6,2-hydroxy-4-(octyloxy)benzophenone,True,,3.037,,no_exposure_data,True,False
+DTXSID0024000,1861-32-1,Chlorthal-dimethyl,True,,0.7092,,no_exposure_data,True,False
+DTXSID7024376,1929-77-7,Vernolate,True,,0.3468,,no_exposure_data,True,False
+DTXSID5021097,2058-46-0,Oxytetracycline hydrochloride,True,,0.88145,,no_exposure_data,True,False
+DTXSID0023907,205-99-2,Benzo[b]fluoranthene,True,,0.0422,,no_exposure_data,True,False
+DTXSID3024104,206-44-0,Fluoranthene,True,,0.059175,,no_exposure_data,True,False
+DTXSID7022174,2104-64-5,O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,True,,0.1031,,no_exposure_data,True,False
+DTXSID3020916,2243-62-1,"""1,5-diaminonaphthalene""",True,,0.1702,,no_exposure_data,True,False
+DTXSID3041376,24602-86-6,Tridemorph,True,,0.4661,,no_exposure_data,True,False
+DTXSID9043938,2528-16-7,Benzyl hydrogen phthalate,True,,0.01709,,no_exposure_data,True,False
+DTXSID5032523,2634-33-5,"""1,2-benzisothiazolin-3-one""",True,,0.097565,,no_exposure_data,True,False
+DTXSID4020458,2921-88-2,Chlorpyrifos,True,,0.03319,,no_exposure_data,True,False
+DTXSID4032459,298-02-2,Phorate,True,,0.005924,,no_exposure_data,True,False
+DTXSID4022731,298-46-4,Carbamazepine,True,,0.5501,,no_exposure_data,True,False
+DTXSID8020127,30516-87-1,Azidothymidine,True,,2.3285,,no_exposure_data,True,False
+DTXSID9027522,3147-75-9,Octrizole,True,,0.16345,,no_exposure_data,True,False
+DTXSID5041691,35256-85-0,Butam,True,,0.80385,,no_exposure_data,True,False
+DTXSID1038321,3739-38-6,3-phenoxybenzoic acid,True,,0.0041605,,no_exposure_data,True,False
+DTXSID8022828,4291-63-8,2-chloro-2'-deoxyadenosine,True,,0.4973,,no_exposure_data,True,False
+DTXSID5022308,446-72-0,Genistein,True,,0.50745,,no_exposure_data,True,False
+DTXSID9047592,484-17-3,9-phenanthrol,True,,0.1172,,no_exposure_data,True,False
+DTXSID4020375,50-29-3,"""p,p'-ddt""",True,,0.1094,,no_exposure_data,True,False
+DTXSID7021237,50-55-5,Reserpine,True,,0.0061845,,no_exposure_data,True,False
+DTXSID4020290,50892-23-4,Pirinixic acid,True,,0.037055,,no_exposure_data,True,False
+DTXSID0020523,51-28-5,"""2,4-dinitrophenol""",True,,0.007899,,no_exposure_data,True,False
+DTXSID5021209,51-52-5,6-propyl-2-thiouracil,True,,0.7407,,no_exposure_data,True,False
+DTXSID1047285,527680-56-4,"""n-[(3r)-1-azabicyclo[2.2.2]oct-3-yl]-2,3-dihydro-1,4-benzodioxine-6-carboxamide""",True,,5.645,,no_exposure_data,True,False
+DTXSID4024066,528-29-0,"""1,2-dinitrobenzene""",True,,1.04,,no_exposure_data,True,False
+DTXSID4034150,52-86-8,Haloperidol,True,,0.56245,,no_exposure_data,True,False
+DTXSID4021185,53-03-2,Prednisone,True,,5.014,,no_exposure_data,True,False
+DTXSID1022053,534-52-1,"""2-methyl-4,6-dinitrophenol""",True,,0.0012265,,no_exposure_data,True,False
+DTXSID5020653,548-62-9,Hexamethyl-p-rosaniline chloride,True,,0.18075,,no_exposure_data,True,False
+DTXSID5023950,55285-14-8,Carbosulfan,True,,0.3158,,no_exposure_data,True,False
+DTXSID2024086,563-12-2,Ethion,True,,0.02532,,no_exposure_data,True,False
+DTXSID3020465,56-53-1,Diethylstilbestrol (des),True,,0.4464,,no_exposure_data,True,False
+DTXSID5023902,56-55-3,Benz[a]anthracene,True,,0.12775,,no_exposure_data,True,False
+DTXSID8020541,57-41-0,Phenytoin,True,,0.1406,,no_exposure_data,True,False
+DTXSID9024063,576-26-1,"""2,6-dimethylphenol""",True,,2.0205,,no_exposure_data,True,False
+DTXSID3022370,57-83-0,Progesterone,True,,0.5816,,no_exposure_data,True,False
+DTXSID6027218,579-66-8,"""2,6-diethylaniline""",True,,0.49925,,no_exposure_data,True,False
+DTXSID2021781,84-74-2,Dibutylphthalate,True,,0.64205,,no_exposure_data,True,False
+DTXSID0020232,58-08-2,Caffeine,True,,0.4648,,no_exposure_data,True,False
+DTXSID9021217,58-14-0,Pyrimethamine,True,,0.2647,,no_exposure_data,True,False
+DTXSID8024107,59756-60-4,Fluridone ,True,,0.4685,,no_exposure_data,True,False
+DTXSID0021256,599-79-1,Sulfasalazine,True,,0.2042,,no_exposure_data,True,False
+DTXSID6024460,60-09-3,4-aminoazobenzene,True,,0.13825,,no_exposure_data,True,False
+DTXSID9020453,60-57-1,Dieldrin,True,,0.001008,,no_exposure_data,True,False
+DTXSID5020528,606-20-2,"""2,6-dinitrotoluene""",True,,3.3325,,no_exposure_data,True,False
+DTXSID8024523,63-05-8,Androstenedione,True,,4.2805,,no_exposure_data,True,False
+DTXSID9047540,6344-67-8,3-hydroxyfluorene,True,,0.37565,,no_exposure_data,True,False
+DTXSID9032537,7173-51-5,Didecyl dimethyl ammonium chloride,True,,0.004452,,no_exposure_data,True,False
+DTXSID6020561,72-20-8,Endrin,True,,0.00096575,,no_exposure_data,True,False
+DTXSID4020373,72-54-8,"""p,p'-ddd""",True,,0.00013615,,no_exposure_data,True,False
+DTXSID5024261,732-11-6,Phosmet,True,,0.8941,,no_exposure_data,True,False
+DTXSID5020784,75330-75-5,Lovastatin,True,,0.4463,,no_exposure_data,True,False
+DTXSID0021125,77-09-8,Phenolphthalein,True,,1.196,,no_exposure_data,True,False
+DTXSID4022442,77-40-7,Bisphenol b,True,,0.5942,,no_exposure_data,True,False
+DTXSID6022345,789-02-6,"""o,p'-ddt""",True,,0.1337,,no_exposure_data,True,False
+DTXSID0023581,79902-63-9,Simvastatin,True,,0.28455,,no_exposure_data,True,False
+DTXSID8021771,80-46-6,4-(2-methylbutan-2-yl)phenol,True,,0.083295,,no_exposure_data,True,False
+DTXSID6032354,105512-06-9,Clodinafop-propargyl,True,,26.0,,no_exposure_data,True,False
+DTXSID5020867,838-88-0,"""4,4'-methylene bis(2-methylaniline)""",True,,0.5945,,no_exposure_data,True,False
+DTXSID9023380,68-22-4,Norethindrone,True,,0.03685,,no_exposure_data,True,False
+DTXSID6021030,86-30-6,N-nitrosodiphenylamine,True,,0.2698,,no_exposure_data,True,False
+DTXSID3020627,86386-73-4,Fluconazole ,True,,1.411,,no_exposure_data,True,False
+DTXSID8026307,87-62-7,"""2,6-dimethylaniline""",True,,1.3255,,no_exposure_data,True,False
+DTXSID7021106,87-86-5,Pentachlorophenol,True,,0.4854,,no_exposure_data,True,False
+DTXSID5021386,88-06-2,"""2,4,6-trichlorophenol""",True,,0.2249,,no_exposure_data,True,False
+DTXSID3020207,88-85-7,Dinoseb,True,,0.0002502,,no_exposure_data,True,False
+DTXSID5023877,90-04-0,2-anisidine,True,,0.1006,,no_exposure_data,True,False
+DTXSID1021798,91-22-5,Quinoline,True,,4.8595,,no_exposure_data,True,False
+DTXSID9020582,91-53-2,Ethoxyquin,True,,0.10065,,no_exposure_data,True,False
+DTXSID2020921,91-59-8,2-naphthylamine,True,,0.76305,,no_exposure_data,True,False
+DTXSID7020348,91-64-5,Coumarin,True,,0.053635,,no_exposure_data,True,False
+DTXSID2020137,92-87-5,Benzidine,True,,0.84745,,no_exposure_data,True,False
+DTXSID4022527,94-13-3,Propylparaben,True,,1.672,,no_exposure_data,True,False
+DTXSID3020209,94-26-8,Butylparaben,True,,0.675,,no_exposure_data,True,False
+DTXSID3026564,94-28-0,Tri(ethylene glycol) bis(2-ethylhexanoate),True,,0.2675,,no_exposure_data,True,False
+DTXSID8021808,95-48-7,2-methylphenol,True,,4.8755,,no_exposure_data,True,False
+DTXSID4024359,95-95-4,"""2,4,5-trichlorophenol""",True,,0.11985,,no_exposure_data,True,False
+DTXSID9020617,97-53-0,Eugenol,True,,14.815,,no_exposure_data,True,False
+DTXSID7022413,97-54-1,Isoeugenol,True,,0.2729,,no_exposure_data,True,False
+DTXSID1020221,98-54-4,4-tert-butylphenol,True,,0.9761,,no_exposure_data,True,False
+DTXSID3020964,98-95-3,Nitrobenzene,True,,1.741,,no_exposure_data,True,False
+DTXSID5021831,99-08-1,3-nitrotoluene,True,,0.7244,,no_exposure_data,True,False
+DTXSID0020943,99-59-2,2-methoxy-5-nitroaniline,True,,2.1585,,no_exposure_data,True,False
+DTXSID7022332,99-71-8,4-(butan-2-yl)phenol,True,,0.5789,,no_exposure_data,True,False
+DTXSID4022529,99-76-3,Methylparaben,True,,4.7245,,no_exposure_data,True,False
+DTXSID5023792,99-99-0,4-nitrotoluene,True,,0.8471,,no_exposure_data,True,False
+DTXSID8040147,33286-22-5,Diltiazem hydrochloride,True,,11.47,,no_exposure_data,True,False
+DTXSID3020384,50-02-2,Dexamethasone,True,,0.88105,,no_exposure_data,True,False
+DTXSID6022923,15307-86-5,Diclofenac,True,,0.22435,,no_exposure_data,True,False
+DTXSID5020732,15687-27-1,Ibuprofen,True,,0.05152,,no_exposure_data,True,False
+DTXSID8021359,64-77-7,Tolbutamide,True,,0.052495,,no_exposure_data,True,False
+DTXSID4040686,22204-53-1,Naproxen,True,,0.027905,,no_exposure_data,True,False
+DTXSID2022628,29122-68-7,Atenolol,True,,3.425,,no_exposure_data,True,False
+DTXSID3037208,15307-79-6,Diclofenac sodium,True,,0.15155,,no_exposure_data,True,False
+DTXSID7038864,88-24-4,"2,2'-methylenebis(ethyl-6-tert-butylphenol)",True,,0.0001606,,no_exposure_data,True,False
+DTXSID2022707,36505-84-7,Buspirone,True,,0.4332,,no_exposure_data,True,False
+DTXSID2023309,51384-51-1,Metoprolol,True,,4.2,,no_exposure_data,True,False
+DTXSID1027635,6846-50-0,"2,2,4-trimethyl-1,3-pentanediol diisobutyrate",True,,0.12165,,no_exposure_data,True,False
+DTXSID1021116,62-44-2,Phenacetin,True,,2.6265,,no_exposure_data,True,False
+DTXSID6020648,54-31-9,Furosemide,True,,0.020405,,no_exposure_data,True,False
+DTXSID6022187,2416-94-6,"2,3,6-trimethylphenol",True,,5.4455,,no_exposure_data,True,False
+DTXSID1021087,604-75-1,Oxazepam,True,,0.1141,,no_exposure_data,True,False
+DTXSID1042574,15676-16-1,Sulpiride,True,,2.001,,no_exposure_data,True,False
+DTXSID7023300,83-43-2,Methylprednisolone,True,,2.2125,,no_exposure_data,True,False
+DTXSID9021184,50-24-8,Prednisolone,True,,1.8335,,no_exposure_data,True,False
+DTXSID8023719,97322-87-7,Troglitazone,True,,0.049035,,no_exposure_data,True,False
+DTXSID0020365,59865-13-3,Cyclosporin a,True,,0.227,,no_exposure_data,True,False
+DTXSID0020286,95-74-9,3-chloro-4-methylaniline,True,,7.163,,no_exposure_data,True,False
+DTXSID5023039,76824-35-6,Famotidine,True,,0.81565,,no_exposure_data,True,False
+DTXSID6021080,73590-58-6,Omeprazole,True,,0.83505,,no_exposure_data,True,False
+DTXSID6023523,2078-54-8,Propofol,True,,1.178,,no_exposure_data,True,False
+DTXSID9023752,111406-87-2,Zileuton,True,,0.1844,,no_exposure_data,True,False
+DTXSID2020341,76-57-3,Codeine,True,,44.595,,no_exposure_data,True,False
+DTXSID8045191,66357-35-5,Ranitidine,True,,3.463,,no_exposure_data,True,False
+DTXSID7020504,58-15-1,Aminopyrine,True,,2.6575,,no_exposure_data,True,False
+DTXSID7029879,65277-42-1,Ketoconazole,True,,1.567,,no_exposure_data,True,False
+DTXSID1037272,321-64-2,Tacrine,True,,4807.5,,no_exposure_data,True,False
+DTXSID5022934,20830-75-5,Digoxin,True,,1.2,,no_exposure_data,True,False
+DTXSID4020822,59-05-2,Methotrexate,True,,0.84175,,no_exposure_data,True,False
+DTXSID1020930,54-11-5,Nicotine,True,,1.74,,no_exposure_data,True,False
+DTXSID7023645,60-54-8,Tetracycline,True,,0.67775,,no_exposure_data,True,False
+DTXSID6023733,99-66-1,Valproic acid,True,,0.1067,,no_exposure_data,True,False
+DTXSID3020910,55-98-1,Busulphan,True,,1.885,,no_exposure_data,True,False
+DTXSID7020263,305-03-3,Chlorambucil,True,,0.50375,,no_exposure_data,True,False
+DTXSID7020265,56-75-7,Chloramphenicol,True,,0.49855,,no_exposure_data,True,False
+DTXSID8022824,85721-33-1,Ciprofloxacin,True,,11.585,,no_exposure_data,True,False
+DTXSID5024845,64-86-8,Colchicine,True,,1.295,,no_exposure_data,True,False
+DTXSID4020371,80-08-0,Dapsone,True,,0.15335,,no_exposure_data,True,False
+DTXSID6022927,69655-05-6,Didanosine,True,,0.54485,,no_exposure_data,True,False
+DTXSID9021130,89-25-8,Edaravone,True,,1.2625,,no_exposure_data,True,False
+DTXSID0020573,50-28-2,Estradiol,True,,0.8791,,no_exposure_data,True,False
+DTXSID3020625,98319-26-7,Finasteride,True,,0.5397,,no_exposure_data,True,False
+DTXSID0038887,2321-07-5,Fluorescein,True,,0.1871,,no_exposure_data,True,False
+DTXSID0040676,29094-61-9,Glipizide,True,,0.07746,,no_exposure_data,True,False
+DTXSID0037237,10238-21-8,Glyburide,True,,0.2871,,no_exposure_data,True,False
+DTXSID9020740,53-86-1,Indomethacin,True,,0.1592,,no_exposure_data,True,False
+DTXSID8020755,54-85-3,Isoniazide,True,,0.8897,,no_exposure_data,True,False
+DTXSID3036496,797-63-7,Levonorgestrel,True,,0.36295,,no_exposure_data,True,False
+DTXSID1022421,73-31-4,Melatonin,True,,0.38335,,no_exposure_data,True,False
+DTXSID5029055,84852-15-3,"4-nonylphenol, branched",False,,0.8718,,no_exposure_data,True,False
+DTXSID5023322,84371-65-3,Mifepristone,True,,0.443,,no_exposure_data,True,False
+DTXSID7020972,67-20-9,Nitrofurantoin,True,,0.27745,,no_exposure_data,True,False
+DTXSID3023471,57-47-6,Physostigmine,True,,1.4665,,no_exposure_data,True,False
+DTXSID4021218,117-39-5,Quercetin,True,,1.158,,no_exposure_data,True,False
+DTXSID5051650,13080-86-9,"4,4'-(isopropylidenebis(4,1-phenyleneoxy))dianiline",True,,0.00013745,,no_exposure_data,True,False
+DTXSID3023685,134308-13-7,Tolcapone,True,,0.26515,,no_exposure_data,True,False
+DTXSID6021371,76-25-5,Triamcinolone acetonide,True,,3.063,,no_exposure_data,True,False
+DTXSID6021373,396-01-0,Triamterene,True,,0.24855,,no_exposure_data,True,False
+DTXSID6020690,70-30-4,Hexachlorophene,True,,0.0001985,,no_exposure_data,True,False
+DTXSID8022589,125-84-8,Aminoglutethimide,True,,0.7758,,no_exposure_data,True,False
+DTXSID3022588,54-62-6,Aminopterin,True,,0.7994,,no_exposure_data,True,False
+DTXSID6024882,66-81-9,Cycloheximide,True,,1.1525,,no_exposure_data,True,False
+DTXSID7021780,84-66-2,Diethylphthalate,True,,7.072,,no_exposure_data,True,False
+DTXSID0024002,39515-41-8,Fenpropathrin,True,,0.20905,,no_exposure_data,True,False
+DTXSID3020621,67614-33-9,Fenvalerate,True,,0.00978,,no_exposure_data,True,False
+DTXSID0020656,77-06-5,Gibberellic_acid,True,,0.2496,,no_exposure_data,True,False
+DTXSID3020912,389-08-2,Nalidixic_acid,True,,1.226,,no_exposure_data,True,False
+DTXSID6023600,57-24-9,Strychnine,True,,1.4635,,no_exposure_data,True,False
+DTXSID0048185,41372-20-7,Apomorphine hydrochloride hydrate,False,,2.5505,,no_exposure_data,True,False
+DTXSID0020652,25812-30-0,Gemfibrozil,True,,0.97515,,no_exposure_data,True,False
+DTXSID2020713,58-93-5,Hydrochlorothiazide,True,,0.45815,,no_exposure_data,True,False
+DTXSID7020687,608-73-1,"1,2,3,4,5,6-hexachlorocyclohexane",True,,0.01187,,no_exposure_data,True,False
+DTXSID4020119,446-86-6,Azathioprine,True,,0.60515,,no_exposure_data,True,False
+DTXSID9022310,486-66-8,Daidzein,True,,0.8248,,no_exposure_data,True,False
+DTXSID8021301,54965-24-1,Tamoxifen citrate,True,,0.002754,,no_exposure_data,True,False
+DTXSID2022381,84-16-2,Meso-hexestrol,True,,0.088895,,no_exposure_data,True,False
+DTXSID4021717,59-50-7,4-chloro-3-methylphenol,True,,0.01934,,no_exposure_data,True,False
+DTXSID4022367,53-16-7,Estrone,True,,0.015125,,no_exposure_data,True,False
+DTXSID7020768,520-18-3,Kaempferol,True,,2.1155,,no_exposure_data,True,False
+DTXSID0021460,17924-92-4,Zearalenone,True,,1.8,,no_exposure_data,True,False
+DTXSID9022364,521-18-6,5alpha-dihydrotestosterone,True,,2.653,,no_exposure_data,True,False
+DTXSID6022391,520-36-5,Apigenin,True,,1.093,,no_exposure_data,True,False
+DTXSID1021403,512-56-1,Trimethyl phosphate,True,,2.4875,,no_exposure_data,True,False
+DTXSID5022437,500-38-9,Nordihydroguaiaretic acid,True,,3.445,,no_exposure_data,True,False
+DTXSID4022446,2467-02-9,"2,2'-bisphenol f",True,,1.758,,no_exposure_data,True,False
+DTXSID4022525,5153-25-3,2-ethylhexylparaben,True,,1.649,,no_exposure_data,True,False
+DTXSID4020240,105-60-2,Caprolactam,True,,0.15665,,no_exposure_data,True,False
+DTXSID5021388,93-76-5,"2,4,5-trichlorophenoxyacetic acid",True,,0.008551,,no_exposure_data,True,False
+DTXSID4021135,842-07-9,C.i. solvent yellow 14,True,,0.001952,,no_exposure_data,True,False
+DTXSID8022406,131-56-6,"2,4-dihydroxybenzophenone",True,,0.58425,,no_exposure_data,True,False
+DTXSID6047319,184653-84-7,Carabersat,True,,0.04408,,no_exposure_data,True,False
+DTXSID1033664,58-18-4,17-methyltestosterone,True,,0.3765,,no_exposure_data,True,False
+DTXSID3022409,80-09-1,"4,4'-sulfonyldiphenol",True,,0.02908,,no_exposure_data,True,False
+DTXSID5021411,115-96-8,Tris(2-chloroethyl) phosphate,True,,0.8861,,no_exposure_data,True,False
+DTXSID9022526,94-18-8,Benzylparaben,True,,6.3695,,no_exposure_data,True,False
+DTXSID2022121,791-28-6,Triphenylphosphine oxide,True,,0.03655,,no_exposure_data,True,False
+DTXSID3041035,23513-14-6,(6)-gingerol,True,,11.97,,no_exposure_data,True,False
+DTXSID8044593,15619-48-4,1-benzylquinolinium chloride,True,,12.16,,no_exposure_data,True,False
+DTXSID4042206,2687-96-9,1-dodecyl-2-pyrrolidinone,True,,0.2687,,no_exposure_data,True,False
+DTXSID6021793,90-15-3,1-naphthol,True,,0.015345,,no_exposure_data,True,False
+DTXSID7025132,83-41-0,"1,2-dimethyl-3-nitrobenzene",True,,0.10485,,no_exposure_data,True,False
+DTXSID6020147,95-14-7,"1,2,3-benzotriazole",True,,0.067,,no_exposure_data,True,False
+DTXSID2041250,14233-37-5,"1,4-bis(n-isopropylamino)anthraquinone",True,,0.006309,,no_exposure_data,True,False
+DTXSID8022377,57-91-0,17alpha-estradiol,True,,0.87185,,no_exposure_data,True,False
+DTXSID0034192,10161-33-8,17beta-trenbolone,True,,3.7985,,no_exposure_data,True,False
+DTXSID3044590,15086-94-9,"2',4',5',7'-tetrabromofluorescein",True,,0.006536,,no_exposure_data,True,False
+DTXSID2044890,2467-03-0,2-(4-hydroxybenzyl)phenol,True,,1.377,,no_exposure_data,True,False
+DTXSID6032647,21564-17-0,2-(thiocyanomethylthio)benzothiazole,True,,2.071,,no_exposure_data,True,False
+DTXSID4027604,5809-23-4,2-[4-(diethylamino)-2-hydroxybenzoyl]benzoic acid,True,,0.01845,,no_exposure_data,True,False
+DTXSID1020069,97-56-3,2-amino-5-azotoluene,True,,0.06165,,no_exposure_data,True,False
+DTXSID6020068,117-79-3,2-aminoanthraquinone,True,,0.694,,no_exposure_data,True,False
+DTXSID0022353,92-04-6,2-chloro-4-phenylphenol,True,,0.005816,,no_exposure_data,True,False
+DTXSID3041409,587-65-5,2-chloro-n-phenylacetamide,True,,7.74,,no_exposure_data,True,False
+DTXSID5041516,4940-11-8,2-ethyl-3-hydroxy-4h-pyran-4-one,True,,25.97,,no_exposure_data,True,False
+DTXSID3022405,131-57-7,2-hydroxy-4-methoxybenzophenone,True,,0.26795,,no_exposure_data,True,False
+DTXSID9025536,583-39-1,2-mercaptobenzimidazole,True,,0.10475,,no_exposure_data,True,False
+DTXSID1020807,149-30-4,2-mercaptobenzothiazole,True,,0.68655,,no_exposure_data,True,False
+DTXSID2047199,2785-87-7,2-methoxy-4-propylphenol,True,,1.264,,no_exposure_data,True,False
+DTXSID0023113,90-05-1,2-methoxyphenol,True,,11.33,,no_exposure_data,True,False
+DTXSID1026164,95-53-4,2-methylaniline,True,,0.1928,,no_exposure_data,True,False
+DTXSID4044581,96-70-8,2-tert-butyl-4-ethylphenol,True,,2.417,,no_exposure_data,True,False
+DTXSID2020212,2409-55-4,2-tert-butyl-4-methylphenol,True,,0.2806,,no_exposure_data,True,False
+DTXSID2026529,88-60-8,2-tert-butyl-5-methylphenol,True,,0.75415,,no_exposure_data,True,False
+DTXSID2026525,88-18-6,2-tert-butylphenol,True,,0.0084105,,no_exposure_data,True,False
+DTXSID4020870,119-47-1,"2,2'-methylenebis(4-methyl-6-tert-butylphenol)",True,,0.1723,,no_exposure_data,True,False
+DTXSID5020449,62-73-7,Dichlorvos,True,,0.8647,,no_exposure_data,True,False
+DTXSID5041306,131-55-5,"2,2',4,4'-tetrahydroxybenzophenone",True,,0.56835,,no_exposure_data,True,False
+DTXSID9022522,84-69-5,Diisobutyl phthalate,True,,0.33035,,no_exposure_data,True,False
+DTXSID5031131,131-18-0,Dipentyl phthalate,True,,2.9515,,no_exposure_data,True,False
+DTXSID2027414,1563-38-8,"2,3-dihydro-2,2-dimethyl-7-benzofuranol",True,,0.091325,,no_exposure_data,True,False
+DTXSID6037728,1143-72-2,"2,3,4-trihydroxbenzophenone",True,,1.4605,,no_exposure_data,True,False
+DTXSID8032544,136-45-8,"Dipropyl 2,5-pyridinedicarboxylate",True,,43.86,,no_exposure_data,True,False
+DTXSID2026602,96-76-4,"2,4-di-tert-butylphenol",True,,0.02062,,no_exposure_data,True,False
+DTXSID8044836,1470-79-7,"2,4,4'-trihydroxybenzophenone",True,,0.34225,,no_exposure_data,True,False
+DTXSID7022049,527-60-6,"2,4,6-trimethylphenol",True,,10.535,,no_exposure_data,True,False
+DTXSID5044992,79-74-3,"2,5-bis(2-methylbutan-2-yl)benzene-1,4-diol",True,,0.12715,,no_exposure_data,True,False
+DTXSID8041248,88-58-4,"2,5-di-tert-butylbenzene-1,4-diol",True,,1.0515,,no_exposure_data,True,False
+DTXSID1044564,3855-32-1,"2,6,10-trimethyl-2,6,10-triazaundecane",True,,0.018425,,no_exposure_data,True,False
+DTXSID0048183,77756-20-8,Enterolactone,True,,1.7835,,no_exposure_data,True,False
+DTXSID0025101,99-07-0,3-dimethylaminophenol,True,,0.072125,,no_exposure_data,True,False
+DTXSID0028038,55406-53-6,3-iodo-2-propynyl-n-butylcarbamate,True,,1414.5,,no_exposure_data,True,False
+DTXSID0044571,618-45-1,3-isopropylphenol,True,,0.73155,,no_exposure_data,True,False
+DTXSID1026792,108-44-1,3-methylaniline,True,,12.965,,no_exposure_data,True,False
+DTXSID9044825,585-34-2,3-tert-butylphenol,True,,1.158,,no_exposure_data,True,False
+DTXSID1020485,20325-40-0,"3,3'-dimethoxybenzidine dihydrochloride",True,,0.7179,,no_exposure_data,True,False
+DTXSID6020511,612-82-8,"3,3'-dimethylbenzidine dihydrochloride",True,,2.7145,,no_exposure_data,True,False
+DTXSID1026081,79-94-7,"3,3',5,5'-tetrabromobisphenol a",True,,0.39165,,no_exposure_data,True,False
+DTXSID8024999,99-54-7,"3,4-dichloronitrobenzene",True,,3.582,,no_exposure_data,True,False
+DTXSID7030307,626-43-7,"3,5-dichloroaniline",True,,3.298,,no_exposure_data,True,False
+DTXSID4040767,1154-59-2,"3,5-dichlorosalicyl-3,4-dichloroanullide",True,,0.000175,,no_exposure_data,True,False
+DTXSID8023216,6893-02-3,"3,5,3'-triiodothyronine",True,,0.03608,,no_exposure_data,True,False
+DTXSID0027721,10081-67-1,4-(2-phenylpropan-2-yl)-n-[4-(2-phenylpropan-2-yl)phenyl]aniline,True,,0.0001452,,no_exposure_data,True,False
+DTXSID4048195,18979-55-0,4-(hexyloxy)phenol,True,,0.044565,,no_exposure_data,True,False
+DTXSID6024466,150-13-0,4-aminobenzoic acid,True,,0.2273,,no_exposure_data,True,False
+DTXSID5037739,122-37-2,4-anilinophenol,True,,2.4765,,no_exposure_data,True,False
+DTXSID8021856,104-13-2,4-butylaniline,True,,0.6311,,no_exposure_data,True,False
+DTXSID4048199,4344-55-2,4-butyloxyaniline,True,,2.513,,no_exposure_data,True,False
+DTXSID3047425,1638-22-8,4-butylphenol,True,,1.7785,,no_exposure_data,True,False
+DTXSID5020283,95-83-0,"4-chloro-1,2-diaminobenzene",True,,10.605,,no_exposure_data,True,False
+DTXSID9020295,106-47-8,4-chloroanulline,True,,0.062735,,no_exposure_data,True,False
+DTXSID3022536,599-64-4,4-cumylphenol,True,,0.5865,,no_exposure_data,True,False
+DTXSID0025864,156-43-4,4-ethoxyaniline,True,,2.942,,no_exposure_data,True,False
+DTXSID2037714,1987-50-4,4-heptylphenol,True,,0.29805,,no_exposure_data,True,False
+DTXSID5040708,33228-45-4,4-hexylanilline,True,,3.908,,no_exposure_data,True,False
+DTXSID4022288,39905-57-2,4-hexyloxyanilline,True,,1.72,,no_exposure_data,True,False
+DTXSID0021969,121-33-5,4-hydroxy-3-methoxybenzaldehyde,True,,127.65,,no_exposure_data,True,False
+DTXSID3037094,68392-35-8,4-hydroxytamoxifen,True,,1.9015,,no_exposure_data,True,False
+DTXSID9037741,134-84-9,4-methylbenzophenone,True,,1.6215,,no_exposure_data,True,False
+DTXSID0021834,100-02-7,4-nitrophenol,True,,0.8941,,no_exposure_data,True,False
+DTXSID1021031,156-10-5,4-nitrosodiphenylamine,True,,70.03,,no_exposure_data,True,False
+DTXSID2023224,79794-75-5,Loratadine,True,,0.52415,,no_exposure_data,True,False
+DTXSID0040707,33228-44-3,4-pentylaniline,True,,0.36775,,no_exposure_data,True,False
+DTXSID5048180,2696-84-6,4-propylanilline,True,,0.9852,,no_exposure_data,True,False
+DTXSID0048181,769-92-6,4-tert-butylaniline,True,,0.60755,,no_exposure_data,True,False
+DTXSID5037731,3236-71-3,"4,4'-(9h-fluorene-9,9-diyl)diphenol",True,,0.01143,,no_exposure_data,True,False
+DTXSID1022267,16752-77-5,Methomyl,True,,0.93505,,no_exposure_data,True,False
+DTXSID4048191,13680-35-8,"4,4'-methylenebis(2,6-diethylaniline)",True,,0.1025,,no_exposure_data,True,False
+DTXSID6022422,101-77-9,"4,4'-methylenedianiline",True,,0.6311,,no_exposure_data,True,False
+DTXSID2037712,27955-94-8,"4,4',4''-ethane-1,1,1-triyltriphenol",True,,0.85725,,no_exposure_data,True,False
+DTXSID9024489,2835-95-2,5-amino-2-methylphenol,True,,4.554,,no_exposure_data,True,False
+DTXSID1046970,105624-86-0,5hpp-33,True,,0.95015,,no_exposure_data,True,False
+DTXSID6023652,154-42-7,6-thioguanine,True,,2.1415,,no_exposure_data,True,False
+DTXSID6021828,98-86-2,Acetophenone,True,,0.1134,,no_exposure_data,True,False
+DTXSID2026446,77-90-7,Acetyl tributyl citrate,True,,5.7955,,no_exposure_data,True,False
+DTXSID1032519,135158-54-2,Acibenzolar-s-methyl,True,,23.47,,no_exposure_data,True,False
+DTXSID3030636,25316-40-9,Adriamycin hydrochloride,True,,0.28525,,no_exposure_data,True,False
+DTXSID6023862,1646-88-4,Aldoxycarb,True,,0.5479,,no_exposure_data,True,False
+DTXSID4024436,25956-17-6,Allura red c.i.16035,True,,0.02453,,no_exposure_data,True,False
+DTXSID7037185,19774-82-4,Amiodarone hydrochloride,True,,0.076395,,no_exposure_data,True,False
+DTXSID2025892,90-30-2,N-phenyl-1-naphthylamine,True,,0.5609,,no_exposure_data,True,False
+DTXSID8023890,3337-71-1,Asulam,True,,1.2435,,no_exposure_data,True,False
+DTXSID9020114,2465-27-2,Auramine hydrochloride,True,,0.969,,no_exposure_data,True,False
+DTXSID9034818,35575-96-3,Azamethiphos,True,,2489.5,,no_exposure_data,True,False
+DTXSID1020932,59-67-6,Nicotinic acid,True,,1.592,,no_exposure_data,True,False
+DTXSID5038888,2390-60-5,Basic blue 7,True,,0.0118,,no_exposure_data,True,False
+DTXSID8021804,94-09-7,Benzocaine,True,,50.175,,no_exposure_data,True,False
+DTXSID1024598,118-58-1,Benzyl salicylate,True,,0.2557,,no_exposure_data,True,False
+DTXSID2047270,253450-09-8,Besonprodil,True,,0.33995,,no_exposure_data,True,False
+DTXSID2022678,90357-06-5,Bicalutamide,True,,0.02625,,no_exposure_data,True,False
+DTXSID1022394,491-80-5,Biochanin a,True,,4.93,,no_exposure_data,True,False
+DTXSID00872663,33171-05-0,Bisdemethoxycurcumin,True,,0.04699,,no_exposure_data,True,False
+DTXSID7037717,1478-61-1,Bisphenol af,True,,2.256,,no_exposure_data,True,False
+DTXSID7034383,125401-92-5,Bispyribac-sodium,True,,0.019895,,no_exposure_data,True,False
+DTXSID3044704,62625-32-5,Bromocresol green sodium salt,True,,0.009333,,no_exposure_data,True,False
+DTXSID6020197,22260-51-1,Bromocriptine mesylate,True,,7.622,,no_exposure_data,True,False
+DTXSID1021247,569-61-9,C.i. basic red 9 monohydrochloride,True,,1.155,,no_exposure_data,True,False
+DTXSID9044538,13301-61-6,C.i. disperse orange 37,True,,0.002,,no_exposure_data,True,False
+DTXSID5040706,3118-97-6,C.i. solvent orange 7,True,,0.00015835,,no_exposure_data,True,False
+DTXSID3041744,509-34-2,C.i. solvent red 49,True,,0.1917,,no_exposure_data,True,False
+DTXSID4047882,17696-62-7,Phenylparaben,True,,31.775,,no_exposure_data,True,False
+DTXSID1048122,63449-41-2,C8-18-alkydimethylbenzyl ammonium chlorides,False,,1.3475,,no_exposure_data,True,False
+DTXSID3044203,112529-15-4,Pioglitazone hydrochloride,True,,0.1912,,no_exposure_data,True,False
+DTXSID3047344,159138-81-5,Cariporide mesylate,True,,0.4159,,no_exposure_data,True,False
+DTXSID9022817,1260-17-9,Carminic acid,True,,0.3383,,no_exposure_data,True,False
+DTXSID3020257,120-80-9,Catechol,True,,0.54715,,no_exposure_data,True,False
+DTXSID7032345,56-95-1,Chlorhexidine diacetate,True,,0.004519,,no_exposure_data,True,False
+DTXSID2032348,3691-35-8,Chlorophacinone,True,,0.00023625,,no_exposure_data,True,False
+DTXSID0020319,1897-45-6,Chlorothalonil,True,,0.08507,,no_exposure_data,True,False
+DTXSID1021299,569-57-3,Chlorotrianisene,True,,0.0003031,,no_exposure_data,True,False
+DTXSID7024827,69-09-0,Chlorpromazine hydrochloride,True,,0.1742,,no_exposure_data,True,False
+DTXSID1022396,480-40-0,Chrysin,True,,0.3757,,no_exposure_data,True,False
+DTXSID2047272,249296-43-3,Cj-013610,True,,0.4172,,no_exposure_data,True,False
+DTXSID3020336,637-07-0,Clofibrate,True,,9.372,,no_exposure_data,True,False
+DTXSID3042633,17321-77-6,Clomipramine hydrochloride,True,,0.046285,,no_exposure_data,True,False
+DTXSID5047320,180084-01-9,Sb236057a,True,,0.722,,no_exposure_data,True,False
+DTXSID6034265,57754-85-5,Clopyralid-olamine,True,,0.3625,,no_exposure_data,True,False
+DTXSID7029871,23593-75-1,Clotrimazole,True,,1.2265,,no_exposure_data,True,False
+DTXSID6022474,50-22-6,Corticosterone,True,,2.0675,,no_exposure_data,True,False
+DTXSID8047266,230954-09-3,Cp-544439,True,,0.757,,no_exposure_data,True,False
+DTXSID7047306,290352-28-2,Cp-634384,True,,0.0165,,no_exposure_data,True,False
+DTXSID6047282,445295-04-5,Cp-671305,True,,0.066185,,no_exposure_data,True,False
+DTXSID8031077,458-37-7,Curcumin,True,,0.14315,,no_exposure_data,True,False
+DTXSID9034492,120116-88-3,Cyazofamid,True,,0.9551,,no_exposure_data,True,False
+DTXSID6043709,4449-51-8,Cyclopamine,True,,22.495,,no_exposure_data,True,False
+DTXSID6024888,6055-19-2,Cyclophosphamide monohydrate,True,,0.5744,,no_exposure_data,True,False
+DTXSID5035957,68359-37-5,Cyfluthrin,True,,0.2098,,no_exposure_data,True,False
+DTXSID6032358,57966-95-7,Cymoxanil,True,,17.3,,no_exposure_data,True,False
+DTXSID5020366,427-51-0,Cyproterone acetate,True,,0.27335,,no_exposure_data,True,False
+DTXSID5024891,69-74-9,Cytarabine hydrochloride,True,,25.02,,no_exposure_data,True,False
+DTXSID9020370,1596-84-5,Daminozide,True,,2.392,,no_exposure_data,True,False
+DTXSID0047246,139340-56-0,Darbufelone mesylate,True,,0.011365,,no_exposure_data,True,False
+DTXSID5037494,6190-65-4,Deethylatrazine,True,,0.4355,,no_exposure_data,True,False
+DTXSID9034361,90823-38-4,Denatonium saccharide,True,,0.76015,,no_exposure_data,True,False
+DTXSID3047429,2392-39-4,Dexamethasone sodium phosphate,True,,2.672,,no_exposure_data,True,False
+DTXSID1041847,109-43-3,Dibutyl decanedioate,True,,1.2835,,no_exposure_data,True,False
+DTXSID6021824,97-23-4,Dichlorophen,True,,0.14225,,no_exposure_data,True,False
+DTXSID0021389,52-68-6,Trichlorfon,True,,17.87,,no_exposure_data,True,False
+DTXSID1024049,35367-38-5,Diflubenzuron,True,,0.0114,,no_exposure_data,True,False
+DTXSID4032580,141517-21-7,Trifloxystrobin,True,,9.648,,no_exposure_data,True,False
+DTXSID4026262,2451-62-9,Triglycidyl isocyanurate,True,,104.4,,no_exposure_data,True,False
+DTXSID8024072,957-51-7,Diphenamid,True,,0.09062,,no_exposure_data,True,False
+DTXSID0022436,126-00-1,Diphenolic acid,True,,0.16205,,no_exposure_data,True,False
+DTXSID5026706,104-66-5,"1,2-diphenoxyethane",True,,0.12585,,no_exposure_data,True,False
+DTXSID1021322,97-77-8,Disulfiram,True,,1.156,,no_exposure_data,True,False
+DTXSID3047477,6533-00-2,Dl-norgestrel,True,,0.4619,,no_exposure_data,True,False
+DTXSID6025226,24169-02-6,Econazole nitrate,True,,0.1024,,no_exposure_data,True,False
+DTXSID7047277,361343-19-3,Elzasonan,True,,1.1455,,no_exposure_data,True,False
+DTXSID4047258,124378-77-4,Enadoline,True,,1.535,,no_exposure_data,True,False
+DTXSID7024081,145-73-3,Endothal,True,,0.43085,,no_exposure_data,True,False
+DTXSID3021645,124-07-2,Octanoic acid,True,,0.018505,,no_exposure_data,True,False
+DTXSID0025234,17372-87-1,Eosin,True,,0.10445,,no_exposure_data,True,False
+DTXSID1040372,133855-98-8,Epoxiconazole,True,,0.0406,,no_exposure_data,True,False
+DTXSID7047433,474-86-2,Equilin,True,,0.32245,,no_exposure_data,True,False
+DTXSID9044950,52479-85-3,Exifone,True,,0.007761,,no_exposure_data,True,False
+DTXSID7048168,129299-90-7,Fabesetron hydrochloride,True,,0.3942,,no_exposure_data,True,False
+DTXSID5041726,2610-11-9,C.i. direct red 81 disodium salt,True,,0.00086585,,no_exposure_data,True,False
+DTXSID3020673,2353-45-9,Fd&c green no. 3,True,,0.040445,,no_exposure_data,True,False
+DTXSID6021456,2783-94-0,Fd&c yellow 6,True,,0.6398,,no_exposure_data,True,False
+DTXSID2029874,49562-28-9,Fenofibrate,True,,7.57,,no_exposure_data,True,False
+DTXSID0040755,113776-20-8,Fenoxaprop-(2s)-ethyl,True,,8.973,,no_exposure_data,True,False
+DTXSID2034598,71283-80-2,Fenoxaprop-p-ethyl,True,,7.734,,no_exposure_data,True,False
+DTXSID2032550,111812-58-9,"Fenpyroximate (z,e)",True,,0.24465,,no_exposure_data,True,False
+DTXSID7037551,101-42-8,Fenuron,True,,1.057,,no_exposure_data,True,False
+DTXSID3034612,69806-50-4,Fluazifop-butyl,True,,5.9525,,no_exposure_data,True,False
+DTXSID3034618,188489-07-8,Flufenpyr-ethyl,True,,19.26,,no_exposure_data,True,False
+DTXSID7024112,72178-02-0,Fomesafen,True,,0.026205,,no_exposure_data,True,False
+DTXSID6024123,69806-40-2,Haloxyfop-methyl,True,,9.7045,,no_exposure_data,True,False
+DTXSID6023868,67485-29-4,Hydramethylnon,True,,0.1217,,no_exposure_data,True,False
+DTXSID8033562,52806-53-8,Hydroxyflutamide,True,,0.092335,,no_exposure_data,True,False
+DTXSID6043915,630-56-8,Hydroxyprogesterone caproate,True,,3.089,,no_exposure_data,True,False
+DTXSID7047356,473289-62-2,Ilepatril,True,,25.32,,no_exposure_data,True,False
+DTXSID4047252,186392-65-4,Ingliforib,True,,0.19895,,no_exposure_data,True,False
+DTXSID7034674,125225-28-7,Ipconazole,True,,2.1575,,no_exposure_data,True,False
+DTXSID8032417,25311-71-1,Isofenphos,True,,3.52,,no_exposure_data,True,False
+DTXSID8024157,33820-53-0,Isopropalin,True,,0.013515,,no_exposure_data,True,False
+DTXSID6025486,51-30-9,Isoproterenol hydrochloride,True,,0.60735,,no_exposure_data,True,False
+DTXSID1042077,34123-59-6,Isoproturon,True,,0.088575,,no_exposure_data,True,False
+DTXSID0042086,59227-89-3,Laurocapram,True,,0.32385,,no_exposure_data,True,False
+DTXSID0048189,1166-52-5,Lauryl gallate,True,,0.00019805,,no_exposure_data,True,False
+DTXSID7031531,129-73-7,Leucomalachite green,True,,0.00015945,,no_exposure_data,True,False
+DTXSID8023214,51-48-9,Levothyroxine,True,,0.00046385,,no_exposure_data,True,False
+DTXSID9047542,117428-22-5,Picoxystrobin,True,,0.7631,,no_exposure_data,True,False
+DTXSID9020790,1634-78-2,Malaoxon,True,,33.265,,no_exposure_data,True,False
+DTXSID5048184,2919-66-6,Melengestrol acetate,True,,1.252,,no_exposure_data,True,False
+DTXSID7047568,41394-05-2,Metamitron,True,,0.4069,,no_exposure_data,True,False
+DTXSID6020692,100-97-0,Methenamine,True,,0.1467,,no_exposure_data,True,False
+DTXSID4024274,1918-16-7,Propachlor,True,,24.275,,no_exposure_data,True,False
+DTXSID6025567,134-20-3,Methyl 2-aminobenzoate,True,,57.405,,no_exposure_data,True,False
+DTXSID8024280,60207-90-1,Propiconazole,True,,0.5309,,no_exposure_data,True,False
+DTXSID1042154,493-52-7,Methyl red,True,,0.4421,,no_exposure_data,True,False
+DTXSID5025659,119-36-8,Methyl salicylate,True,,75.785,,no_exposure_data,True,False
+DTXSID0023296,61-73-4,Methylene blue,True,,7.488,,no_exposure_data,True,False
+DTXSID2020894,90-94-8,Michler's ketone,True,,0.68565,,no_exposure_data,True,False
+DTXSID4031980,501-36-0,Resveratrol,True,,0.659,,no_exposure_data,True,False
+DTXSID0037576,1746-81-2,Monolinuron,True,,0.11605,,no_exposure_data,True,False
+DTXSID9040001,4376-18-5,Monomethyl phthalate,True,,0.2873,,no_exposure_data,True,False
+DTXSID3040776,654055-01-3,Morin hydrate,True,,0.014105,,no_exposure_data,True,False
+DTXSID7032630,1214-39-7,N-benzyladenine,True,,0.096435,,no_exposure_data,True,False
+DTXSID1025271,103-69-5,N-ethylaniline,True,,1.7715,,no_exposure_data,True,False
+DTXSID6020856,872-50-4,N-methyl-2-pyrrolidone,True,,0.24765,,no_exposure_data,True,False
+DTXSID7021992,82385-42-0,Sodium saccharin hydrate,True,,0.73425,,no_exposure_data,True,False
+DTXSID2021440,88-12-0,N-vinyl-2-pyrrolidone,True,,0.2636,,no_exposure_data,True,False
+DTXSID7047697,63449-68-3,Naphthalen-2-yl 2-aminobenzoate,True,,7.602,,no_exposure_data,True,False
+DTXSID7047358,439687-69-1,Nelivaptan,True,,5.0605,,no_exposure_data,True,False
+DTXSID2042436,4065-45-6,Sulisobenzone,True,,0.09761,,no_exposure_data,True,False
+DTXSID3034165,63612-50-0,Nilutamide,True,,0.042,,no_exposure_data,True,False
+DTXSID5020944,59-87-0,Nitrofurazone,True,,0.29695,,no_exposure_data,True,False
+DTXSID5042243,110-25-8,Oleyl sarcosine,True,,0.068375,,no_exposure_data,True,False
+DTXSID5044528,125-13-3,Oxyphenisatin,True,,0.017595,,no_exposure_data,True,False
+DTXSID8026303,125-31-5,P-xylenol blue,True,,0.010345,,no_exposure_data,True,False
+DTXSID6024046,311-45-5,Paraoxon,True,,0.3078,,no_exposure_data,True,False
+DTXSID2047307,501027-49-2,Pd-0333941,True,,0.025405,,no_exposure_data,True,False
+DTXSID8021199,1114-71-2,Pebulate,True,,1.551,,no_exposure_data,True,False
+DTXSID0048505,NOCAS_48505,Pharmagsid_48505,True,,0.01408,,no_exposure_data,True,False
+DTXSID9048510,460081-99-6,Pharmagsid_48510,True,,0.196,,no_exposure_data,True,False
+DTXSID0021123,57-30-7,Phenobarbital sodium,True,,0.19505,,no_exposure_data,True,False
+DTXSID8022408,143-74-8,Phenol red,True,,0.21185,,no_exposure_data,True,False
+DTXSID2044420,34487-61-1,Phenol red sodium salt,True,,0.1029,,no_exposure_data,True,False
+DTXSID5022439,81-90-3,Phenolphthalin,True,,0.07323,,no_exposure_data,True,False
+DTXSID5021126,92-84-2,Phenothiazine,True,,0.0015265,,no_exposure_data,True,False
+DTXSID0022777,169590-42-5,Celecoxib,True,,0.096295,,no_exposure_data,True,False
+DTXSID9032535,95266-40-3,Trinexapac-ethyl,True,,0.47995,,no_exposure_data,True,False
+DTXSID4026214,101-20-2,Triclocarban,True,,0.08562,,no_exposure_data,True,False
+DTXSID8037594,26259-45-0,Secbumeton,True,,0.3215,,no_exposure_data,True,False
+DTXSID6047525,81131-70-6,Pravastatin sodium,True,,0.8885,,no_exposure_data,True,False
+DTXSID9033923,32809-16-8,Procymidone,True,,0.2268,,no_exposure_data,True,False
+DTXSID0044361,1071-93-8,Hexanedihydrazide,True,,0.8893,,no_exposure_data,True,False
+DTXSID4024276,2312-35-8,Propargite,True,,0.37575,,no_exposure_data,True,False
+DTXSID2025050,111-40-0,Diethylenetriamine,True,,1.1385,,no_exposure_data,True,False
+DTXSID9034864,181274-15-7,Propoxycarbazone-sodium,True,,0.10245,,no_exposure_data,True,False
+DTXSID5021201,121-79-9,Propyl gallate,True,,1.099,,no_exposure_data,True,False
+DTXSID8034871,129630-19-9,Pyraflufen-ethyl,True,,7.755,,no_exposure_data,True,False
+DTXSID1034181,82640-04-8,Raloxifene hydrochloride,True,,1.401,,no_exposure_data,True,False
+DTXSID5047037,335104-84-2,Tembotrione,True,,0.12615,,no_exposure_data,True,False
+DTXSID1021243,989-38-8,Rhodamine 6g,True,,0.01743,,no_exposure_data,True,False
+DTXSID6042280,2597-03-7,Phenthoate,True,,4.484,,no_exposure_data,True,False
+DTXSID5044520,1176-74-5,Tetrabromophenolphthalein ethyl ester,True,,0.0082475,,no_exposure_data,True,False
+DTXSID1026035,2492-26-4,Sodium 2-mercaptobenzothiolate,True,,0.885,,no_exposure_data,True,False
+DTXSID3027320,824-78-2,Sodium 4-nitrophenolate,True,,7.052,,no_exposure_data,True,False
+DTXSID7026029,4418-26-2,Sodium dehydroacetate,True,,0.024685,,no_exposure_data,True,False
+DTXSID9047598,41481-66-7,"4,4'-sulfonylbis[2-(prop-2-en-1-yl)phenol]",True,,8.2305,,no_exposure_data,True,False
+DTXSID6021290,57-68-1,Sulfamethazine,True,,0.1006,,no_exposure_data,True,False
+DTXSID8042424,59-40-5,Sulfaquinoxaline,True,,0.0039585,,no_exposure_data,True,False
+DTXSID7024328,3689-24-5,Sulfotepp,True,,2.7955,,no_exposure_data,True,False
+DTXSID4038924,6259-76-3,Hexyl salicylate,True,,1.091,,no_exposure_data,True,False
+DTXSID2047357,288104-79-0,Surinabant,True,,0.00026575,,no_exposure_data,True,False
+DTXSID9025293,149-57-5,2-ethylhexanoic acid,True,,0.2079,,no_exposure_data,True,False
+DTXSID2022254,13071-79-9,Terbufos,True,,0.6175,,no_exposure_data,True,False
+DTXSID9036515,57-85-2,Testosterone propionate,True,,0.3925,,no_exposure_data,True,False
+DTXSID7020762,67-63-0,Isopropanol,True,,0.1831,,no_exposure_data,True,False
+DTXSID30865801,36062-04-1,Tetrahydrocurcumin,True,,15.62,,no_exposure_data,True,False
+DTXSID9026132,83-67-0,Theobromine,True,,803.85,,no_exposure_data,True,False
+DTXSID5021332,137-26-8,Thiram,True,,0.21675,,no_exposure_data,True,False
+DTXSID3021358,1156-19-0,Tolazamide,True,,0.04955,,no_exposure_data,True,False
+DTXSID1034973,87820-88-0,Tralkoxydim,True,,0.0029625,,no_exposure_data,True,False
+DTXSID2047355,189003-92-7,Trelanserin,True,,0.8707,,no_exposure_data,True,False
+DTXSID9037612,24017-47-8,Triazophos,True,,1.8575,,no_exposure_data,True,False
+DTXSID4027608,5915-41-3,Terbuthylazine,True,,0.25145,,no_exposure_data,True,False
+DTXSID8026224,112-49-2,Triethylene glycol dimethyl ether,True,,0.36965,,no_exposure_data,True,False
+DTXSID9020584,64-17-5,Ethanol,True,,0.7391,,no_exposure_data,True,False
+DTXSID3020881,64091-91-4,4-(n-methyl-n-nitrosamino)-1-(3-pyridyl)-1-butanone,True,,4.617,,no_exposure_data,True,False
+DTXSID4041280,2226-96-2,"4-hydroxy-2,2,6,6-tetramethylpiperidin-1-yl)oxidanyl",True,,8.8535,,no_exposure_data,True,False
+DTXSID0044818,3913-02-8,2-butyloctan-1-ol,True,,0.007353,,no_exposure_data,True,False
+DTXSID0020814,72-33-3,Mestranol,True,,0.27125,,no_exposure_data,True,False
+DTXSID6044357,105-13-5,(4-methoxyphenyl)methanol,True,,123.3,,no_exposure_data,True,False
+DTXSID3026728,106-25-2,"(2z)-3,7-dimethylocta-2,6-dien-1-ol",True,,0.009062,,no_exposure_data,True,False
+DTXSID5033836,104-40-5,4-n-nonylphenol,True,,0.4135,,no_exposure_data,True,False
+DTXSID5046801,108612-45-9,Mizolastine,True,,0.2672,,no_exposure_data,True,False
+DTXSID7044427,4394-85-8,4-morpholinecarboxaldehyde,True,,0.4562,,no_exposure_data,True,False
+DTXSID1024097,111-76-2,2-butoxyethanol,True,,0.54615,,no_exposure_data,True,False
+DTXSID9042170,6425-39-4,"4,4'-(oxydiethylene)bis(morpholine)",True,,3.188,,no_exposure_data,True,False
+DTXSID4034497,125116-23-6,Metconazole,True,,0.4374,,no_exposure_data,True,False
+DTXSID0021333,97-74-5,Tetramethylthiuram monosulfide,True,,14.4,,no_exposure_data,True,False
+DTXSID2029246,2943-75-1,Triethoxyoctylsilane,True,,0.15565,,no_exposure_data,True,False
+DTXSID7044922,3445-11-2,1-(2-hydroxyethyl)pyrrolidin-2-one,True,,0.3827,,no_exposure_data,True,False
+DTXSID1020142,91-76-9,"6-phenyl-1,3,5-triazine-2,4-diamine",True,,0.57205,,no_exposure_data,True,False
+DTXSID7042011,97-78-9,N-dodecanoyl-n-methylglycine,True,,0.15205,,no_exposure_data,True,False
+DTXSID9044821,5232-99-5,"Ethyl 2-cyano-3,3-diphenylacrylate",True,,1.723,,no_exposure_data,True,False
+DTXSID0044997,88-27-7,"2,6-di-tert-butyl-4-[(dimethylamino)methyl]phenol",True,,0.73395,,no_exposure_data,True,False
+DTXSID5021251,81-07-2,Saccharin,True,,0.49595,,no_exposure_data,True,False
+DTXSID8052148,5124-25-4,C.i.disperse yellow 42,True,,1.301,,no_exposure_data,True,False
