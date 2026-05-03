@@ -9,3 +9,6 @@ torch>=2.0
 
 # Step 7 – Explainable AI
 shap>=0.44
+
+# Step 11 – GCN (molekulare Graphen)
+rdkit>=2023.3

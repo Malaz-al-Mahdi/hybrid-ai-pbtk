@@ -1,0 +1,20 @@
+CAS,Compound,Clint,SMILES,Clint_pred_GCN,log10_true,log10_pred_GCN,fold_error
+80-05-7,Bisphenol-a,19.9,OC1=CC=C(CC2=CC=C(O)C=C2)C=C1,2.2396,1.2989,0.3504,8.882
+34256-82-1,Acetochlor,84.71,CCOC(=O)CN(CC(=O)OCC)C(=O)CCl,5.9297,1.9279,0.7731,14.284
+99-71-8,4-(butan-2-yl)phenol,19.03,CCC(C)c1ccc(O)cc1,4.652,1.2795,0.6677,4.09
+58-08-2,Caffeine,0.2855,Cn1cnc2c1c(=O)n(C)c(=O)n2C,0.0,-0.5429,-3.3543,647.796
+298-46-4,Carbamazepine,2.375,NC(=O)N1c2ccccc2C=Cc2ccccc21,7.8203,0.3758,0.8933,3.292
+2921-88-2,Chlorpyrifos,2.6,CCOP(=S)(OCC)Oc1nc(Cl)c(Cl)cc1Cl,34.6351,0.4151,1.5395,13.316
+138261-41-3,Imidacloprid,2.807,O=[N+]([O-])/C(=N/Cc1ccc(Cl)nc1)NC1CCCCC1,1.1113,0.4484,0.0462,2.525
+87-86-5,Pentachlorophenol,8.764,Oc1c(Cl)c(Cl)c(Cl)c(Cl)c1Cl,1.3541,0.9428,0.132,6.468
+62-44-2,Phenacetin,9.346,CCOC(=O)Nc1ccc(OCC)cc1,43.102,0.9707,1.6345,4.611
+57-41-0,Phenytoin,0.8178,O=C1NC(=O)C(c2ccccc2)(c2ccccc2)N1,14.0353,-0.0868,1.1473,17.143
+94-75-7,"2,4-d",0.0,OC(=O)COc1ccc(Cl)cc1Cl,32.3308,-3.0,1.5096,32331.779
+1912-24-9,Atrazine,0.0,CCNc1nc(Cl)nc(NC(C)C)n1,0.5016,-3.0,-0.2987,502.639
+330-54-1,Diuron,12.15,CN(C)C(=O)Nc1ccc(Cl)cc1Cl,0.6946,1.0846,-0.1576,17.468
+15307-79-6,Diclofenac sodium,38.84,O=C(Cc1ccccc1Cl)Nc1ccc(cc1)Cl,0.4949,1.5893,-0.3046,78.328
+137-26-8,Thiram,816.0,S=C(N(C)C)SSC(=S)N(C)C,38.1936,2.9117,1.582,21.364
+52-68-6,Trichlorfon,31.7,COP(=O)(OC)C(Cl)(Cl)O,73.7982,1.5011,1.8681,2.328
+2104-64-5,O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,8.16,CCOP(=S)(Oc1ccc([N+](=O)[O-])cc1)c1ccccc1,24.1116,0.9117,1.3822,2.955
+62-73-7,Dichlorvos,86.4,COP(=O)(OC)OC=C(Cl)Cl,39.9472,1.9365,1.6015,2.163
+56-72-4,Coumaphos,31.7,CCOP(=S)(OCC)Oc1ccc2c(c1)OC(=O)C2,7.5201,1.5011,0.8763,4.215

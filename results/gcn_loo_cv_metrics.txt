@@ -1,0 +1,10 @@
+GCN LOO-CV  (n = 19 Chemikalien)
+Architektur: 40 -> 128 -> 64 -> 32 -> 1
+==================================================
+R^2  (log10)         : -0.2314
+RMSE (log10)         : 1.6257
+Spearman rho         : 0.2476  (p = 3.068e-01)
+GMFE                 : 17.79x
+Innerhalb 2-fold     : 0 %
+Innerhalb 3-fold     : 21 %
+Innerhalb 10-fold    : 53 %

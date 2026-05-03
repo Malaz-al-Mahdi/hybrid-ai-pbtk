@@ -1,0 +1,5 @@
+Set,N,R2_log,RMSE_log,Spearman,Spearman_p,GMFE,Pct_2fold,Pct_3fold,Pct_10fold
+"A) Internal LOO-CV (n=19, excl. Clint=0)",17,-1.7361,1.3245,0.0834,0.7504,10.65,11.8,35.3,64.7
+B) All 777 httk chemicals,544,-2.6579,1.3403,0.0439,0.3065,7.86,31.2,43.8,71.5
+C) External validation (pilot excluded),527,-2.822,1.3617,0.013,0.7655,8.37,29.0,41.9,70.6
+D) Clint > 1 uL/min/10^6 (active clearance),527,-3.4122,1.3535,0.004,0.9272,8.0,31.3,43.8,71.5
