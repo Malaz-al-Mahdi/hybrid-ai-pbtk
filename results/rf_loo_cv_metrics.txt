@@ -1,31 +1,25 @@
-Clint Prediction  --  LOO-CV  (n = 19 chemicals)
+Clint Prediction -- LOO-CV  (n = 19 chemicals)
 Best model: GradientBoosting
 ====================================================
 
-PRIMARY METRIC (log10 scale  --  recommended for TK data)
-  R^2  log10           : -0.2567
-  RMSE log10           : 1.6423  log10 units
-  Spearman rho         : 0.1615  (p = 5.0879e-01)
-  Geom. mean fold-error: 18.06x
-  Within 2-fold        : 11 %
-  Within 3-fold        : 32 %
+PRIMARY METRIC (log10 scale -- recommended for TK data)
+  RMSE log10        : 1.5679  log10 units
+  R^2  log10        : -0.1454
+  Spearman rho      : 0.1826  (p = 4.5428e-01)
+  Geom. mean fold-error: 17.70x
 
-ORIGINAL SCALE (informative; note: Thiram outlier Clint=816)
-  RMSE (uL/min/10^6)   : 167.8284
-  R^2                  : 0.1262
-  Spearman rho         : 0.1615  (p = 5.0879e-01)
-
-Model comparison (log10-R^2):
-  RandomForest         : -0.2672
-  GradientBoosting     : -0.2567
+ORIGINAL SCALE (for reference; dominated by Thiram outlier)
+  RMSE (uL/min/10^6): 165.8903
+  R^2               : 0.1462
+  Spearman rho      : 0.1826  (p = 4.5428e-01)
 
 RF Feature importances (mean across LOO folds):
-  log10_MW            : 0.1875
-  MW                  : 0.1760
-  MW_x_Fup            : 0.1105
-  MW_x_logP           : 0.1092
-  logP_x_Fup          : 0.1063
+  log10_MW            : 0.1868
+  MW                  : 0.1694
+  logP_x_Fup          : 0.1151
+  MW_x_logP           : 0.1089
+  MW_x_Fup            : 0.1070
   sqrt_Fup            : 0.0970
-  log10_Fup           : 0.0879
-  logP                : 0.0657
-  logP^2              : 0.0599
+  log10_Fup           : 0.0890
+  logP                : 0.0703
+  logP^2              : 0.0565

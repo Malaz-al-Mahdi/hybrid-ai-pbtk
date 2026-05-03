@@ -1,20 +1,20 @@
-CAS,Compound,Clint_true,Clint_pred,abs_error,log10_true,log10_pred,fold_error,model
-80-05-7,Bisphenol-a,19.9,0.3889,19.5111,1.2989,-0.409,51.038,GradientBoosting
-34256-82-1,Acetochlor,84.71,13.7059,71.0041,1.9279,1.1369,6.18,GradientBoosting
-99-71-8,4-(butan-2-yl)phenol,19.03,0.003,19.027,1.2795,-2.4021,4803.574,GradientBoosting
-58-08-2,Caffeine,0.2855,4.652,4.3665,-0.5429,0.6677,16.241,GradientBoosting
-298-46-4,Carbamazepine,2.375,3.6121,1.2371,0.3758,0.5579,1.521,GradientBoosting
-2921-88-2,Chlorpyrifos,2.6,7.7492,5.1492,0.4151,0.8893,2.98,GradientBoosting
-138261-41-3,Imidacloprid,2.807,27.1658,24.3588,0.4484,1.434,9.675,GradientBoosting
-87-86-5,Pentachlorophenol,8.764,21.4874,12.7234,0.9428,1.3322,2.452,GradientBoosting
-62-44-2,Phenacetin,9.346,3.2831,6.0629,0.9707,0.5164,2.846,GradientBoosting
-57-41-0,Phenytoin,0.8178,4.4598,3.642,-0.0868,0.6494,5.448,GradientBoosting
-94-75-7,"2,4-d",0.0,7.1766,7.1766,-3.0,0.856,7177.603,GradientBoosting
-1912-24-9,Atrazine,0.0,0.3625,0.3625,-3.0,-0.4394,363.541,GradientBoosting
-330-54-1,Diuron,12.15,0.2709,11.8791,1.0846,-0.5657,44.697,GradientBoosting
-15307-79-6,Diclofenac sodium,38.84,58.1248,19.2848,1.5893,1.7644,1.497,GradientBoosting
-137-26-8,Thiram,816.0,102.9106,713.0894,2.9117,2.0125,7.929,GradientBoosting
-52-68-6,Trichlorfon,31.7,2.5653,29.1347,1.5011,0.4093,12.353,GradientBoosting
-2104-64-5,O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,8.16,2.8653,5.2947,0.9117,0.4573,2.847,GradientBoosting
-62-73-7,Dichlorvos,86.4,0.9919,85.4081,1.9365,-0.0031,87.02,GradientBoosting
-56-72-4,Coumaphos,31.7,137.963,106.263,1.5011,2.1398,4.352,GradientBoosting
+CAS,Compound,Clint_true,Clint_pred,abs_error,log10_true,log10_pred,log10_abs_err,fold_error,model
+80-05-7,Bisphenol-a,19.9,0.9009,18.9991,1.2989,-0.0449,1.3437,22.067,GradientBoosting
+34256-82-1,Acetochlor,84.71,8.2026,76.5074,1.9279,0.914,1.0139,10.326,GradientBoosting
+99-71-8,4-(butan-2-yl)phenol,19.03,0.0107,19.0193,1.2795,-1.9332,3.2127,1631.756,GradientBoosting
+58-08-2,Caffeine,0.2855,3.7527,3.4672,-0.5429,0.5745,1.1173,13.102,GradientBoosting
+298-46-4,Carbamazepine,2.375,5.4728,3.0978,0.3758,0.7383,0.3624,2.304,GradientBoosting
+2921-88-2,Chlorpyrifos,2.6,12.1244,9.5244,0.4151,1.0837,0.6686,4.662,GradientBoosting
+138261-41-3,Imidacloprid,2.807,19.8476,17.0406,0.4484,1.2977,0.8493,7.069,GradientBoosting
+87-86-5,Pentachlorophenol,8.764,8.1479,0.6161,0.9428,0.9111,0.0317,1.076,GradientBoosting
+62-44-2,Phenacetin,9.346,0.664,8.682,0.9707,-0.1772,1.1479,14.056,GradientBoosting
+57-41-0,Phenytoin,0.8178,6.8798,6.062,-0.0868,0.8376,0.9245,8.404,GradientBoosting
+94-75-7,"2,4-d",0.0,3.4484,3.4484,-3.0,0.5377,3.5377,3449.421,GradientBoosting
+1912-24-9,Atrazine,0.0,0.3908,0.3908,-3.0,-0.407,2.593,391.755,GradientBoosting
+330-54-1,Diuron,12.15,0.376,11.774,1.0846,-0.4237,1.5083,32.23,GradientBoosting
+15307-79-6,Diclofenac sodium,38.84,13.2542,25.5858,1.5893,1.1224,0.4669,2.93,GradientBoosting
+137-26-8,Thiram,816.0,107.8915,708.1085,2.9117,2.033,0.8787,7.563,GradientBoosting
+52-68-6,Trichlorfon,31.7,3.1187,28.5813,1.5011,0.4941,1.007,10.162,GradientBoosting
+2104-64-5,O-ethyl o-(p-nitrophenyl) phenylphosphonothioate,8.16,4.0337,4.1263,0.9117,0.6058,0.3059,2.023,GradientBoosting
+62-73-7,Dichlorvos,86.4,0.5138,85.8862,1.9365,-0.2884,2.2249,167.847,GradientBoosting
+56-72-4,Coumaphos,31.7,104.8295,73.1295,1.5011,2.0205,0.5194,3.307,GradientBoosting

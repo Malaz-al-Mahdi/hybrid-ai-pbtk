@@ -1,0 +1,12 @@
+GCN + RF/GB auf 777 httk-Chemikalien
+====================================================
+
+Trainingsset: 19 Pilotchemikalien
+GCN-Vorhersagen: 748
+RF/GB-Vorhersagen: 777
+
+                             Modell   N      R2  RMSE_log  Spearman  GMFE  Pct_2fold  Pct_3fold  Pct_10fold
+        RF/GB -- alle mit Lit-Clint 544 -2.6579    1.3403    0.0439  7.86       31.2       43.8        71.5
+                    RF/GB -- extern 527 -2.8220    1.3617    0.0130  8.37       29.0       41.9        70.6
+GCN  -- alle mit Lit-Clint + SMILES 525 -1.1412    1.0280    0.2103  5.57       30.3       45.0        73.3
+                     GCN  -- extern 508 -1.2363    1.0440    0.1855  5.80       28.7       43.1        72.4
