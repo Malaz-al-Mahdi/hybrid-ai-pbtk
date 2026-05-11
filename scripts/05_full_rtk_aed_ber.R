@@ -182,8 +182,14 @@ cat("STEP 2: RF imputation for all-chemical Clint coverage\n")
 cat(paste(rep("=", 70), collapse = ""), "\n\n")
 
 rf_training_raw <- get_httk_data("wambaugh2019")
+rf_training_source <- "wambaugh2019"
 if (is.null(rf_training_raw)) {
-  stop("httk dataset 'wambaugh2019' is unavailable; cannot train the RF imputation model.")
+  # Fallback: use the currently bundled httk table as training source.
+  # This keeps the pipeline functional across httk versions where wambaugh2019
+  # is not shipped as a standalone dataset.
+  rf_training_raw <- chem.physical_and_invitro.data
+  rf_training_source <- "chem.physical_and_invitro.data"
+  cat("  NOTE: httk dataset 'wambaugh2019' not found. Falling back to 'chem.physical_and_invitro.data'.\n")
 }
 
 rf_features <- c("MW", "logP", "Fup")
@@ -200,7 +206,7 @@ rf_train <- data.frame(
 rf_train <- rf_train[!is.na(rf_train$Clint) & rf_train$Clint > 0, ]
 
 if (nrow(rf_train) < 25) {
-  stop("Too few Wambaugh training rows available for reliable RF Clint imputation.")
+  stop("Too few RF training rows available for reliable Clint imputation.")
 }
 
 rf_feature_medians <- lapply(rf_features, function(col) {
@@ -236,10 +242,11 @@ eligible$Clint_used <- ifelse(
 )
 eligible$Clint_source <- ifelse(
   eligible$needs_clint_impute,
-  "RF_imputed_wambaugh2019",
+  paste0("RF_imputed_", rf_training_source),
   "httk_measured"
 )
 
+cat(sprintf("  RF training source:                     %s\n", rf_training_source))
 cat(sprintf("  RF training chemicals used:             %d\n", nrow(rf_train)))
 cat(sprintf("  Eligible chemicals needing imputation:  %d\n", sum(eligible$needs_clint_impute)))
 cat(sprintf("  Chemicals with measured Clint retained: %d\n\n",

@@ -39,7 +39,6 @@ Outputs
 """
 
 import sys
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -47,9 +46,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT    = Path(__file__).resolve().parent.parent
-DATA    = ROOT / "data"
-RESULTS = ROOT / "results"
+from utils import (
+    ROOT, DATA, RESULTS,
+    PILOT_IMPUTED as PILOT_CSV, AED_BER_CSV,
+    Q_H, clint_uL_to_cl_h,
+)
 
 try:
     import torch
@@ -62,33 +63,23 @@ except ImportError:
         "or:  py -m pip install torch"
     )
 
-PILOT_CSV   = DATA    / "pilot_chemicals_imputed.csv"
-AED_BER_CSV = RESULTS / "aed_ber_full.csv"
-
-for p in (PILOT_CSV,):
-    if not p.exists():
-        sys.exit(f"ERROR: {p} not found.  Run steps 01 and 02 first.")
+if not PILOT_CSV.exists():
+    sys.exit(f"ERROR: {PILOT_CSV} not found.  Run steps 01 and 02 first.")
 
 torch.manual_seed(42)
 np.random.seed(42)
 
-# ── Hyperparameters ───────────────────────────────────────────────────────────
-DROPOUT_P   = 0.30    # dropout rate at every hidden layer
-HIDDEN_DIMS = [64, 64, 32]
-EPOCHS      = 800
-LR          = 3e-3
+# ── Hyperparameter ────────────────────────────────────────────────────────────
+DROPOUT_P    = 0.30
+HIDDEN_DIMS  = [64, 64, 32]
+EPOCHS       = 800
+LR           = 3e-3
 WEIGHT_DECAY = 1e-4
-N_MC        = 2000    # Monte Carlo forward passes for posterior sampling
+N_MC         = 2000   # Monte-Carlo-Passes fuer Posterior
 
-# ── PK constants for AED scaling ─────────────────────────────────────────────
-Q_H     = 1.5        # hepatic blood flow [L/h/kg]
-F_LIVER = 26e-3
-HEPATO  = 110e6
-
+# Alias fuer Abwaertskompatibilitaet
 def clint_to_cl(clint_uL, fup):
-    fup = max(float(fup), 1e-4)
-    clint_L = float(clint_uL) * 1e-6 * 60.0 * HEPATO * F_LIVER
-    return Q_H * fup * clint_L / (Q_H + fup * clint_L)
+    return clint_uL_to_cl_h(clint_uL, fup)
 
 
 # ── Model ─────────────────────────────────────────────────────────────────────

@@ -12,24 +12,31 @@ Additive exPlanations) provides a unified, theoretically grounded framework
 for local and global feature attribution.
 
 This script applies SHAP to:
-  A) Random Forest model for Clint prediction (Step 2)
+  A) Random Forest model for Clint prediction (Step 2, simple 3-feature model)
      → Which physicochemical features most drive log10(Clint)?
      → Are there non-linear or interaction effects?
   B) BER prediction from AED/exposure data (Step 5/6)
      → Which input variables explain the BER ranking?
+  C) Outlier SHAP – full 9-feature model on all 777 httk chemicals
+     → Why does the model fail for Tacrine, Phenylparaben, Acibenzolar?
+     → Waterfall plots per outlier + comparison with well-predicted chemicals
+     (merged from former 12_shap_outlier_analysis.py)
 
 Plots
 ~~~~~
-  results/shap_rf_summary_bar.png        Global RF SHAP bar chart
-  results/shap_rf_beeswarm.png           RF SHAP beeswarm plot
-  results/shap_rf_dependence_logP.png    logP dependence + interaction
-  results/shap_rf_dependence_Fup.png     Fup dependence + interaction
-  results/shap_ber_beeswarm.png          BER explainability beeswarm
+  results/shap_rf_summary_bar.png        Global RF SHAP bar chart (Section A)
+  results/shap_rf_beeswarm.png           RF SHAP beeswarm plot (Section A)
+  results/shap_rf_dependence_*.png       Feature dependence plots (Section A)
+  results/shap_ber_beeswarm.png          BER explainability beeswarm (Section B)
+  results/shap_outlier_global_bar.png    Global bar + beeswarm (Section C)
+  results/shap_outlier_waterfall_*.png   Per-outlier waterfall plots (Section C)
+  results/shap_outlier_comparison.png    Outlier vs. well-predicted (Section C)
 
 Data exports
 ~~~~~~~~~~~~
-  results/shap_rf_values.csv             Per-chemical SHAP values (RF)
-  results/shap_ber_values.csv            Per-chemical SHAP values (BER model)
+  results/shap_rf_values.csv             Per-chemical SHAP values (RF, Section A)
+  results/shap_ber_values.csv            Per-chemical SHAP values (BER, Section B)
+  results/shap_outlier_values.csv        All 777 SHAP values + fold-errors (Section C)
 """
 
 import sys
@@ -41,6 +48,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.gridspec as gridspec
 
 ROOT    = Path(__file__).resolve().parent.parent
 DATA    = ROOT / "data"
@@ -57,15 +65,22 @@ except ImportError:
     )
 
 try:
-    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
     from sklearn.model_selection import cross_val_score
     from sklearn.preprocessing import StandardScaler
+    from sklearn.impute import SimpleImputer
+    from sklearn.pipeline import Pipeline
 except ImportError:
     sys.exit("ERROR: scikit-learn is required.  pip install scikit-learn")
 
+# ── Shared utilities (feature engineering, engineered FEATURE_NAMES) ──────────
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utils import engineer_features, FEATURE_NAMES, EPSILON
+
 # ── Required data ─────────────────────────────────────────────────────────────
-PILOT_CSV  = DATA  / "pilot_chemicals_imputed.csv"
+PILOT_CSV   = DATA  / "pilot_chemicals_imputed.csv"
 AED_BER_CSV = RESULTS / "aed_ber_full.csv"
+FULL_CSV    = DATA  / "all_777_chemicals.csv"
 
 for p in (PILOT_CSV,):
     if not p.exists():
@@ -352,6 +367,272 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     print(f"  Saved {local_path}")
 
 
+# ── C: Outlier SHAP – full 9-feature model on all 777 chemicals ──────────────
+
+def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
+    """
+    Train the full 9-feature model (same as Step 2) and run SHAP analysis
+    on ALL 777 httk chemicals.  Highlights outliers Tacrine, Phenylparaben.
+    Merged from former 12_shap_outlier_analysis.py.
+    """
+    print("\n── C) Outlier SHAP – alle 777 httk-Chemikalien ──")
+
+    if not FULL_CSV.exists():
+        print(f"  WARNING: {FULL_CSV} not found – skipping outlier section.")
+        return
+
+    # ─ Trainingsdaten ─────────────────────────────────────────────────────────
+    df_train = pilot.dropna(subset=["Clint"]).copy()
+    df_train["Fup"] = df_train["Fup"].clip(lower=1e-6)
+    X_train  = engineer_features(df_train)
+    y_train  = np.log10(df_train["Clint"].values + EPSILON)
+    print(f"  Training: {len(df_train)} Pilotchemikalien  |  {X_train.shape[1]} Features")
+
+    # ─ Bestes Modell ──────────────────────────────────────────────────────────
+    best_name = "GradientBoosting"
+    loo_csv   = DATA / "rf_clint_predictions.csv"
+    if loo_csv.exists():
+        loo_df = pd.read_csv(loo_csv)
+        if "model" in loo_df.columns:
+            best_name = loo_df["model"].iloc[0]
+    print(f"  Modell: {best_name}")
+
+    imputer  = SimpleImputer(strategy="median")
+    scaler   = StandardScaler()
+    X_tr_sc  = scaler.fit_transform(imputer.fit_transform(X_train))
+
+    if best_name == "GradientBoosting":
+        model = GradientBoostingRegressor(
+            n_estimators=200, learning_rate=0.05, max_depth=2,
+            subsample=0.8, min_samples_leaf=2, random_state=42,
+        )
+    else:
+        model = RandomForestRegressor(
+            n_estimators=1000, max_features=None,
+            min_samples_leaf=1, random_state=42, n_jobs=-1,
+        )
+    model.fit(X_tr_sc, y_train)
+
+    # ─ Alle 777 Chemikalien laden ─────────────────────────────────────────────
+    full = pd.read_csv(FULL_CSV)
+    full = full.rename(columns={
+        "Human.Clint":           "Clint",
+        "Human.Funbound.plasma": "Fup",
+    })
+    for col in ("Clint", "Fup", "MW", "logP"):
+        full[col] = pd.to_numeric(full[col], errors="coerce")
+    full["Fup"] = full["Fup"].clip(lower=1e-6)
+
+    val = full.dropna(subset=["Clint", "MW", "logP", "Fup"]).copy()
+    val = val[val["Clint"] > 0].reset_index(drop=True)
+
+    X_val_raw = engineer_features(val)
+    X_val_sc  = scaler.transform(imputer.transform(X_val_raw))
+
+    pred_log = model.predict(X_val_sc)
+    val["Clint_pred"] = 10 ** pred_log - EPSILON
+    val["log10_lit"]  = np.log10(val["Clint"] + EPSILON)
+    val["log10_pred"] = pred_log
+    val["fold_error"] = 10 ** np.abs(val["log10_lit"] - val["log10_pred"])
+
+    pilot_cas = set(df_train["CAS"].astype(str).str.strip())
+    val["in_pilot"] = val["CAS"].astype(str).str.strip().isin(pilot_cas)
+    print(f"  Validierungsset: {len(val)} Chemikalien mit gemessenem Clint")
+
+    # ─ SHAP TreeExplainer ─────────────────────────────────────────────────────
+    print("  Berechne SHAP-Werte ...")
+    explainer   = shap.TreeExplainer(model)
+    shap_values = explainer(X_val_sc)
+
+    mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
+    base_value    = float(shap_values.base_values[0])
+    order         = np.argsort(mean_abs_shap)
+
+    shap_df = pd.DataFrame(shap_values.values,
+                           columns=[f"SHAP_{f}" for f in FEATURE_NAMES])
+    shap_df.insert(0, "CAS",        val["CAS"].values)
+    shap_df.insert(1, "Compound",   val["Compound"].values)
+    shap_df.insert(2, "log10_lit",  val["log10_lit"].values)
+    shap_df.insert(3, "log10_pred", val["log10_pred"].values)
+    shap_df.insert(4, "fold_error", val["fold_error"].values)
+    shap_df.insert(5, "in_pilot",   val["in_pilot"].values)
+    for f in ["MW", "logP", "Fup", "Clint"]:
+        shap_df[f] = val[f].values
+    out_csv = RESULTS / "shap_outlier_values.csv"
+    shap_df.to_csv(out_csv, index=False)
+    print(f"  Saved {out_csv.name}")
+
+    # ─ Plot A: Globale Feature-Importance + Beeswarm ─────────────────────────
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    ax = axes[0]
+    colors_bar = plt.cm.RdBu_r(np.linspace(0.15, 0.85, len(FEATURE_NAMES)))
+    ax.barh([FEATURE_NAMES[i] for i in order],
+            [mean_abs_shap[i] for i in order],
+            color=[colors_bar[k] for k in range(len(order))],
+            edgecolor="k", linewidth=0.4)
+    ax.set_xlabel("Mean |SHAP-Wert|  (Einfluss auf log10 Clint)", fontsize=10)
+    ax.set_title(f"Globale Feature-Importance\n{best_name} auf {len(val)} Chemikalien",
+                 fontsize=10)
+    ax.grid(axis="x", alpha=0.3)
+
+    ax = axes[1]
+    sc = None
+    for k, feat_idx in enumerate(order):
+        shap_vals = shap_values.values[:, feat_idx]
+        feat_vals = X_val_sc[:, feat_idx]
+        norm_fv   = (feat_vals - feat_vals.min()) / (feat_vals.max() - feat_vals.min() + 1e-9)
+        y_jitter  = np.random.default_rng(feat_idx).uniform(-0.35, 0.35, len(shap_vals))
+        sc = ax.scatter(shap_vals, np.full(len(shap_vals), k) + y_jitter,
+                        c=norm_fv, cmap="RdBu_r", s=8, alpha=0.5, linewidths=0)
+    ax.set_yticks(range(len(FEATURE_NAMES)))
+    ax.set_yticklabels([FEATURE_NAMES[i] for i in order], fontsize=9)
+    ax.axvline(0, color="k", lw=0.8, ls="--")
+    ax.set_xlabel("SHAP-Wert", fontsize=10)
+    ax.set_title("Beeswarm: Jeder Punkt = 1 Chemikalie", fontsize=10)
+    ax.grid(axis="x", alpha=0.3)
+    if sc is not None:
+        plt.colorbar(sc, ax=ax, label="Normierter Feature-Wert", fraction=0.03, pad=0.04)
+
+    plt.tight_layout()
+    plt.savefig(RESULTS / "shap_outlier_global_bar.png", dpi=150)
+    plt.close()
+    print("  Saved: results/shap_outlier_global_bar.png")
+
+    # ─ Plot B: Waterfall fuer Top-5-Ausreisser ───────────────────────────────
+    TARGET_CHEMS = ["Tacrine", "Phenylparaben", "Acibenzolar"]
+    good = val[~val["in_pilot"] & (val["fold_error"] <= 1.5)].nsmallest(5, "fold_error")
+
+    print(f"\n  Ziel-Ausreisser:")
+    for name in TARGET_CHEMS:
+        row = val[val["Compound"].str.contains(name, case=False, na=False)]
+        if len(row):
+            r = row.iloc[0]
+            print(f"    {r['Compound'][:35]:<35} Clint_lit={r['Clint']:.0f}  "
+                  f"Clint_pred={r['Clint_pred']:.2f}  FE={r['fold_error']:.0f}x")
+        else:
+            print(f"    {name}: nicht im Validierungsset gefunden")
+
+    top5_out = val[~val["in_pilot"]].nlargest(5, "fold_error")
+    for rank, (_, row_v) in enumerate(top5_out.iterrows()):
+        chem_idx  = val.index.get_loc(row_v.name)
+        shap_chem = shap_values.values[chem_idx]
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        sorted_idx = np.argsort(np.abs(shap_chem))[::-1]
+        colors_wf  = ["#d73027" if v > 0 else "#4575b4" for v in shap_chem[sorted_idx]]
+        ax.barh([FEATURE_NAMES[i] for i in sorted_idx], shap_chem[sorted_idx],
+                color=colors_wf, edgecolor="k", linewidth=0.4)
+        ax.axvline(0, color="k", lw=1.2)
+
+        raw_feats = X_val_raw[chem_idx]
+        for bar_idx, feat_idx in enumerate(sorted_idx):
+            v = shap_chem[feat_idx]
+            ax.text(v + (0.01 if v >= 0 else -0.01), bar_idx,
+                    f"  {FEATURE_NAMES[feat_idx]}={raw_feats[feat_idx]:.3g}",
+                    va="center", fontsize=8, ha="left" if v >= 0 else "right")
+
+        compound   = str(row_v["Compound"])
+        clint_lit  = float(row_v["Clint"])
+        clint_pred = float(row_v["Clint_pred"])
+        fe         = float(row_v["fold_error"])
+        pred_log_v = float(row_v["log10_pred"])
+
+        ax.set_xlabel("SHAP-Wert (Beitrag zur log10 Clint-Vorhersage)", fontsize=10)
+        ax.set_title(
+            f"SHAP Waterfall: {compound}\n"
+            f"Literatur Clint={clint_lit:.0f}  |  Vorhergesagt={clint_pred:.2f}  |  "
+            f"Fold-Error={fe:.0f}x\n"
+            f"Basiswert={base_value:.2f}  +  SHAP-Summe={shap_chem.sum():.2f}  "
+            f"=  Vorhersage={pred_log_v:.2f}",
+            fontsize=10,
+        )
+        ax.grid(axis="x", alpha=0.3)
+        mw_v   = float(row_v["MW"])
+        logp_v = float(row_v["logP"])
+        fup_v  = float(row_v["Fup"])
+        textbox = (f"MW={mw_v:.0f}  logP={logp_v:.2f}  Fup={fup_v:.4f}\n"
+                   f"Warum falsch: Das Modell kennt keine\n"
+                   f"reaktiven Gruppen / Enzymspezifitaet")
+        ax.text(0.98, 0.02, textbox, transform=ax.transAxes,
+                fontsize=8, va="bottom", ha="right",
+                bbox=dict(boxstyle="round,pad=0.4", facecolor="lightyellow",
+                          edgecolor="orange", alpha=0.9))
+
+        safe_name = compound.replace(" ", "_").replace("/", "_")[:25]
+        out_path  = RESULTS / f"shap_outlier_waterfall_{rank+1}_{safe_name}.png"
+        plt.tight_layout()
+        plt.savefig(out_path, dpi=150)
+        plt.close()
+        print(f"  Saved: {out_path.name}")
+
+    # ─ Plot C: Vergleich Ausreisser vs. gut vorhergesagte Chemikalien ─────────
+    COMPARE_CHEMS = {"Ausreisser": [], "Gut": []}
+    for name in TARGET_CHEMS:
+        row = val[val["Compound"].str.contains(name, case=False, na=False)]
+        if len(row):
+            idx = val.index.get_loc(row.index[0])
+            COMPARE_CHEMS["Ausreisser"].append((row.iloc[0]["Compound"], idx))
+    for _, row_g in good.iterrows():
+        COMPARE_CHEMS["Gut"].append((row_g["Compound"], val.index.get_loc(row_g.name)))
+
+    all_compare = COMPARE_CHEMS["Ausreisser"] + COMPARE_CHEMS["Gut"]
+    if all_compare:
+        fig = plt.figure(figsize=(18, 10))
+        gs_obj = gridspec.GridSpec(2, 3, figure=fig, hspace=0.45, wspace=0.4)
+        for k, (chem_name, chem_idx) in enumerate(all_compare[:6]):
+            row_data   = val.iloc[chem_idx]
+            shap_c     = shap_values.values[chem_idx]
+            fe         = float(row_data["fold_error"])
+            is_outlier = k < len(COMPARE_CHEMS["Ausreisser"])
+            ax = fig.add_subplot(gs_obj[k // 3, k % 3])
+            sorted_idx = np.argsort(np.abs(shap_c))[::-1]
+            bar_colors = ["#d73027" if v > 0 else "#4575b4" for v in shap_c[sorted_idx]]
+            ax.barh([FEATURE_NAMES[i] for i in sorted_idx], shap_c[sorted_idx],
+                    color=bar_colors, edgecolor="k", linewidth=0.3)
+            ax.axvline(0, color="k", lw=0.8)
+            border_color = "#d73027" if is_outlier else "#2e7d32"
+            for spine in ax.spines.values():
+                spine.set_edgecolor(border_color)
+                spine.set_linewidth(2.5)
+            label = "AUSREISSER" if is_outlier else "GUT VORHERGESAGT"
+            ax.set_title(
+                f"[{label}] {str(chem_name)[:25]}\n"
+                f"Lit={row_data['Clint']:.0f}  Pred={row_data['Clint_pred']:.1f}  FE={fe:.1f}x",
+                fontsize=8, color=border_color, fontweight="bold",
+            )
+            ax.set_xlabel("SHAP", fontsize=8)
+            ax.grid(axis="x", alpha=0.2)
+            ax.tick_params(axis="both", labelsize=7)
+
+        fig.suptitle(
+            "SHAP Vergleich: Ausreisser vs. gut vorhergesagte Chemikalien\n"
+            "Rot=Beitrag erhoehend, Blau=Beitrag erniedrigend | Roter Rahmen=Ausreisser",
+            fontsize=11, y=1.01,
+        )
+        plt.savefig(RESULTS / "shap_outlier_comparison.png", dpi=150, bbox_inches="tight")
+        plt.close()
+        print("  Saved: results/shap_outlier_comparison.png")
+
+    # ─ Mechanistische Erklaerung ──────────────────────────────────────────────
+    print(f"\n  Wichtigstes Feature: {FEATURE_NAMES[np.argmax(mean_abs_shap)]}")
+    print(f"  SHAP Basiswert:      {base_value:.3f}")
+    for name in TARGET_CHEMS:
+        row = val[val["Compound"].str.contains(name, case=False, na=False)]
+        if not len(row):
+            continue
+        r = row.iloc[0]
+        idx     = val.index.get_loc(row.index[0])
+        shap_c  = shap_values.values[idx]
+        order_c = np.argsort(np.abs(shap_c))[::-1]
+        print(f"\n  {r['Compound']}:")
+        print(f"    Gemessen={r['Clint']:.0f}  Vorhergesagt={r['Clint_pred']:.2f}  "
+              f"FE={r['fold_error']:.0f}x")
+        for feat_idx in order_c[:3]:
+            direction = "erhoehend" if shap_c[feat_idx] > 0 else "erniedrigend"
+            print(f"    {FEATURE_NAMES[feat_idx]:20s}: SHAP={shap_c[feat_idx]:+.3f}  ({direction})")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -364,6 +645,7 @@ def main() -> None:
 
     section_a_rf_clint(pilot)
     section_b_ber(pilot)
+    section_c_outlier_shap(pilot)
 
     print("\n" + "=" * 65)
     print("XAI outputs:")

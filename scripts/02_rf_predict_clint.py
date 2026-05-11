@@ -14,16 +14,20 @@ Key improvements over naive RF:
 Evaluation strategy:
   - Leave-One-Out Cross-Validation (LOO-CV) on the pilot chemicals
   - Both RF and GB evaluated; best model by log10-R^2 used for imputation
+  - External validation vs. Wetmore 2012 / httk literature (all 777 chemicals)
+    (merged from former 10_clint_literature_validation.py)
 
 Outputs:
-  data/rf_clint_predictions.csv    - LOO-CV predictions vs. true values
-  results/rf_loo_cv_metrics.txt    - summary statistics
-  results/rf_loo_cv_scatter.png    - observed vs. predicted scatter plot
-  data/pilot_chemicals_imputed.csv - full table with RF-imputed Clint
+  data/rf_clint_predictions.csv         - LOO-CV predictions vs. true values
+  results/rf_loo_cv_metrics.txt         - summary statistics (internal)
+  results/rf_loo_cv_scatter.png         - observed vs. predicted scatter plot
+  data/pilot_chemicals_imputed.csv      - full table with RF-imputed Clint
+  results/clint_validation_metrics.csv  - internal + external metrics
+  results/clint_validation_external.csv - full external prediction table
+  results/clint_validation_scatter.png  - log-log scatter (4 panels)
 """
 
 import sys
-from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
@@ -32,18 +36,19 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, probplot
 import warnings
 warnings.filterwarnings("ignore")
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.patches import Patch
 
-# ---- paths ------------------------------------------------------------------
-ROOT     = Path(__file__).resolve().parent.parent
-DATA     = ROOT / "data"
-RESULTS  = ROOT / "results"
-FULL_CSV = DATA / "pilot_chemicals_full.csv"
+from utils import (
+    ROOT, DATA, RESULTS, PILOT_CSV as FULL_CSV, ALL_777_CSV,
+    EPSILON, engineer_features, FEATURE_NAMES, compute_metrics,
+)
 
 if not FULL_CSV.exists():
     sys.exit(f"ERROR: {FULL_CSV} not found. Run 01_extract_httk_data.R first.")
@@ -56,39 +61,6 @@ print()
 
 RAW_FEATURES = ["MW", "logP", "Fup"]
 TARGET       = "Clint"
-EPSILON      = 1e-3
-
-
-# ---- 2. Feature engineering -------------------------------------------------
-# Raw MW/logP/Fup are not linearly related to Clint.
-# Biological rationale for each transform:
-#   log10(MW)     -- size effect scales logarithmically
-#   log10(Fup)    -- plasma binding spans orders of magnitude
-#   logP^2        -- optimal lipophilicity (bell-shaped clearance curves)
-#   sqrt(Fup)     -- alternative binding scale
-#   MW x logP     -- large lipophilic molecules tend to have low Clint
-#   logP x Fup    -- lipophilicity-binding interaction drives hepatic uptake
-
-def engineer_features(df_in: pd.DataFrame) -> np.ndarray:
-    mw   = np.clip(df_in["MW"].values.astype(float),   1.0,  None)
-    logp = df_in["logP"].values.astype(float)
-    fup  = np.clip(df_in["Fup"].values.astype(float),  1e-6, 1.0)
-    return np.column_stack([
-        np.log10(mw),            # log10(MW)
-        logp,                    # logP
-        logp ** 2,               # logP^2
-        np.log10(fup + 1e-6),   # log10(Fup)
-        np.sqrt(fup),            # sqrt(Fup)
-        mw * logp,               # MW x logP
-        mw * fup,                # MW x Fup
-        logp * fup,              # logP x Fup
-        mw,                      # MW (raw)
-    ])
-
-FEATURE_NAMES = [
-    "log10_MW", "logP", "logP^2", "log10_Fup", "sqrt_Fup",
-    "MW_x_logP", "MW_x_Fup", "logP_x_Fup", "MW",
-]
 
 df_clean = df.dropna(subset=[TARGET]).copy()
 print(f"Rows with observed Clint : {len(df_clean)}")
@@ -345,4 +317,222 @@ df_all.loc[na_mask, "Clint_source"] = "RF_predicted"
 
 df_all.to_csv(DATA / "pilot_chemicals_imputed.csv", index=False)
 print(f"Saved data/pilot_chemicals_imputed.csv  ({len(df_all)} chemicals)")
-print("Done. Proceed to 03_httk_pbtk_simulation.R")
+
+
+# ── 11. Externe Validierung vs. Wetmore 2012 / httk (ehemals Step 10) ────────
+print("\n" + "=" * 65)
+print("Step 2b – Externe Validierung vs. Wetmore 2012 / httk-Literatur")
+print("=" * 65)
+
+if not ALL_777_CSV.exists():
+    print(f"  WARNUNG: {ALL_777_CSV} nicht gefunden – externe Validierung uebersprungen.")
+    print("Done.")
+else:
+    # Lade und standardisiere all_777_chemicals.csv
+    full777 = pd.read_csv(ALL_777_CSV)
+    full777 = full777.rename(columns={
+        "Human.Clint":           "Clint",
+        "Human.Funbound.plasma": "Fup",
+        "Human.Rblood2plasma":   "Rblood2plasma",
+    })
+    for col in ("Clint", "Fup", "MW", "logP"):
+        full777[col] = pd.to_numeric(full777[col], errors="coerce")
+    full777["Fup"] = full777["Fup"].clip(lower=1e-6)
+
+    # Nur Chemikalien mit gemessenem Clint (Literatur-Referenz)
+    val777 = full777.dropna(subset=["Clint", "MW", "logP", "Fup"]).copy()
+    val777 = val777[val777["Clint"] > 0].copy()
+    print(f"\nChemikalien mit gemessenem Clint in httk: {len(val777)}")
+
+    pilot_cas_set = set(df_clean["CAS"].astype(str).str.strip())
+    val777["in_pilot"] = val777["CAS"].astype(str).str.strip().isin(pilot_cas_set)
+    print(f"  Pilot (intern) : {val777['in_pilot'].sum()}")
+    print(f"  Extern         : {(~val777['in_pilot']).sum()}")
+
+    X_val777  = engineer_features(val777)
+    pred_log777 = final_pipe.predict(X_val777)
+    val777 = val777.copy()
+    val777["Clint_pred"]  = np.round(10 ** pred_log777 - EPSILON, 4)
+    val777["log10_lit"]   = np.round(np.log10(val777["Clint"] + EPSILON), 4)
+    val777["log10_pred"]  = np.round(pred_log777, 4)
+    val777["fold_error"]  = np.round(10 ** np.abs(val777["log10_lit"] - val777["log10_pred"]), 3)
+
+    # ─ Metriken ────────────────────────────────────────────────────────────────
+    print("\n--- Validierungsmetriken ---")
+    all_val_metrics = []
+
+    def _metrics_dict(y_true_log, y_pred_log, label):
+        r2   = r2_score(y_true_log, y_pred_log)
+        rmse = float(np.sqrt(mean_squared_error(y_true_log, y_pred_log)))
+        rho, rho_p = spearmanr(y_true_log, y_pred_log)
+        fe   = 10 ** np.abs(y_true_log - y_pred_log)
+        gmfe = float(np.exp(np.mean(np.log(fe))))
+        p2   = float(np.mean(fe <= 2.0)  * 100)
+        p3   = float(np.mean(fe <= 3.0)  * 100)
+        p10  = float(np.mean(fe <= 10.0) * 100)
+        n    = len(y_true_log)
+        print(f"\n  {label}  (n={n})")
+        print(f"    R^2 (log10)   : {r2:.4f}")
+        print(f"    RMSE (log10)  : {rmse:.4f}")
+        print(f"    Spearman rho  : {rho:.4f}  (p={rho_p:.3e})")
+        print(f"    GMFE          : {gmfe:.2f}x")
+        print(f"    Within 2-fold : {p2:.0f} %")
+        print(f"    Within 3-fold : {p3:.0f} %")
+        print(f"    Within 10-fold: {p10:.0f} %")
+        return dict(Set=label, N=n, R2_log=round(r2,4), RMSE_log=round(rmse,4),
+                    Spearman=round(rho,4), Spearman_p=round(rho_p,4),
+                    GMFE=round(gmfe,2), Pct_2fold=round(p2,1),
+                    Pct_3fold=round(p3,1), Pct_10fold=round(p10,1))
+
+    # A) Intern (LOO-CV Ergebnisse)
+    loo_csv_path = DATA / "rf_clint_predictions.csv"
+    if loo_csv_path.exists():
+        loo_data = pd.read_csv(loo_csv_path)
+        loo_pos  = loo_data[loo_data["Clint_true"] > 0].copy()
+        loo_pos["log10_true"] = np.log10(loo_pos["Clint_true"] + EPSILON)
+        all_val_metrics.append(
+            _metrics_dict(loo_pos["log10_true"].values,
+                          loo_pos["log10_pred"].values,
+                          "A) Intern LOO-CV (Piloten)")
+        )
+
+    # B) Alle 777 Chemikalien
+    all_val_metrics.append(
+        _metrics_dict(val777["log10_lit"].values, val777["log10_pred"].values,
+                      "B) Alle 777 httk-Chemikalien")
+    )
+
+    # C) Extern (Piloten ausgeschlossen)
+    ext777 = val777[~val777["in_pilot"]]
+    if len(ext777) > 0:
+        all_val_metrics.append(
+            _metrics_dict(ext777["log10_lit"].values, ext777["log10_pred"].values,
+                          "C) Extern (ohne Piloten)")
+        )
+
+    # D) Clint > 1 (aktive Clearance)
+    val777_gt1 = val777[val777["Clint"] > 1.0]
+    if len(val777_gt1) > 0:
+        all_val_metrics.append(
+            _metrics_dict(val777_gt1["log10_lit"].values, val777_gt1["log10_pred"].values,
+                          "D) Clint > 1 uL/min/10^6 (aktive Clearance)")
+        )
+
+    metrics_val_df = pd.DataFrame(all_val_metrics)
+    metrics_val_df.to_csv(RESULTS / "clint_validation_metrics.csv", index=False)
+    print(f"\nMetriken gespeichert: results/clint_validation_metrics.csv")
+
+    # ─ Export vollstaendige Validierungstabelle ────────────────────────────────
+    export_cols = ["CAS", "Compound", "Clint", "Clint_pred",
+                   "log10_lit", "log10_pred", "fold_error", "in_pilot"]
+    export777 = val777[[c for c in export_cols if c in val777.columns]].copy()
+    export777 = export777.rename(columns={"Clint": "Clint_literature_uL_min_Mcells"})
+    export777 = export777.sort_values("fold_error", ascending=False)
+    export777.to_csv(RESULTS / "clint_validation_external.csv", index=False)
+    print(f"Vollstaendige Tabelle: results/clint_validation_external.csv  ({len(export777)} Chemikalien)")
+
+    # ─ Scatter-Plots (4 Panels) ────────────────────────────────────────────────
+    print("\nErstelle Validierungs-Plots ...")
+
+    def fold_color(fe_arr):
+        return ["#2196F3" if f <= 2.0 else "#4CAF50" if f <= 3.0
+                else "#FF9800" if f <= 10.0 else "#F44336" for f in fe_arr]
+
+    fig_val = plt.figure(figsize=(20, 5))
+    gs_val  = gridspec.GridSpec(1, 4, figure=fig_val, wspace=0.35)
+
+    # Panel A: Intern LOO-CV
+    ax = fig_val.add_subplot(gs_val[0])
+    if loo_csv_path.exists():
+        loo_pos2 = loo_data[loo_data["Clint_true"] > 0].copy()
+        loo_pos2["log10_true2"] = np.log10(loo_pos2["Clint_true"] + EPSILON)
+        fe_col_int = fold_color(
+            10 ** np.abs(loo_pos2["log10_true2"] - loo_pos2["log10_pred"])
+        )
+        ax.scatter(loo_pos2["log10_true2"], loo_pos2["log10_pred"],
+                   c=fe_col_int, s=80, edgecolors="k", linewidths=0.5, zorder=3)
+        for _, row_l in loo_pos2.iterrows():
+            ax.annotate(str(row_l.get("Compound",""))[:10],
+                        (row_l["log10_true2"], row_l["log10_pred"]),
+                        fontsize=5, alpha=0.7)
+        lims_a = [loo_pos2["log10_true2"].min()-0.5, loo_pos2["log10_true2"].max()+0.5]
+        ax.plot(lims_a, lims_a, "k--", lw=1.2)
+        ax.fill_between(lims_a, [v-np.log10(3) for v in lims_a],
+                        [v+np.log10(3) for v in lims_a], alpha=0.08, color="green")
+        m_a = all_val_metrics[0]
+        ax.set_title(f"A) Intern LOO-CV (n={m_a['N']})\n"
+                     f"R²={m_a['R2_log']:.3f}  GMFE={m_a['GMFE']:.1f}x", fontsize=9)
+        ax.set_xlabel("log10(Clint gemessen)", fontsize=8)
+        ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
+        ax.set_xlim(lims_a); ax.set_ylim(lims_a)
+        ax.grid(True, alpha=0.3)
+
+    # Panel B: Alle 777
+    ax = fig_val.add_subplot(gs_val[1])
+    fe_col_all = fold_color(val777["fold_error"].values)
+    pilot_mask = val777["in_pilot"].values
+    ax.scatter(val777.loc[~pilot_mask, "log10_lit"], val777.loc[~pilot_mask, "log10_pred"],
+               c=[fe_col_all[i] for i in range(len(fe_col_all)) if not pilot_mask[i]],
+               s=20, edgecolors="none", alpha=0.6, label="Extern")
+    ax.scatter(val777.loc[pilot_mask, "log10_lit"], val777.loc[pilot_mask, "log10_pred"],
+               c="gold", s=80, edgecolors="k", linewidths=0.8, zorder=5, label="Pilot (Train)")
+    lims_b = [val777["log10_lit"].min()-0.5, val777["log10_lit"].max()+0.5]
+    ax.plot(lims_b, lims_b, "k--", lw=1.2)
+    ax.fill_between(lims_b, [v-np.log10(3) for v in lims_b],
+                    [v+np.log10(3) for v in lims_b], alpha=0.08, color="green")
+    m_b = next(m for m in all_val_metrics if "777" in m["Set"])
+    ax.set_title(f"B) Alle 777 Chemikalien (n={m_b['N']})\n"
+                 f"R²={m_b['R2_log']:.3f}  GMFE={m_b['GMFE']:.1f}x", fontsize=9)
+    ax.set_xlabel("log10(Clint Literatur)", fontsize=8)
+    ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
+    ax.set_xlim(lims_b); ax.set_ylim(lims_b)
+    ax.legend(fontsize=7, loc="upper left"); ax.grid(True, alpha=0.3)
+
+    # Panel C: Extern
+    ax = fig_val.add_subplot(gs_val[2])
+    if len(ext777) > 0:
+        fe_col_ext = fold_color(ext777["fold_error"].values)
+        ax.scatter(ext777["log10_lit"], ext777["log10_pred"],
+                   c=fe_col_ext, s=20, edgecolors="none", alpha=0.7)
+        ax.plot(lims_b, lims_b, "k--", lw=1.2)
+        ax.fill_between(lims_b, [v-np.log10(3) for v in lims_b],
+                        [v+np.log10(3) for v in lims_b], alpha=0.08, color="green")
+        m_c = next(m for m in all_val_metrics if "Extern" in m["Set"])
+        ax.set_title(f"C) Extern (n={m_c['N']})\nR²={m_c['R2_log']:.3f}  GMFE={m_c['GMFE']:.1f}x",
+                     fontsize=9)
+        ax.set_xlabel("log10(Clint Literatur)", fontsize=8)
+        ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
+        ax.set_xlim(lims_b); ax.set_ylim(lims_b)
+        ax.grid(True, alpha=0.3)
+    legend_els = [Patch(facecolor="#2196F3", label="<=2-fold"),
+                  Patch(facecolor="#4CAF50", label="<=3-fold"),
+                  Patch(facecolor="#FF9800", label="<=10-fold"),
+                  Patch(facecolor="#F44336", label=">10-fold")]
+    ax.legend(handles=legend_els, fontsize=6, loc="upper left")
+
+    # Panel D: Residual-Histogramm
+    ax = fig_val.add_subplot(gs_val[3])
+    log_res = (ext777["log10_pred"] - ext777["log10_lit"]).values if len(ext777) > 0 \
+              else (val777["log10_pred"] - val777["log10_lit"]).values
+    ax.hist(log_res, bins=40, color="#2196F380", edgecolor="white")
+    ax.axvline(0, color="red", lw=2, label="kein Bias")
+    ax.axvline(np.log10(2),  color="steelblue", lw=1.5, ls="--", label="2-fold")
+    ax.axvline(-np.log10(2), color="steelblue", lw=1.5, ls="--")
+    ax.axvline(np.log10(3),  color="darkgreen", lw=1.5, ls=":", label="3-fold")
+    ax.axvline(-np.log10(3), color="darkgreen", lw=1.5, ls=":")
+    bias = 10 ** np.mean(log_res)
+    ax.set_xlabel("log10(Vorhergesagt / Literatur)", fontsize=8)
+    ax.set_ylabel("Anzahl", fontsize=8)
+    ax.set_title(f"D) Residual-Verteilung\nBias (GMR) = {bias:.2f}x", fontsize=9)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+
+    plt.suptitle(
+        f"Clint Validierung: {best_name} (trainiert auf 19 Pilotchemikalien)\n"
+        "vs. Wetmore 2012 / httk-Literatur (Human.Clint)",
+        fontsize=11, y=1.02,
+    )
+    plt.savefig(RESULTS / "clint_validation_scatter.png", dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"Saved: results/clint_validation_scatter.png")
+
+    print("\nDone. Proceed to 03_httk_pbtk_simulation.R")

@@ -1,7 +1,7 @@
 """
 13_gcn_all777.py
 ----------------
-GCN + RF/GB Analyse aller 777 httk-Chemikalien.
+GCN + RF/GB Analyse aller 777 httk-Chemikalien + BER-Berechnung.
 
 Vorgehen
 ~~~~~~~~
@@ -12,6 +12,8 @@ Vorgehen
   3. GCN auf 19 Pilotchemikalien trainieren, auf alle 777 mit SMILES anwenden
   4. RF/GB (MW/logP/Fup – kein SMILES noetig) auf ALLE 777 anwenden
   5. Metriken und Plots
+  6. BER-Berechnung fuer alle 777 Chemikalien (httk / GCN / RF) –
+     ehemals 14_ber_all777.py
 
 Outputs
 ~~~~~~~
@@ -20,46 +22,48 @@ Outputs
   results/gcn_777_metrics.txt
   results/gcn_777_scatter.png
   results/gcn_777_clint_distribution.png
+  results/ber_all777.csv
+  results/ber_all777_metrics.txt
+  results/ber_all777_waterfall.png
+  results/ber_all777_aed_scatter.png
+  results/ber_all777_comparison.png
+  results/ber_all777_distribution.png
 """
 
-import sys, time, json, warnings
-import urllib.request, urllib.parse
+import sys
+import warnings
 warnings.filterwarnings("ignore")
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import torch, torch.nn as nn, torch.optim as optim
-from sklearn.metrics import r2_score, mean_squared_error
+import matplotlib; matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+from utils import (
+    ROOT, DATA, RESULTS,
+    PILOT_CSV, ALL_777_CSV as FULL_CSV, PILOT_GCN_CSV as PILOT_GCN,
+    AED_BER_CSV,
+    EPSILON,
+    load_smiles_cache,
+    mol_to_graph, N_ATOM_FEAT,
+    train_gcn, predict_gcn, MolGCN,
+    engineer_features as engineer,
+    compute_metrics, print_metrics,
+    clint_uL_to_cl_h, calc_aed, calc_ber, concern_label,
+)
+
+try:
+    import torch
+    from rdkit import Chem
+except ImportError:
+    sys.exit("ERROR: rdkit + torch fehlen.  pip install rdkit torch")
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import GradientBoostingRegressor
 from scipy.stats import spearmanr
-import matplotlib; matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
-try:
-    from rdkit import Chem
-    from rdkit.Chem import rdchem
-except ImportError:
-    sys.exit("ERROR: rdkit fehlt.  pip install rdkit")
-
-ROOT    = Path(__file__).resolve().parent.parent
-DATA    = ROOT / "data"
-RESULTS = ROOT / "results"
-RESULTS.mkdir(exist_ok=True)
-
-PILOT_CSV    = DATA / "pilot_chemicals_full.csv"
-FULL_CSV     = DATA / "all_777_chemicals.csv"
-SMILES_CACHE = DATA / "smiles_cache_777.csv"
-PILOT_GCN    = DATA / "pilot_chemicals_gcn.csv"   # hat bereits SMILES fuer Pilot
-
-EPSILON  = 1e-3
 torch.manual_seed(42); np.random.seed(42)
-
-# ── GCN Hyperparameter ────────────────────────────────────────────────────────
-HIDDEN1 = 128; HIDDEN2 = 64; HIDDEN3 = 32
-DROPOUT_P = 0.30; EPOCHS = 500; LR = 5e-4; WD = 1e-4; PATIENCE = 80
 
 print("=" * 65)
 print("Step 13 - GCN + RF/GB auf allen 777 httk-Chemikalien")
@@ -67,231 +71,7 @@ print("=" * 65)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 1. SMILES-Abruf (multi-source, kurze Timeouts)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _get(url: str, timeout: int = 5) -> bytes | None:
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return r.read()
-    except Exception:
-        return None
-
-def pubchem_smiles(cas: str) -> str | None:
-    raw = _get(
-        f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"
-        f"{urllib.parse.quote(cas)}/property/IsomericSMILES/JSON",
-        timeout=4,
-    )
-    if raw:
-        try:
-            return json.loads(raw)["PropertyTable"]["Properties"][0]["IsomericSMILES"]
-        except Exception:
-            pass
-    return None
-
-def cir_smiles(cas: str) -> str | None:
-    """NCI Chemical Identifier Resolver (cactus.nci.nih.gov)."""
-    raw = _get(
-        f"https://cactus.nci.nih.gov/chemical/structure/"
-        f"{urllib.parse.quote(cas)}/smiles",
-        timeout=6,
-    )
-    if raw:
-        smi = raw.decode("utf-8", errors="ignore").strip().split()[0]
-        if smi and Chem.MolFromSmiles(smi):
-            return smi
-    return None
-
-def fetch_smiles_for(cas: str) -> str | None:
-    smi = pubchem_smiles(cas)
-    if smi:
-        return smi
-    smi = cir_smiles(cas)
-    return smi
-
-
-def load_or_fetch_smiles(all_cas: list[str]) -> dict[str, str]:
-    """
-    Gibt {cas -> smiles} zurueck.
-    Laedt zuerst den Cache, fragt dann fuer fehlende CAS bei externen APIs.
-    """
-    # --- Cache laden ---
-    if SMILES_CACHE.exists():
-        cache_df = pd.read_csv(SMILES_CACHE, dtype=str)
-        cache = dict(zip(cache_df["CAS"], cache_df["SMILES"]))
-        cache = {k: v for k, v in cache.items() if pd.notna(v) and v != "nan"}
-    else:
-        cache = {}
-
-    # --- Pilot-SMILES schon bekannt ---
-    if PILOT_GCN.exists():
-        pg = pd.read_csv(PILOT_GCN, dtype=str)
-        for _, row in pg.iterrows():
-            if pd.notna(row.get("SMILES")) and row["SMILES"] != "nan":
-                cache[row["CAS"]] = row["SMILES"]
-
-    missing = [c for c in all_cas if c not in cache]
-    print(f"Im Cache: {len(cache)}  |  Fehlend: {len(missing)}")
-
-    if missing:
-        # Teste zuerst, ob irgendeine API erreichbar ist
-        test_smi = pubchem_smiles("80-05-7")   # Bisphenol-A
-        if not test_smi:
-            test_smi = cir_smiles("80-05-7")
-        api_ok = test_smi is not None
-        print(f"Netzwerk-Test (Bisphenol-A): {'OK -> ' + test_smi[:30] if api_ok else 'KEIN ZUGRIFF'}")
-
-        if api_ok:
-            print(f"Starte Abruf fuer {len(missing)} CAS-Nummern ...")
-            new_rows = []
-            for i, cas in enumerate(missing):
-                smi = fetch_smiles_for(cas)
-                if smi:
-                    cache[cas] = smi
-                    new_rows.append({"CAS": cas, "SMILES": smi})
-                time.sleep(0.15)
-                if (i+1) % 50 == 0:
-                    pct = (i+1) / len(missing) * 100
-                    found = sum(1 for c in missing[:i+1] if c in cache)
-                    print(f"  {i+1:>4}/{len(missing)}  gefunden={found}  ({pct:.0f}%)",
-                          flush=True)
-                    # Cache nach jeder 50er-Runde sichern
-                    _save_cache(cache)
-            print(f"Neu abgerufen: {len(new_rows)}")
-        else:
-            print("HINWEIS: Kein Netzwerkzugriff – verwende vorhandenen Cache")
-
-        _save_cache(cache)
-
-    print(f"SMILES verfuegbar: {len(cache)} / {len(all_cas)}")
-    return cache
-
-def _save_cache(cache: dict):
-    df = pd.DataFrame(list(cache.items()), columns=["CAS","SMILES"])
-    df.to_csv(SMILES_CACHE, index=False)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 2. Molekuelgraph
-# ═══════════════════════════════════════════════════════════════════════════════
-
-ATOM_SYMBOLS  = ["C","N","O","S","P","Cl","F","Br","I","Si","OTHER"]
-HYBRID_TYPES  = [rdchem.HybridizationType.SP, rdchem.HybridizationType.SP2,
-                 rdchem.HybridizationType.SP3, rdchem.HybridizationType.SP3D,
-                 rdchem.HybridizationType.SP3D2]
-
-def one_hot(v, choices):
-    e = [0.0] * (len(choices)+1)
-    e[choices.index(v) if v in choices else len(choices)] = 1.0
-    return e
-
-def atom_features(a):
-    f  = one_hot(a.GetSymbol(),       ATOM_SYMBOLS)
-    f += one_hot(a.GetDegree(),        [0,1,2,3,4,5,6])
-    f += one_hot(a.GetTotalNumHs(),    [0,1,2,3,4])
-    f += one_hot(a.GetFormalCharge(),  [-2,-1,0,1,2])
-    f += one_hot(a.GetHybridization(), HYBRID_TYPES)
-    f.append(float(a.GetIsAromatic()))
-    f.append(float(a.IsInRing()))
-    return f
-
-_N_FEAT = len(atom_features(Chem.MolFromSmiles("C").GetAtomWithIdx(0)))
-
-def mol_to_graph(smi: str):
-    mol = Chem.MolFromSmiles(str(smi))
-    if mol is None:
-        return None
-    n   = mol.GetNumAtoms()
-    X   = torch.tensor([atom_features(a) for a in mol.GetAtoms()], dtype=torch.float32)
-    adj = np.eye(n, dtype=np.float32)
-    for b in mol.GetBonds():
-        i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
-        adj[i,j] = adj[j,i] = 1.0
-    deg = adj.sum(1)
-    D   = np.diag(1./np.sqrt(np.maximum(deg, 1e-9)))
-    A   = torch.tensor(D @ adj @ D, dtype=torch.float32)
-    return X, A
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 3. GCN-Modell
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class GCNLayer(nn.Module):
-    def __init__(self, i, o):
-        super().__init__(); self.w = nn.Linear(i, o)
-    def forward(self, A, H):
-        return self.w(A @ H)
-
-class MolGCN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.g1  = GCNLayer(_N_FEAT, HIDDEN1)
-        self.g2  = GCNLayer(HIDDEN1,  HIDDEN2)
-        self.g3  = GCNLayer(HIDDEN2,  HIDDEN3)
-        self.drop = nn.Dropout(DROPOUT_P)
-        self.mlp  = nn.Sequential(nn.Linear(HIDDEN3, 16), nn.ReLU(), nn.Linear(16, 1))
-        self.act  = nn.ReLU()
-    def forward(self, A, X):
-        h = self.drop(self.act(self.g1(A, X)))
-        h = self.drop(self.act(self.g2(A, h)))
-        h = self.act(self.g3(A, h))
-        return self.mlp(h.mean(0)).squeeze()
-
-def train_gcn(graphs, y_log):
-    sc = StandardScaler()
-    ys = sc.fit_transform(y_log.reshape(-1,1)).ravel()
-    m  = MolGCN()
-    op = optim.Adam(m.parameters(), lr=LR, weight_decay=WD)
-    cr = nn.MSELoss()
-    best, best_st, wait = float("inf"), {}, 0
-    m.train()
-    for ep in range(EPOCHS):
-        loss_ep = 0.
-        for i in np.random.permutation(len(graphs)):
-            X, A = graphs[i]
-            op.zero_grad()
-            l = cr(m(A, X), torch.tensor(ys[i], dtype=torch.float32))
-            if torch.isfinite(l):
-                l.backward(); nn.utils.clip_grad_norm_(m.parameters(), 1.); op.step()
-                loss_ep += l.item()
-        avg = loss_ep / max(len(graphs), 1)
-        if avg < best - 1e-7:
-            best, best_st, wait = avg, {k: v.clone() for k, v in m.state_dict().items()}, 0
-        else:
-            wait += 1
-        if wait >= PATIENCE:
-            print(f"  Fruehzeitiger Stopp: Epoche {ep+1}")
-            break
-    m.load_state_dict(best_st)
-    m._sc = sc
-    return m
-
-@torch.no_grad()
-def predict_gcn(m, X, A):
-    m.eval()
-    raw = float(m(A, X).item())
-    return float(m._sc.inverse_transform([[raw]])[0,0])
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 4. RF/GB Feature Engineering
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def engineer(df_in):
-    mw   = np.clip(pd.to_numeric(df_in["MW"],   errors="coerce").fillna(300).values, 1., None)
-    lgp  = pd.to_numeric(df_in["logP"], errors="coerce").fillna(2.).values
-    fup  = np.clip(pd.to_numeric(df_in["Fup"],  errors="coerce").fillna(.1).values, 1e-6, 1.)
-    return np.column_stack([
-        np.log10(mw), lgp, lgp**2, np.log10(fup+1e-6), np.sqrt(fup),
-        mw*lgp, mw*fup, lgp*fup, mw,
-    ])
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 5. Daten laden
+# 1. Daten laden
 # ═══════════════════════════════════════════════════════════════════════════════
 
 pilot = pd.read_csv(PILOT_CSV)
@@ -310,12 +90,12 @@ print(f"Vollstaendiger httk-Datensatz: {len(full)} Chemikalien")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 6. SMILES laden / abrufen
+# 2. SMILES laden / abrufen (via utils.load_smiles_cache)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 print("\n--- SMILES-Abruf ---")
 all_cas    = full["CAS"].tolist()
-smiles_map = load_or_fetch_smiles(all_cas)
+smiles_map = load_smiles_cache(all_cas)
 
 full["SMILES"] = full["CAS"].map(smiles_map)
 n_smiles = full["SMILES"].notna().sum()
@@ -323,12 +103,11 @@ print(f"Chemikalien mit SMILES: {n_smiles} / {len(full)}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 7. GCN trainieren (auf Pilot-Set)
+# 3. GCN trainieren (auf Pilot-Set)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 print("\n--- GCN Trainings-Graphen ---")
-# Pilot-SMILES aus gespeicherter CSV
-pilot_gcn = pd.read_csv(PILOT_GCN)
+pilot_gcn = pd.read_csv(PILOT_GCN) if PILOT_GCN.exists() else pd.DataFrame()
 
 train_graphs, train_y, train_names = [], [], []
 for _, row in df_tr.iterrows():
@@ -454,22 +233,13 @@ print(f"  Nur RF/GB (kein SMILES): {n_gcn_skip}")
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def metrics_report(log_lit, log_pred, label):
-    fe   = 10**np.abs(log_lit - log_pred)
-    r2   = r2_score(log_lit, log_pred)
-    rmse = float(np.sqrt(mean_squared_error(log_lit, log_pred)))
-    rho, p  = spearmanr(log_lit, log_pred)
-    gmfe = float(np.exp(np.mean(np.log(fe))))
-    p2   = float(np.mean(fe<=2.)*100); p3 = float(np.mean(fe<=3.)*100)
-    p10  = float(np.mean(fe<=10.)*100)
-    print(f"\n  [{label}]  n={len(log_lit)}")
-    print(f"    R^2       : {r2:.4f}")
-    print(f"    RMSE log10: {rmse:.4f}")
-    print(f"    Spearman  : {rho:.4f}  (p={p:.3e})")
-    print(f"    GMFE      : {gmfe:.2f}x")
-    print(f"    <=2-fold  : {p2:.0f}%  |  <=3-fold: {p3:.0f}%  |  <=10-fold: {p10:.0f}%")
-    return dict(Modell=label, N=len(log_lit), R2=round(r2,4), RMSE_log=round(rmse,4),
-                Spearman=round(rho,4), GMFE=round(gmfe,2),
-                Pct_2fold=round(p2,1), Pct_3fold=round(p3,1), Pct_10fold=round(p10,1))
+    m = compute_metrics(log_lit, log_pred)
+    print_metrics(m, label=label, n=len(log_lit))
+    return dict(Modell=label, N=len(log_lit),
+                R2=round(m["r2"],4), RMSE_log=round(m["rmse"],4),
+                Spearman=round(m["spearman_rho"],4), GMFE=round(m["gmfe"],2),
+                Pct_2fold=round(m["pct_2fold"],1), Pct_3fold=round(m["pct_3fold"],1),
+                Pct_10fold=round(m["pct_10fold"],1))
 
 print("\n" + "="*65)
 print("METRIKEN (Vergleich mit Literatur-Clint)")
@@ -631,7 +401,7 @@ print("Saved: results/gcn_777_clint_distribution.png")
 # ═══════════════════════════════════════════════════════════════════════════════
 
 print("\n" + "="*65)
-print("ABSCHLUSSZUSAMMENFASSUNG")
+print("ABSCHLUSSZUSAMMENFASSUNG GCN + RF/GB")
 print("="*65)
 print(f"\n  Gesamtdatensatz       : {len(full)} Chemikalien")
 print(f"  Mit Lit-Clint         : {len(has_lit)}")
@@ -641,11 +411,279 @@ print(f"  RF/GB-Vorhersagen     : {len(result_df)}")
 print()
 print(metrics_df[["Modell","N","R2","RMSE_log","GMFE",
                    "Pct_3fold","Pct_10fold"]].to_string(index=False))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 13. BER-Berechnung fuer alle 777 Chemikalien (ehemals 14_ber_all777.py)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+print("\n" + "="*65)
+print("Step 13b - BER fuer alle 777 httk-Chemikalien")
+print("="*65)
+
+# ── Daten zusammenfuehren ────────────────────────────────────────────────────
+# full (already loaded above) hat die SEEM/AC50-Spalten aus all_777_chemicals.csv
+# result_df (already computed above) hat GCN/RF-Vorhersagen
+
+# SEEM-Spalten sichern, falls vorhanden
+seem_cols = [c for c in ["SEEM_mg_kg_day","SEEM_l95","SEEM_u95","SEEM_pathway","has_SEEM"]
+             if c in full.columns]
+
+merge_cols = ["DTXSID","Compound","CAS","MW","logP","Fup","Clint"] + seem_cols
+merge_cols = [c for c in merge_cols if c in full.columns]
+
+df_ber = full[merge_cols].copy()
+df_ber = df_ber.rename(columns={"Clint": "Clint_httk"})
+df_ber["CAS"] = df_ber["CAS"].astype(str).str.strip()
+
+# GCN / RF Vorhersagen einfuegen
+df_ber = df_ber.merge(
+    result_df[["CAS","GCN_Clint_pred","RF_Clint_pred",
+               "GCN_log10_pred","RF_log10_pred","has_smiles"]],
+    on="CAS", how="left",
+)
+
+# AC50 aus aed_ber_full.csv (Step 05)
+if AED_BER_CSV.exists():
+    ber_ref = pd.read_csv(AED_BER_CSV)
+    ber_ref["CAS"] = ber_ref["CAS"].astype(str).str.strip()
+    df_ber = df_ber.merge(
+        ber_ref[["CAS","AC50_10pct_uM","AED_median","BER"]].rename(
+            columns={"AED_median": "AED_httk_ref", "BER": "BER_httk_ref"}),
+        on="CAS", how="left",
+    )
+else:
+    df_ber["AC50_10pct_uM"] = np.nan
+    df_ber["AED_httk_ref"]  = np.nan
+    df_ber["BER_httk_ref"]  = np.nan
+
+print(f"\n  Merge: {len(df_ber)} Zeilen")
+print(f"  mit AC50         : {df_ber['AC50_10pct_uM'].notna().sum()}")
+seem_col = "SEEM_mg_kg_day" if "SEEM_mg_kg_day" in df_ber.columns else None
+if seem_col:
+    print(f"  mit SEEM         : {df_ber[seem_col].notna().sum()}")
+print(f"  mit GCN-Clint    : {df_ber['GCN_Clint_pred'].notna().sum()}")
+print(f"  mit httk-Clint   : {df_ber['Clint_httk'].notna().sum()}")
+
+# ── AED und BER berechnen ────────────────────────────────────────────────────
+print("\nBerechne AED/BER fuer alle 777 Chemikalien ...")
+
+rows_ber = []
+for _, row in df_ber.iterrows():
+    mw    = float(row["MW"])   if pd.notna(row.get("MW"))   else 300.0
+    fup   = float(row["Fup"])  if pd.notna(row.get("Fup"))  else 0.1
+    ac50  = float(row["AC50_10pct_uM"]) if pd.notna(row.get("AC50_10pct_uM")) else np.nan
+    seem  = float(row[seem_col]) if seem_col and pd.notna(row.get(seem_col)) else np.nan
+
+    c_httk = float(row["Clint_httk"])    if pd.notna(row.get("Clint_httk"))    else np.nan
+    c_gcn  = float(row["GCN_Clint_pred"]) if pd.notna(row.get("GCN_Clint_pred")) else np.nan
+    c_rf   = float(row["RF_Clint_pred"]) if pd.notna(row.get("RF_Clint_pred")) else np.nan
+
+    aed_httk = calc_aed(ac50, mw, c_httk, fup) if pd.notna(ac50) and pd.notna(c_httk) else np.nan
+    aed_gcn  = calc_aed(ac50, mw, c_gcn,  fup) if pd.notna(ac50) and pd.notna(c_gcn)  else np.nan
+    aed_rf   = calc_aed(ac50, mw, c_rf,   fup) if pd.notna(ac50) and pd.notna(c_rf)   else np.nan
+
+    ber_httk = calc_ber(aed_httk, seem)
+    ber_gcn  = calc_ber(aed_gcn,  seem)
+    ber_rf   = calc_ber(aed_rf,   seem)
+
+    rows_ber.append({
+        "DTXSID":         row.get("DTXSID"),
+        "CAS":            row["CAS"],
+        "Compound":       row.get("Compound"),
+        "MW":             mw,
+        "logP":           row.get("logP"),
+        "Fup":            fup,
+        "AC50_10pct_uM":  ac50,
+        "SEEM_mg_kg_day": seem,
+        "Clint_httk":     round(c_httk, 4) if pd.notna(c_httk) else np.nan,
+        "Clint_GCN":      round(c_gcn,  4) if pd.notna(c_gcn)  else np.nan,
+        "Clint_RF":       round(c_rf,   4) if pd.notna(c_rf)   else np.nan,
+        "CL_httk":        round(clint_uL_to_cl_h(c_httk, fup), 6) if pd.notna(c_httk) else np.nan,
+        "CL_GCN":         round(clint_uL_to_cl_h(c_gcn,  fup), 6) if pd.notna(c_gcn)  else np.nan,
+        "CL_RF":          round(clint_uL_to_cl_h(c_rf,   fup), 6) if pd.notna(c_rf)   else np.nan,
+        "AED_httk":       round(aed_httk, 6) if pd.notna(aed_httk) else np.nan,
+        "AED_GCN":        round(aed_gcn,  6) if pd.notna(aed_gcn)  else np.nan,
+        "AED_RF":         round(aed_rf,   6) if pd.notna(aed_rf)   else np.nan,
+        "BER_httk":       round(ber_httk, 4) if pd.notna(ber_httk) else np.nan,
+        "BER_GCN":        round(ber_gcn,  4) if pd.notna(ber_gcn)  else np.nan,
+        "BER_RF":         round(ber_rf,   4) if pd.notna(ber_rf)   else np.nan,
+        "BER_httk_ref":   row.get("BER_httk_ref", np.nan),
+    })
+
+result_ber = pd.DataFrame(rows_ber)
+result_ber["concern_httk"] = result_ber["BER_httk"].apply(concern_label)
+result_ber["concern_GCN"]  = result_ber["BER_GCN"].apply(concern_label)
+result_ber["concern_RF"]   = result_ber["BER_RF"].apply(concern_label)
+
+result_ber.to_csv(RESULTS / "ber_all777.csv", index=False)
+print(f"Gespeichert: results/ber_all777.csv")
+
+# ── Metriken ─────────────────────────────────────────────────────────────────
+ber_ok  = result_ber.dropna(subset=["BER_httk"])
+aed_ok  = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
+
+print(f"\n  Chemikalien gesamt          : {len(result_ber)}")
+print(f"  mit AC50 (ToxCast)          : {result_ber['AC50_10pct_uM'].notna().sum()}")
+print(f"  mit SEEM-Exposition         : {result_ber['SEEM_mg_kg_day'].notna().sum()}")
+print(f"  AED berechenbar (alle 3)    : {len(aed_ok)}")
+print(f"  BER berechenbar             : {ber_ok['BER_httk'].notna().sum()}")
+
+for lbl, col in [("httk","AED_httk"),("GCN","AED_GCN"),("RF","AED_RF")]:
+    sub = result_ber[col].dropna()
+    if len(sub):
+        print(f"  AED_{lbl:<5}: n={len(sub):>4}  median={sub.median():.3e}  "
+              f"IQR=[{sub.quantile(0.25):.2e}, {sub.quantile(0.75):.2e}]")
+
+if len(ber_ok):
+    print("\n--- Concern-Klassifikation (BER_httk) ---")
+    for cat, cnt in ber_ok["concern_httk"].value_counts().items():
+        print(f"  {cat:<30}: {cnt}")
+
+    if len(aed_ok) > 1:
+        log_httk = np.log10(aed_ok["AED_httk"].clip(1e-10))
+        log_gcn  = np.log10(aed_ok["AED_GCN"].clip(1e-10))
+        log_rf   = np.log10(aed_ok["AED_RF"].clip(1e-10))
+        rho_gcn, p_gcn = spearmanr(log_httk, log_gcn)
+        rho_rf,  p_rf  = spearmanr(log_httk, log_rf)
+        fe_gcn = 10**np.abs(log_httk - log_gcn)
+        fe_rf  = 10**np.abs(log_httk - log_rf)
+        print(f"\n--- AED Vergleich vs. httk (n={len(aed_ok)}) ---")
+        print(f"  GCN:  rho={rho_gcn:.3f} (p={p_gcn:.3e})  "
+              f"GMFE={np.exp(np.mean(np.log(fe_gcn))):.2f}x  "
+              f"<=2-fold={np.mean(fe_gcn<=2)*100:.0f}%")
+        print(f"  RF:   rho={rho_rf:.3f}  (p={p_rf:.3e})  "
+              f"GMFE={np.exp(np.mean(np.log(fe_rf))):.2f}x  "
+              f"<=2-fold={np.mean(fe_rf<=2)*100:.0f}%")
+
+with open(RESULTS / "ber_all777_metrics.txt", "w") as f:
+    f.write("BER Analyse - 777 httk-Chemikalien\n")
+    f.write("="*52 + "\n\n")
+    f.write(f"Gesamt       : {len(result_ber)}\n")
+    f.write(f"mit AC50     : {result_ber['AC50_10pct_uM'].notna().sum()}\n")
+    f.write(f"mit SEEM     : {result_ber['SEEM_mg_kg_day'].notna().sum()}\n")
+    f.write(f"BER ok       : {ber_ok['BER_httk'].notna().sum()}\n\n")
+    if len(ber_ok):
+        f.write(ber_ok[["Compound","BER_httk","BER_GCN","BER_RF",
+                          "SEEM_mg_kg_day","concern_httk"]].to_string(index=False))
+print("Metriken -> results/ber_all777_metrics.txt")
+
+# ── BER Plots ────────────────────────────────────────────────────────────────
+ber_plot = result_ber.dropna(subset=["BER_httk"]).copy()
+ber_plot = ber_plot.sort_values("BER_httk").reset_index(drop=True)
+
+if len(ber_plot):
+    fig, ax = plt.subplots(figsize=(14, 6))
+    x = np.arange(len(ber_plot))
+    ax.bar(x, np.log10(ber_plot["BER_httk"].clip(1e-4)),
+           color="#B0BEC5", alpha=0.9, label="httk (Referenz)", zorder=2)
+    if ber_plot["BER_GCN"].notna().sum():
+        ax.scatter(x, np.log10(ber_plot["BER_GCN"].clip(1e-4)),
+                   color="#1565C0", s=60, zorder=5, marker="D", label="GCN")
+    if ber_plot["BER_RF"].notna().sum():
+        ax.scatter(x, np.log10(ber_plot["BER_RF"].clip(1e-4)),
+                   color="#E65100", s=40, zorder=4, marker="o", label="RF/GB")
+    ax.axhline(0, color="red", lw=2, ls="--", label="BER=1 (Grenzwert)")
+    ax.axhline(1, color="orange", lw=1.5, ls=":", label="BER=10")
+    ax.axhline(2, color="green",  lw=1.0, ls=":", label="BER=100")
+    ax.set_xticks(x)
+    ax.set_xticklabels(ber_plot["Compound"].str[:20], rotation=55, ha="right", fontsize=7)
+    ax.set_ylabel("log10(BER)  [niedriger = hoehere Besorgnis]", fontsize=11)
+    ax.set_title(f"BER-Ranking: httk vs. GCN vs. RF/GB Clint\n"
+                 f"n={len(ber_plot)} Chemikalien mit SEEM-Expositionsdaten", fontsize=11)
+    ax.legend(fontsize=9, loc="upper left")
+    ax.grid(axis="y", alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(RESULTS / "ber_all777_waterfall.png", dpi=150)
+    plt.close()
+    print("Saved: results/ber_all777_waterfall.png")
+
+# AED Scatter GCN/RF vs httk
+both_aed = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
+if len(both_aed) > 1:
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    for ax, (gcn_col, title, clr) in zip(axes, [
+        ("AED_GCN", "GCN vs. httk",   "#1565C0"),
+        ("AED_RF",  "RF/GB vs. httk", "#E65100"),
+    ]):
+        log_x = np.log10(both_aed["AED_httk"].clip(1e-10))
+        log_y = np.log10(both_aed[gcn_col].clip(1e-10))
+        has_s = both_aed["SEEM_mg_kg_day"].notna()
+        ax.scatter(log_x[~has_s], log_y[~has_s], c="#90A4AE", s=10, alpha=0.4, linewidths=0)
+        ax.scatter(log_x[has_s],  log_y[has_s],  c=clr, s=60, alpha=0.8,
+                   linewidths=0.5, edgecolors="k", zorder=5, label="mit SEEM")
+        lims = [min(log_x.min(),log_y.min())-0.5, max(log_x.max(),log_y.max())+0.5]
+        ax.plot(lims, lims, "k--", lw=1.2)
+        ax.fill_between(lims, [v-1 for v in lims], [v+1 for v in lims],
+                        alpha=0.06, color="orange")
+        rho, pv = spearmanr(log_x, log_y)
+        fe = 10**np.abs(log_x - log_y)
+        gmfe = np.exp(np.mean(np.log(fe)))
+        ax.set_xlabel("log10(AED httk)  [Referenz]", fontsize=10)
+        ax.set_ylabel(f"log10(AED {title.split()[0]})", fontsize=10)
+        ax.set_title(f"AED: {title}  (n={len(both_aed)})\n"
+                     f"Spearman rho={rho:.3f}  GMFE={gmfe:.2f}x", fontsize=10)
+        ax.legend(fontsize=8); ax.grid(True, alpha=0.25)
+    plt.suptitle("AED-Vergleich: ML-Vorhersage vs. httk-Literatur", fontsize=11, y=1.01)
+    plt.tight_layout()
+    plt.savefig(RESULTS / "ber_all777_aed_scatter.png", dpi=150, bbox_inches="tight")
+    plt.close()
+    print("Saved: results/ber_all777_aed_scatter.png")
+
+# AED/BER Verteilung
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+ax = axes[0]
+aed_all = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
+bins = np.linspace(-5, 5, 40)
+ax.hist(np.log10(aed_all["AED_httk"].clip(1e-5)), bins=bins,
+        color="#607D8B", alpha=0.75, label=f"httk (n={aed_all['AED_httk'].notna().sum()})")
+ax.hist(np.log10(aed_all["AED_GCN"].clip(1e-5)), bins=bins,
+        color="#1565C0", alpha=0.55, label=f"GCN  (n={aed_all['AED_GCN'].notna().sum()})")
+ax.hist(np.log10(aed_all["AED_RF"].clip(1e-5)),  bins=bins,
+        color="#E65100", alpha=0.40, label=f"RF   (n={aed_all['AED_RF'].notna().sum()})")
+ax.set_xlabel("log10(AED [mg/kg/day])", fontsize=10)
+ax.set_ylabel("Anzahl Chemikalien", fontsize=10)
+ax.set_title("AED-Verteilung: alle 777 Chemikalien", fontsize=11)
+ax.legend(fontsize=9); ax.grid(alpha=0.3)
+
+ax = axes[1]
+if len(ber_plot):
+    colors_ber = {"HIGH  (BER<1)": "#F44336", "MEDIUM (BER 1-10)": "#FF9800",
+                  "LOW   (BER 10-100)": "#8BC34A", "NEGLIGIBLE (BER>100)": "#4CAF50",
+                  "no_data": "#B0BEC5"}
+    cat_counts = ber_plot["concern_httk"].value_counts()
+    cats  = list(cat_counts.index)
+    vals  = [cat_counts[c] for c in cats]
+    clrs  = [colors_ber.get(c, "#9E9E9E") for c in cats]
+    ax.bar(cats, vals, color=clrs, edgecolor="k", linewidth=0.4)
+    ax.set_ylabel("Anzahl Chemikalien")
+    ax.set_title("BER-Concern-Klassifikation (httk)")
+    ax.set_xticklabels([c[:22] for c in cats], rotation=25, ha="right", fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
+    for i, v in enumerate(vals):
+        ax.text(i, v+0.1, str(v), ha="center", va="bottom", fontsize=9)
+
+plt.tight_layout()
+plt.savefig(RESULTS / "ber_all777_distribution.png", dpi=150)
+plt.close()
+print("Saved: results/ber_all777_distribution.png")
+
+
+print("\n" + "="*65)
+print("ABSCHLUSSZUSAMMENFASSUNG GESAMT")
+print("="*65)
 print()
-print("Ausgaben:")
-print("  data/smiles_cache_777.csv           -- SMILES-Cache")
-print("  results/gcn_777_predictions.csv    -- Vorhersagen")
-print("  results/gcn_777_metrics.txt        -- Metriken")
-print("  results/gcn_777_scatter.png        -- Scatter-Plot")
-print("  results/gcn_777_clint_distribution.png -- Verteilung + Ausreisser")
+print("GCN + RF/GB:")
+print("  data/smiles_cache_777.csv               -- SMILES-Cache")
+print("  results/gcn_777_predictions.csv         -- Vorhersagen")
+print("  results/gcn_777_metrics.txt             -- Metriken")
+print("  results/gcn_777_scatter.png             -- Scatter-Plot")
+print("  results/gcn_777_clint_distribution.png  -- Verteilung + Ausreisser")
+print()
+print("BER-Analyse:")
+print("  results/ber_all777.csv                  -- vollstaendige Tabelle")
+print("  results/ber_all777_metrics.txt          -- Metriken")
+print("  results/ber_all777_waterfall.png        -- BER-Wasserfall")
+print("  results/ber_all777_aed_scatter.png      -- AED: GCN/RF vs. httk")
+print("  results/ber_all777_distribution.png     -- AED/BER Verteilung")
 print("\nDone.")

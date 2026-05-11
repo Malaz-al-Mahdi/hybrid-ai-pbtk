@@ -1,25 +1,32 @@
 ###############################################################################
 # run_pipeline.ps1
 # ---------------------------------------------------------------------------
-# Orchestrates the complete toxicokinetic research pipeline:
+# Vollstaendige toxikokinetische Forschungspipeline:
 #
-#   Step 1  (R)      – Extract data from httk
-#   Step 2  (Python) – Train RF, predict Clint, evaluate LOO-CV
-#   Step 3  (R)      – Run PBTK simulations with native vs. imputed params
-#   Step 4  (R)      – Reverse dosimetry: ToxCast AC50 -> AED (Monte Carlo)
-#   Step 4b (Python) – AED visualization and summary report
-#   Step 5  (R)      – Full RTK pipeline: 777 chemicals -> AED -> BER
-#   Step 6  (Python) – Neural ODE for continuous C(t) TK modeling
-#   Step 7  (Python) – Explainable AI: SHAP for Clint and BER
-#   Step 8  (Python) – Bayesian BER: MC Dropout uncertainty analysis
-#   Step 9  (R)      – In-vivo validation vs. Wetmore2012 literature data
+#   Stufe 1  (R)      – Datenextraktion aus httk
+#   Stufe 2  (Python) – RF/GB Clint-Vorhersage + LOO-CV
+#   Stufe 3  (R)      – PBTK-Simulationen (nativ vs. RF-imputiert)
+#   Stufe 4  (R)      – Reverse Dosimetry: ToxCast AC50 -> AED (Monte Carlo)
+#   Stufe 4b (Python) – AED-Visualisierung
+#   Stufe 5  (R)      – Vollstaendige RTK-Pipeline: 777 Chemikalien -> AED -> BER
+#   Stufe 6  (Python) – Neural ODE fuer kontinuierliche C(t)-Kurven
+#   Stufe 7  (Python) – Explainable AI (SHAP global + Ausreisseranalyse)
+#   Stufe 8  (Python) – Bayesianische BER-Unsicherheitsanalyse (MC Dropout)
+#   Stufe 9  (R)      – In-vivo-Validierung (Wetmore 2012)
+#   Stufe 11 (Python) – GCN LOO-CV auf Pilotchemikalien
+#   Stufe 13 (Python) – GCN + RF/GB auf allen 777 Chemikalien + BER-Vergleich
 #
-# Usage:
+# Zusammengefasste Stufen (gegenueber frueherer 14-Stufen-Version):
+#   02 + 10 -> Stufe 2  (Clint LOO-CV + externe Validierung)
+#   07 + 12 -> Stufe 7  (SHAP global + Ausreisser-Waterfall)
+#   13 + 14 -> Stufe 13 (GCN/RF Vorhersagen + BER-Berechnung)
+#
+# Ausfuehrung:
 #   powershell -ExecutionPolicy Bypass -File scripts\run_pipeline.ps1
 #
-# Prerequisites:
-#   - R with httk package installed
-#   - Python 3.8+ with packages in requirements.txt (torch + shap required for steps 6-8)
+# Voraussetzungen:
+#   - R mit httk-Paket (install.packages("httk"))
+#   - Python 3.10+ mit: pip install -r requirements.txt
 ###############################################################################
 
 $ErrorActionPreference = "Stop"
@@ -28,121 +35,141 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 $env:R_LIBS_USER = Join-Path $HOME "Documents\R\win-library\4.5"
 
 Write-Host "`n=============================================" -ForegroundColor Cyan
-Write-Host "  PBTK Pilot Pipeline" -ForegroundColor Cyan
+Write-Host "  TK-Hybrid Pipeline (11 Stufen)" -ForegroundColor Cyan
 Write-Host "=============================================`n" -ForegroundColor Cyan
 Write-Host "  R user library: $env:R_LIBS_USER`n" -ForegroundColor DarkCyan
 
-# --- Step 1: Extract httk data ---
-Write-Host "[1/10] Extracting httk data (R) ..." -ForegroundColor Yellow
+# ── Stufe 1: Datenextraktion ──────────────────────────────────────────────────
+Write-Host "[1/11] Datenextraktion aus httk (R) ..." -ForegroundColor Yellow
 Set-Location "$ScriptDir"
 Rscript "01_extract_httk_data.R"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 1 failed. Check R / httk installation."
+    Write-Error "Stufe 1 fehlgeschlagen. R / httk-Installation pruefen."
     exit 1
 }
-Write-Host "[1/10] Done.`n" -ForegroundColor Green
+Write-Host "[1/11] Fertig.`n" -ForegroundColor Green
 
-# --- Step 2: RF prediction ---
-Write-Host "[2/10] Training Random Forest & LOO-CV (Python) ..." -ForegroundColor Yellow
+# ── Stufe 2: RF/GB LOO-CV + Externe Validierung ───────────────────────────────
+Write-Host "[2/11] RF/GB Clint-Vorhersage + LOO-CV + Validierung (Python) ..." -ForegroundColor Yellow
+Write-Host "       (Trainiert auf 19 Piloten; validiert auf alle 777 httk-Chemikalien)" -ForegroundColor DarkYellow
 python "02_rf_predict_clint.py"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 2 failed. Check Python / scikit-learn installation."
+    Write-Error "Stufe 2 fehlgeschlagen. Python / scikit-learn pruefen."
     exit 1
 }
-Write-Host "[2/10] Done.`n" -ForegroundColor Green
+Write-Host "[2/11] Fertig.`n" -ForegroundColor Green
 
-# --- Step 3: PBTK simulation ---
-Write-Host "[3/10] Running PBTK simulations (R + httk) ..." -ForegroundColor Yellow
+# ── Stufe 3: PBTK-Simulation ──────────────────────────────────────────────────
+Write-Host "[3/11] PBTK-Simulationen (R + httk) ..." -ForegroundColor Yellow
 Rscript "03_httk_pbtk_simulation.R"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 3 failed. Check R / httk parameterize_pbtk."
+    Write-Error "Stufe 3 fehlgeschlagen. R / httk parameterize_pbtk pruefen."
     exit 1
 }
-Write-Host "[3/10] Done.`n" -ForegroundColor Green
+Write-Host "[3/11] Fertig.`n" -ForegroundColor Green
 
-# --- Step 4: Reverse dosimetry (Monte Carlo AED) ---
-Write-Host "[4/10] Reverse dosimetry: ToxCast AC50 -> AED (R + httk MC) ..." -ForegroundColor Yellow
+# ── Stufe 4: Reverse Dosimetry (Monte Carlo AED) ─────────────────────────────
+Write-Host "[4/11] Reverse Dosimetry: ToxCast AC50 -> AED (R + httk MC) ..." -ForegroundColor Yellow
 Rscript "04_reverse_dosimetry.R"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 4 failed. Check httk calc_mc_oral_equiv / ToxCast data."
+    Write-Error "Stufe 4 fehlgeschlagen. httk calc_mc_oral_equiv / ToxCast-Daten pruefen."
     exit 1
 }
-Write-Host "[4/10] Done.`n" -ForegroundColor Green
-
-# --- Step 4b: AED visualization ---
-Write-Host "[5/10] AED analysis & visualization (Python) ..." -ForegroundColor Yellow
 python "04b_aed_analysis.py"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 4b failed. Check Python / matplotlib."
-    exit 1
+    Write-Warning "AED-Visualisierung (04b) fehlgeschlagen."
 }
-Write-Host "[5/10] Done.`n" -ForegroundColor Green
+Write-Host "[4/11] Fertig.`n" -ForegroundColor Green
 
-# --- Step 5: Full RTK + AED + BER for all 777 chemicals ---
-Write-Host "[6/10] Full RTK pipeline: 777 chemicals -> AED -> BER (R) ..." -ForegroundColor Yellow
-Write-Host "       (This step takes 30-60 min for 777 chemicals)" -ForegroundColor DarkYellow
+# ── Stufe 5: Vollstaendige RTK-Pipeline (777 Chemikalien) ────────────────────
+Write-Host "[5/11] Vollstaendige RTK-Pipeline: 777 Chemikalien -> AED -> BER (R) ..." -ForegroundColor Yellow
+Write-Host "       (Dauert 30-60 Min. fuer 777 Chemikalien)" -ForegroundColor DarkYellow
 Rscript "05_full_rtk_aed_ber.R"
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Step 5 failed. Check results/aed_ber_full.csv."
+    Write-Error "Stufe 5 fehlgeschlagen. results/aed_ber_full.csv pruefen."
     exit 1
 }
-Write-Host "[6/10] Done.`n" -ForegroundColor Green
+Write-Host "[5/11] Fertig.`n" -ForegroundColor Green
 
-# --- Step 6: Neural ODE for continuous TK modeling ---
-Write-Host "[7/10] Neural ODE: continuous C(t) toxicokinetic modeling (Python) ..." -ForegroundColor Yellow
-Write-Host "       (LOO-CV over 20 chemicals; ~5-10 min)" -ForegroundColor DarkYellow
+# ── Stufe 6: Neural ODE ───────────────────────────────────────────────────────
+Write-Host "[6/11] Neural ODE: kontinuierliche C(t)-TK-Modellierung (Python) ..." -ForegroundColor Yellow
+Write-Host "       (LOO-CV ueber 20 Chemikalien; ~5-10 Min.)" -ForegroundColor DarkYellow
 python "06_neural_ode_tk.py"
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Step 6 (Neural ODE) failed.  Check PyTorch installation: pip install torch"
-    Write-Host "  Continuing pipeline without Neural ODE results.`n" -ForegroundColor DarkYellow
+    Write-Warning "Stufe 6 (Neural ODE) fehlgeschlagen. PyTorch pruefen: pip install torch"
+    Write-Host "  Pipeline wird ohne Neural-ODE-Ergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
 } else {
-    Write-Host "[7/10] Done.`n" -ForegroundColor Green
+    Write-Host "[6/11] Fertig.`n" -ForegroundColor Green
 }
 
-# --- Step 7: Explainable AI (SHAP) ---
-Write-Host "[8/10] Explainable AI: SHAP analysis for Clint and BER (Python) ..." -ForegroundColor Yellow
+# ── Stufe 7: Explainable AI (SHAP global + Ausreisseranalyse) ────────────────
+Write-Host "[7/11] SHAP: globale Feature-Importance + Ausreisseranalyse (Python) ..." -ForegroundColor Yellow
+Write-Host "       (Section A: RF global | Section B: BER | Section C: Tacrine/Phenylparaben)" -ForegroundColor DarkYellow
 python "07_xai_shap_analysis.py"
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Step 7 (XAI/SHAP) failed.  Check shap installation: pip install shap"
-    Write-Host "  Continuing pipeline without SHAP results.`n" -ForegroundColor DarkYellow
+    Write-Warning "Stufe 7 (XAI/SHAP) fehlgeschlagen. shap pruefen: pip install shap"
+    Write-Host "  Pipeline wird ohne SHAP-Ergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
 } else {
-    Write-Host "[8/10] Done.`n" -ForegroundColor Green
+    Write-Host "[7/11] Fertig.`n" -ForegroundColor Green
 }
 
-# --- Step 8: Bayesian BER ---
-Write-Host "[9/10] Bayesian BER: MC Dropout uncertainty analysis (Python) ..." -ForegroundColor Yellow
+# ── Stufe 8: Bayesianische BER-Unsicherheitsanalyse ──────────────────────────
+Write-Host "[8/11] Bayesianische BER: MC Dropout Unsicherheitsanalyse (Python) ..." -ForegroundColor Yellow
 python "08_bayesian_ber.py"
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Step 8 (Bayesian BER) failed.  Check PyTorch installation: pip install torch"
-    Write-Host "  Continuing pipeline without Bayesian BER results.`n" -ForegroundColor DarkYellow
+    Write-Warning "Stufe 8 (Bayesian BER) fehlgeschlagen. PyTorch pruefen: pip install torch"
+    Write-Host "  Pipeline wird ohne Bayesian-BER-Ergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
 } else {
-    Write-Host "[9/10] Done.`n" -ForegroundColor Green
+    Write-Host "[8/11] Fertig.`n" -ForegroundColor Green
 }
 
-# --- Step 9: In-vivo validation ---
-Write-Host "[10/10] In-vivo validation vs. Wetmore2012 literature data (R) ..." -ForegroundColor Yellow
+# ── Stufe 9: In-vivo-Validierung ─────────────────────────────────────────────
+Write-Host "[9/11] In-vivo-Validierung vs. Wetmore2012 (R) ..." -ForegroundColor Yellow
 Rscript "09_invivo_validation.R"
 if ($LASTEXITCODE -ne 0) {
-    Write-Warning "Step 9 (in-vivo validation) failed.  Check httk / R installation."
-    Write-Host "  Continuing pipeline without validation results.`n" -ForegroundColor DarkYellow
+    Write-Warning "Stufe 9 (In-vivo-Validierung) fehlgeschlagen. httk / R pruefen."
+    Write-Host "  Pipeline wird ohne Validierungsergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
 } else {
-    Write-Host "[10/10] Done.`n" -ForegroundColor Green
+    Write-Host "[9/11] Fertig.`n" -ForegroundColor Green
+}
+
+# ── Stufe 10: GCN LOO-CV auf Pilotchemikalien ────────────────────────────────
+Write-Host "[10/11] GCN LOO-CV auf Pilotchemikalien (Python) ..." -ForegroundColor Yellow
+Write-Host "        (Benoetigt: rdkit + torch; SMILES-Download ~2 Min.)" -ForegroundColor DarkYellow
+python "10_gcn_clint.py"
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Stufe 10 (GCN LOO-CV) fehlgeschlagen. Pruefen: pip install rdkit torch"
+    Write-Host "  Pipeline wird ohne GCN-LOO-CV-Ergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
+} else {
+    Write-Host "[10/11] Fertig.`n" -ForegroundColor Green
+}
+
+# ── Stufe 11: GCN + RF/GB auf allen 777 Chemikalien + BER ────────────────────
+Write-Host "[11/11] GCN + RF/GB auf allen 777 Chemikalien + BER-Berechnung (Python) ..." -ForegroundColor Yellow
+Write-Host "        (SMILES aus Cache; GCN-Training ~1 Min.; BER fuer alle 3 Clint-Quellen)" -ForegroundColor DarkYellow
+python "11_gcn_all777.py"
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning "Stufe 11 (GCN + BER) fehlgeschlagen."
+    Write-Host "  Pipeline wird ohne GCN-Ergebnisse fortgesetzt.`n" -ForegroundColor DarkYellow
+} else {
+    Write-Host "[11/11] Fertig.`n" -ForegroundColor Green
 }
 
 Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host "  Pipeline complete!" -ForegroundColor Cyan
-Write-Host "  Results in: $ProjectRoot\results\" -ForegroundColor Cyan
-Write-Host "  Data in:    $ProjectRoot\data\" -ForegroundColor Cyan
+Write-Host "  Pipeline vollstaendig! (11 Stufen)" -ForegroundColor Cyan
+Write-Host "  Ergebnisse: $ProjectRoot\results\" -ForegroundColor Cyan
+Write-Host "  Daten:      $ProjectRoot\data\" -ForegroundColor Cyan
 Write-Host "=============================================`n" -ForegroundColor Cyan
 
-Write-Host "Key outputs:" -ForegroundColor White
-Write-Host "  results/aed_ber_full.csv               - AED + BER for all chemicals"        -ForegroundColor Gray
-Write-Host "  results/ber_ranking_plot.png            - BER waterfall ranking"               -ForegroundColor Gray
-Write-Host "  results/neural_ode_curves.png           - Neural ODE C(t) predictions"        -ForegroundColor Gray
-Write-Host "  results/neural_ode_sparse_demo.png      - Sparse-data interpolation demo"     -ForegroundColor Gray
-Write-Host "  results/shap_rf_beeswarm.png            - SHAP feature importance (RF Clint)" -ForegroundColor Gray
-Write-Host "  results/shap_ber_beeswarm.png           - SHAP BER explainability"            -ForegroundColor Gray
-Write-Host "  results/ber_credible_intervals.png      - Bayesian BER 90% credible bands"    -ForegroundColor Gray
-Write-Host "  results/invivo_validation_scatter.png   - In-vivo Css validation scatter"     -ForegroundColor Gray
-Write-Host "  results/invivo_validation_metrics.csv   - R2, RMSE, GMR, fold-error"          -ForegroundColor Gray
+Write-Host "Wichtige Ausgaben:" -ForegroundColor White
+Write-Host "  results/rf_loo_cv_metrics.txt           - RF/GB LOO-CV Metriken (Stufe 2)"          -ForegroundColor Gray
+Write-Host "  results/clint_validation_scatter.png    - Externe Validierung 777 Chemikalien (Stufe 2)" -ForegroundColor Gray
+Write-Host "  results/aed_ber_full.csv                - AED + BER httk-nativ (Stufe 5)"           -ForegroundColor Gray
+Write-Host "  results/shap_rf_beeswarm.png            - SHAP Feature-Importance (Stufe 7)"        -ForegroundColor Gray
+Write-Host "  results/shap_outlier_waterfall_*.png    - Ausreisser-Erklaerung (Stufe 7)"          -ForegroundColor Gray
+Write-Host "  results/ber_credible_intervals.png      - Bayesianische BER 90%-KI (Stufe 8)"       -ForegroundColor Gray
+Write-Host "  results/gcn_777_predictions.csv         - GCN + RF Vorhersagen 777 (Stufe 11)"      -ForegroundColor Gray
+Write-Host "  results/ber_all777.csv                  - BER: GCN vs. RF vs. httk (Stufe 11)"      -ForegroundColor Gray
+Write-Host "  results/ber_all777_waterfall.png        - BER-Wasserfall (Stufe 11)"                -ForegroundColor Gray
+Write-Host "  results/neural_ode_curves.png           - Neural ODE C(t) (Stufe 6)"               -ForegroundColor Gray
 Write-Host ""

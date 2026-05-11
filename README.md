@@ -1,103 +1,91 @@
-# Hybrides KI-System fur Toxikokinetik
+# Hybrides KI-System fuer Toxikokinetik
 
 Vorhersage fehlender toxikokinetischer Parameter (Clint) mittels Random Forest,
-PBTK-Simulation, Neural ODEs, Explainable AI (SHAP), Bayesianischer
-Risikoanalyse (BER) und Validierung gegen In-vivo-Daten -- alles integriert
-uber das R-Paket [httk](https://cran.r-project.org/package=httk).
+PBTK-Simulation, Neural ODEs, Graph Convolutional Networks (GCN), Explainable AI (SHAP),
+Bayesianischer Risikoanalyse (BER) und Validierung gegen Literaturwerte —
+integriert ueber das R-Paket [httk](https://cran.r-project.org/package=httk).
+
+---
 
 ## Projektstruktur
 
 ```
 .
 ├── data/
-│   ├── pilot_chemicals_full.csv        # 20 Chemikalien, komplette httk-Daten
-│   ├── pilot_chemicals_masked.csv      # Gleiche Daten, Clint = NA
-│   ├── rf_clint_predictions.csv        # LOO-CV Vorhersagen vs. Wahrheit
-│   ├── pilot_chemicals_imputed.csv     # RF-imputierter Clint
-│   ├── toxcast_ac50_pilot.csv          # ToxCast AC50-Zusammenfassung
-│   └── all_777_chemicals.csv           # Alle 777 parameterisierbaren Chemikalien
+│   ├── pilot_chemicals_full.csv        19 Pilotchemikalien mit vollstaendigen httk-Daten
+│   ├── pilot_chemicals_masked.csv      Gleiche Daten, Clint = NA (fuer Blind-Tests)
+│   ├── pilot_chemicals_imputed.csv     RF-imputierter Clint
+│   ├── pilot_chemicals_gcn.csv         SMILES + GCN-Vorhersagen fuer Pilotchemikalien
+│   ├── rf_clint_predictions.csv        LOO-CV Vorhersagen vs. Wahrheit
+│   ├── toxcast_ac50_pilot.csv          ToxCast AC50-Zusammenfassung (Pilot)
+│   ├── all_777_chemicals.csv           Alle 777 parameterisierbaren httk-Chemikalien
+│   └── smiles_cache_777.csv            SMILES-Cache fuer alle 777 (wird automatisch erstellt)
+│
 ├── scripts/
-│   ├── 01_extract_httk_data.R          # Schritt 1: Datenextraktion aus httk
-│   ├── 02_rf_predict_clint.py          # Schritt 2: RF-Training + LOO-CV
-│   ├── 03_httk_pbtk_simulation.R       # Schritt 3: PBTK nativ vs. RF-imputed
-│   ├── 04_reverse_dosimetry.R          # Schritt 4: Reverse TK (MC-AED)
-│   ├── 04b_aed_analysis.py             # Schritt 4b: AED-Visualisierung
-│   ├── 05_full_rtk_aed_ber.R           # Schritt 5/6: RTK + AED + BER (777 Chem.)
-│   ├── 06_neural_ode_tk.py             # Schritt 6: Neural ODE fur C(t)
-│   ├── 07_xai_shap_analysis.py         # Schritt 7: Explainable AI (SHAP)
-│   ├── 08_bayesian_ber.py              # Schritt 8: Bayesianische BER-Unsicherheit
-│   ├── 09_invivo_validation.R          # Schritt 9: In-vivo-Validierung
-│   └── run_pipeline.ps1                # Gesamte Pipeline (10 Schritte)
-├── results/
-│   ├── rf_loo_cv_metrics.txt
-│   ├── rf_loo_cv_scatter.png
-│   ├── pbtk_comparison.csv / .png
-│   ├── pbtk_curves/                    # C(t)-Kurven pro Chemikalie
-│   ├── aed_monte_carlo.csv / aed_mc_samples.csv
-│   ├── aed_distributions.png / aed_paired_comparison.png
-│   ├── aed_ber_full.csv                # AED + BER alle Chemikalien
-│   ├── aed_ber_summary.csv             # Top-30 Hochrisikosubstanzen
-│   ├── ber_ranking_plot.png            # BER-Wasserfall
-│   ├── neural_ode_curves.png           # Neural ODE C(t): true vs. predicted
-│   ├── neural_ode_sparse_demo.png      # Sparse-Daten-Demo
-│   ├── neural_ode_metrics.csv          # LOO-CV: MAE, RMSE, R²
-│   ├── shap_rf_beeswarm.png            # SHAP Beeswarm (RF Clint)
-│   ├── shap_rf_summary_bar.png         # Globale Feature Importance
-│   ├── shap_rf_dependence_*.png        # Dependence Plots
-│   ├── shap_ber_beeswarm.png           # SHAP BER-Erklarbarkeit
-│   ├── shap_rf_values.csv              # SHAP-Werte pro Chemikalie (RF)
-│   ├── shap_ber_values.csv             # SHAP-Werte pro Chemikalie (BER)
-│   ├── bayesian_ber.csv                # Posteriori-BER: Median + 90%-KI
-│   ├── ber_credible_intervals.png      # Wasserfall + Kredibilitatsbander
-│   ├── ber_posterior_top5.png          # Posteriori-Dichten Top-5
-│   ├── clint_posterior_uncertainty.png # BNN Clint-Unsicherheit
-│   ├── invivo_validation.csv           # Vorhergesagt vs. Literatur
-│   ├── invivo_validation_metrics.csv   # R², RMSE, GMR, Fold-Error
-│   ├── invivo_validation_scatter.png   # Log-Log Korrelationsplot
-│   └── invivo_validation_residuals.png # Residuenanalyse
-├── requirements.txt                    # Python-Abhangigkeiten
+│   ├── utils.py                        Gemeinsame Hilfsfunktionen (PK, GCN, Metriken, SMILES)
+│   ├── 01_extract_httk_data.R          Stufe 1:  Datenextraktion aus httk
+│   ├── 02_rf_predict_clint.py          Stufe 2:  RF/GB LOO-CV + externe Validierung (777 Chem.)
+│   ├── 03_httk_pbtk_simulation.R       Stufe 3:  PBTK nativ vs. RF-imputiert
+│   ├── 04_reverse_dosimetry.R          Stufe 4:  Reverse TK (Monte-Carlo-AED)
+│   ├── 04b_aed_analysis.py             Stufe 4b: AED-Visualisierung
+│   ├── 05_full_rtk_aed_ber.R           Stufe 5:  RTK + AED + BER (777 Chemikalien)
+│   ├── 06_neural_ode_tk.py             Stufe 6:  Neural ODE fuer C(t)-Kurven
+│   ├── 07_xai_shap_analysis.py         Stufe 7:  SHAP global + BER + Ausreisseranalyse
+│   ├── 08_bayesian_ber.py              Stufe 8:  Bayesianische BER-Unsicherheit (MC Dropout)
+│   ├── 09_invivo_validation.R          Stufe 9:  In-vivo-Validierung (Wetmore 2012)
+│   ├── 10_gcn_clint.py                 Stufe 10: GCN LOO-CV auf Pilotchemikalien
+│   ├── 11_gcn_all777.py                Stufe 11: GCN + RF/GB auf allen 777 + BER-Vergleich
+│   └── run_pipeline.ps1                Gesamte Pipeline (PowerShell, 11 Stufen)
+│
+├── results/                            Automatisch generierte Ausgaben
+│   ├── rf_loo_cv_metrics.txt           RF/GB LOO-CV Metriken
+│   ├── rf_loo_cv_scatter.png           Beobachtet vs. Vorhergesagt
+│   ├── aed_ber_full.csv                AED + BER fuer alle Chemikalien (httk-nativ)
+│   ├── gcn_777_predictions.csv         GCN + RF Vorhersagen (alle 777)
+│   ├── gcn_777_metrics.txt             GCN vs. RF Metriken
+│   ├── ber_all777.csv                  BER: GCN vs. RF vs. httk
+│   ├── ber_all777_waterfall.png        BER-Rangfolge
+│   ├── bayesian_ber.csv                Posteriori-BER: Median + 90%-KI
+│   ├── ber_credible_intervals.png      Bayesianische BER-Glaubwuerdigkeitsbander
+│   ├── neural_ode_curves.png           Neural ODE C(t): Vorhersage vs. Wahrheit
+│   ├── shap_rf_beeswarm.png            SHAP Beeswarm (RF Clint)
+│   ├── shap_rf_summary_bar.png         Globale Feature Importance
+│   ├── clint_validation_scatter.png    Clint: ML-Vorhersage vs. Literatur (544 Chem.)
+│   └── ...                             (weitere Plots und CSV-Dateien)
+│
+├── requirements.txt                    Python-Abhaengigkeiten
 └── README.md
 ```
+
+---
 
 ## Voraussetzungen
 
 ### R (>= 4.2)
 
-**Wichtig:** `install.packages()` ist ein R-Befehl. Entweder in der R-Konsole ausfuhren *oder* aus PowerShell via `Rscript -e`.
-
-In der R-Konsole:
-
 ```r
-install.packages("httk")
+install.packages(c("httk", "dplyr", "ggplot2"))
 ```
 
 Oder aus PowerShell:
-
 ```powershell
 Rscript -e "install.packages('httk', repos='https://cloud.r-project.org')"
 ```
 
-### Python (>= 3.8)
-
-**Hinweis (Windows):** Falls `pip` nicht gefunden wird, nutze den Python Launcher:
+### Python (>= 3.10)
 
 ```powershell
-py -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-Fur Schritte 6 und 8 (Neural ODE, Bayesian BER) wird zusatzlich PyTorch benotigt:
-
+Fuer neuronale Netze (Stufen 6, 8, 11, 13):
 ```powershell
-py -m pip install torch
+pip install torch rdkit
 ```
 
-Fur Schritt 7 (Explainable AI / SHAP):
+---
 
-```powershell
-py -m pip install shap
-```
-
-## Ausfuhrung
+## Ausfuehrung
 
 ### Gesamte Pipeline
 
@@ -105,164 +93,133 @@ py -m pip install shap
 powershell -ExecutionPolicy Bypass -File scripts\run_pipeline.ps1
 ```
 
-### Einzelschritte
+### Einzelne Stufen
 
 ```powershell
 cd scripts
 
-# Schritt 1: Daten aus httk extrahieren
+# Stufe 1: Daten aus httk extrahieren
 Rscript 01_extract_httk_data.R
 
-# Schritt 2: Random Forest trainieren + evaluieren
+# Stufe 2: RF/GB Clint-Vorhersage + LOO-CV + externe Validierung (alle 777)
 python 02_rf_predict_clint.py
 
-# Schritt 3: PBTK-Simulationen durchfuhren
+# Stufe 3: PBTK-Simulationen
 Rscript 03_httk_pbtk_simulation.R
 
-# Schritt 4: Reverse Dosimetry (Monte Carlo AED)
+# Stufe 4: Reverse Dosimetry (Monte Carlo AED) + Visualisierung
 Rscript 04_reverse_dosimetry.R
-
-# Schritt 4b: AED-Visualisierung
 python 04b_aed_analysis.py
 
-# Schritt 5/6: Vollstandige RTK-Pipeline (777 Chemikalien -> AED -> BER)
+# Stufe 5: Vollstaendige RTK-Pipeline (777 Chemikalien -> AED -> BER)
 Rscript 05_full_rtk_aed_ber.R
 
-# Schritt 6: Neural ODE fur kontinuierliche C(t)-Kurven
+# Stufe 6: Neural ODE fuer C(t)-Kurven
 python 06_neural_ode_tk.py
 
-# Schritt 7: Explainable AI (SHAP)
+# Stufe 7: SHAP global + BER-Erklaerbarkeit + Ausreisseranalyse (Tacrin, Phenylparaben)
 python 07_xai_shap_analysis.py
 
-# Schritt 8: Bayesianische BER-Unsicherheitsanalyse
+# Stufe 8: Bayesianische BER-Unsicherheitsanalyse
 python 08_bayesian_ber.py
 
-# Schritt 9: In-vivo-Validierung
+# Stufe 9: In-vivo-Validierung
 Rscript 09_invivo_validation.R
+
+# Stufe 10: GCN LOO-CV auf Pilotchemikalien
+python 10_gcn_clint.py
+
+# Stufe 11: GCN + RF/GB auf allen 777 Chemikalien + BER-Vergleich (httk/GCN/RF)
+python 11_gcn_all777.py
 ```
 
-## Workflow-Beschreibung
+---
 
-### Schritt 1 -- Datenextraktion (`01_extract_httk_data.R`)
+## Workflow-Uebersicht (11 Stufen)
 
-- Wahlt 20 Pilot-Chemikalien aus (inkl. Bisphenol A, CAS 80-05-7)
-- Extrahiert MW, logP, Fup, Clint, Rblood2plasma aus httk
-- Speichert vollstandige + maskierte (Clint=NA) Versionen
+| Stufe | Skript | Methode | Ausgabe |
+|-------|--------|---------|---------|
+| 1 | `01_extract_httk_data.R` | httk-Datenextraktion | `pilot_chemicals_full.csv` |
+| 2 | `02_rf_predict_clint.py` | RF + GB, LOO-CV + externe Validierung | `rf_loo_cv_metrics.txt`, `clint_validation_scatter.png` |
+| 3 | `03_httk_pbtk_simulation.R` | PBTK-Simulation | `pbtk_comparison.csv` |
+| 4 | `04_reverse_dosimetry.R` + `04b_aed_analysis.py` | Monte-Carlo-IVIVE + Visualisierung | `aed_monte_carlo.csv` |
+| 5 | `05_full_rtk_aed_ber.R` | RTK + BER (777) | `aed_ber_full.csv` |
+| 6 | `06_neural_ode_tk.py` | Neural ODE | `neural_ode_curves.png` |
+| 7 | `07_xai_shap_analysis.py` | SHAP global + BER + Ausreisser-Waterfall | `shap_rf_beeswarm.png`, `shap_outlier_waterfall_*.png` |
+| 8 | `08_bayesian_ber.py` | BNN MC Dropout | `bayesian_ber.csv` |
+| 9 | `09_invivo_validation.R` | In-vivo-Vergleich | `invivo_validation.csv` |
+| 10 | `10_gcn_clint.py` | GCN LOO-CV (Piloten) | `gcn_loo_cv_metrics.txt` |
+| 11 | `11_gcn_all777.py` | GCN + RF (777) + BER-Vergleich | `gcn_777_predictions.csv`, `ber_all777.csv` |
 
-### Schritt 2 -- ML-Vorhersage (`02_rf_predict_clint.py`)
+---
 
-- Trainiert Random Forest auf log10(Clint) mit Features: MW, logP, Fup, Rblood2plasma
-- Leave-One-Out Cross-Validation fur robuste Evaluation bei kleiner Stichprobe
-- Berechnet RMSE, R-squared, Spearman-rho
-- Exportiert imputierte Datentabelle mit Clint_RF und Clint_source
+## Gemeinsame Hilfsfunktionen (`utils.py`)
 
-### Schritt 3 -- PBTK-Simulation (`03_httk_pbtk_simulation.R`)
+Alle Python-Skripte importieren geteilten Code aus `scripts/utils.py`:
 
-- Ladt die imputierte Tabelle
-- Fur jede Chemikalie: zwei PBTK-Laufe (28 Tage, 1 mg/kg/Tag)
-  - **Track A**: httk-native Clint (Goldstandard)
-  - **Track B**: RF-imputierter Clint
-- Vergleicht Cmax, AUC, Css zwischen beiden Tracks
-- Berechnet Fold-Change-Zusammenfassung
-- Erstellt Konzentrations-Zeit-Kurven pro Chemikalie
+| Modul | Inhalt |
+|-------|--------|
+| **Pfade** | `ROOT`, `DATA`, `RESULTS`, Standard-Dateinamen |
+| **PK-Funktionen** | `clint_uL_to_cl_h`, `calc_aed`, `calc_ber`, `concern_label` |
+| **Feature Engineering** | `engineer_features` (9 Features: log10_MW, logP, logP², ...) |
+| **Metriken** | `compute_metrics`, `print_metrics` (RMSE, R², GMFE, Fold-Errors) |
+| **SMILES** | `pubchem_smiles`, `cir_smiles`, `load_smiles_cache` |
+| **Molekuelgraphen** | `mol_to_graph`, `N_ATOM_FEAT` |
+| **GCN-Modell** | `GCNLayer`, `MolGCN`, `train_gcn`, `predict_gcn` |
 
-### Schritt 4 -- Reverse Dosimetry (`04_reverse_dosimetry.R`)
+---
 
-- Implementiert **In-Vitro-to-In-Vivo-Extrapolation (IVIVE)** via Reverse Toxicokinetics
-- Fur jede Pilot-Chemikalie: ToxCast-Daten aus `example.toxcast` (aktive Assays, `hitc == 1`)
-- Konservative Zielkonzentration: **5. Perzentil der AC50-Verteilung** (sensibelster Endpunkt)
-- `calc_mc_oral_equiv()` mit **1000 Monte-Carlo-Samples** pro Chemikalie
-  - Propagiert Populationsvariabilitat in Clint, Fup, Korpergewicht, etc.
-- Zwei Tracks: **httk-native** vs. **RF-imputed** (Clint-Skalierung)
-- Ergebnisse: AED-Quantile (Median, 5., 95. Perzentil) in mg/kg/Tag
+## Pilotchemikalien (19)
 
-### Schritt 4b -- AED-Analyse (`04b_aed_analysis.py`)
+| CAS | Substanz | Clint [µL/min/10⁶] |
+|---|---|---|
+| 80-05-7 | Bisphenol A | 19.9 |
+| 34256-82-1 | Acetochlor | 84.71 |
+| 99-71-8 | 4-sec-Butylphenol | 19.03 |
+| 58-08-2 | Coffein | 0.286 |
+| 298-46-4 | Carbamazepin | 2.375 |
+| 2921-88-2 | Chlorpyrifos | 2.60 |
+| 138261-41-3 | Imidacloprid | 2.807 |
+| 87-86-5 | Pentachlorphenol | 8.764 |
+| 62-44-2 | Phenacetin | 9.346 |
+| 57-41-0 | Phenytoin | 0.818 |
+| 94-75-7 | 2,4-D | 0.0 |
+| 1912-24-9 | Atrazin | 0.0 |
+| 330-54-1 | Diuron | 12.15 |
+| 15307-79-6 | Diclofenac-Natrium | 38.84 |
+| 137-26-8 | Thiram | 816.0 |
+| 52-68-6 | Trichlorfon | 31.7 |
+| 2104-64-5 | EPN | 8.16 |
+| 62-73-7 | Dichlorvos | 86.4 |
+| 56-72-4 | Coumaphos | 31.7 |
 
-- Paarvergleich native vs. RF-imputed AED (Scatter mit Fehlerbalken, 3-fold-Envelope)
-- Populationsvariabilitats-Fanchart (5.--95. Perzentil-Band)
-- Kumulative AED-Verteilung uber alle Pilot-Chemikalien
-- Zusammenfassungsbericht als CSV
+---
 
-### Schritt 5/6 -- Vollstandige RTK + BER-Pipeline (`05_full_rtk_aed_ber.R`)
+## Toxikokinetisches Modell
 
-- Alle ~777 parameterisierbaren Chemikalien in httk
-- Random-Forest-Imputation fehlender Clint-Werte
-- AED via `calc_mc_oral_equiv()` mit 5. Perzentil AC50 als konservativem Bioaktivitatsziel
-- Expositionsdaten: priorisiert NHANES (wambaugh2019.nhanes) → SEEM3 → example.seem
-- BER = AED / Exposition; Klassifizierung HIGH/MODERATE/LOW/MINIMAL
-- Output: `aed_ber_full.csv`, `aed_ber_summary.csv`, `ber_ranking_plot.png`
+**Clint-Vorhersage:**
+- Deskriptoren: MW, logP, Fup (3 Rohdeskriptoren → 9 Feature-Engineering-Features)
+- Modelle: Random Forest (1000 Baeume) + Gradient Boosting
+- Evaluation: Leave-One-Out Cross-Validation
 
-### Schritt 6 -- Neural ODE (`06_neural_ode_tk.py`)
+**IVIVE (In Vitro → In Vivo):**
+- Well-Stirred-Modell: CL_h = Q_H × Fup × Clint_L / (Q_H + Fup × Clint_L)
+- AED = AC50 [mg/L] / Css_pro_Dosis
+- BER = AED / SEEM3-Exposition
 
-- Modelliert kontinuierliche Plasma-Konzentrationsverlarufe C(t) mit einer gelernten ODE
-- Architektur: ChemEncoder (MW, logP, Fup, Clint → Latent-Einbettung z) +
-  ODEFunc (MLP-Vektorfeld dC/dt = f(C; z)) + differenzierbarer RK4-Integrator
-- Training: Analytische 1-Kompartiment-Losungen als Ground Truth
-- **Sparse-Data-Demo**: trainiert auf 5 unregelmasig verteilten Messpunkten,
-  sagt die vollstandige 0--48-h-Kurve korrekt voraus
-- Evaluation: Leave-One-Out-CV uber alle 20 Pilot-Chemikalien (MAE, RMSE, R²)
+**GCN:**
+- Architektur: 40 Atom-Features → 128 → 64 → 32 → Mean Pooling → MLP → Clint
+- Training: 19 Piloten; Vorhersage: 748 Chemikalien mit SMILES
 
-### Schritt 7 -- Explainable AI (`07_xai_shap_analysis.py`)
-
-- **Teil A -- RF Clint**: SHAP TreeExplainer fur den Random-Forest-Clint-Pradiktor
-  - Globale Bedeutung (Bar Chart), Beeswarm, Dependence Plots (logP, Fup, MW)
-  - Identifiziert Wechselwirkungen zwischen Deskriptoren
-- **Teil B -- BER**: Gradient-Boosted Regressor fur log10(BER), SHAP-Beeswarm
-  - Lokale Erklarungen fur die Top-3 Hochrisikosubstanzen (Waterfall-artige Bar Charts)
-  - Macht das BER-Ranking fur Regulierungsbehorden biologisch nachvollziehbar
-
-### Schritt 8 -- Bayesianische BER-Analyse (`08_bayesian_ber.py`)
-
-- Bayesianisches Neuronales Netz mit **Monte-Carlo-Dropout** (2000 Samples/Chemikalie)
-- Propagiert Clint-Unsicherheit → AED → BER
-- Liefert echte **Posteriori-Verteilungen** statt Punktschatzungen:
-  - 90%-Kredibilitatsintervalle fur BER
-  - Dichteplots fur Top-5-Hochrisikosubstanzen
-- Output: `bayesian_ber.csv`, `ber_credible_intervals.png`, `ber_posterior_top5.png`
-
-### Schritt 9 -- In-vivo-Validierung (`09_invivo_validation.R`)
-
-- Vergleich von HTTK-Modellvorhersagen (3compartmentss + PBTK) mit publizierten
-  In-vivo-Css-Werten aus Wetmore et al. (2012) und verwandten httk-Datensatzen
-- Metriken: Pearson-R², RMSE(log10), Geometrischer Mittlerer Quotient (GMR),
-  Anteil innerhalb 2-/3-/10-facher Abweichung vom Messwert
-- Log-Log-Streudiagramm mit farbkodierter Fold-Error-Klassifikation
-- Residuenanalyse (Histogramm + Normal-Q-Q-Plot)
-
-## Pilot-Chemikalien (20)
-
-| CAS         | Substanz           |
-|-------------|--------------------|
-| 80-05-7     | Bisphenol A        |
-| 34256-82-1  | Acetochlor         |
-| 99-71-8     | 4-sec-Butylphenol  |
-| 58-08-2     | Caffeine           |
-| 298-46-4    | Carbamazepine      |
-| 2921-88-2   | Chlorpyrifos       |
-| 138261-41-3 | Imidacloprid       |
-| 87-86-5     | Pentachlorophenol  |
-| 62-44-2     | Phenacetin         |
-| 57-41-0     | Phenytoin          |
-| 94-75-7     | 2,4-D              |
-| 1912-24-9   | Atrazine           |
-| 330-54-1    | Diuron             |
-| 1071-83-6   | Glyphosate         |
-| 15307-79-6  | Diclofenac sodium  |
-| 137-26-8    | Thiram             |
-| 52-68-6     | Trichlorfon        |
-| 2104-64-5   | EPN                |
-| 62-73-7     | Dichlorvos         |
-| 56-72-4     | Coumaphos          |
+---
 
 ## Referenzen
 
 - [httk R-Paket (CRAN)](https://cran.r-project.org/package=httk)
-- [httk GitHub Repository](https://github.com/USEPA/CompTox-ExpoCast-httk)
-- [TAME Toolkit -- Toxicokinetic Modeling](https://uncsrp.github.io/Data-Analysis-Training-Modules/toxicokinetic-modeling.html)
-- Breen et al. (2021) -- httk Review
-- [PMC9887681 -- Hybrid PBTK/ML approaches](https://pmc.ncbi.nlm.nih.gov/articles/PMC9887681/)
-- Chen, R. T. Q. et al. (2018) -- Neural Ordinary Differential Equations (NeurIPS)
-- Lundberg, S. M. & Lee, S.-I. (2017) -- A Unified Approach to Interpreting Model Predictions (SHAP)
-- Gal, Y. & Ghahramani, Z. (2016) -- Dropout as a Bayesian Approximation (ICML)
-- Wetmore, B. A. et al. (2012) -- Integration of dosimetry, exposure, and high-throughput screening data in chemical toxicity assessment (Toxicol. Sci.)
-- Wambaugh, J. F. et al. (2019) -- Evaluating in vitro-in vivo extrapolation of toxicokinetics (Toxicol. Sci.)
+- Wetmore, B. A. et al. (2012) — Integration of dosimetry, exposure, and high-throughput screening data. *Toxicol. Sci.*
+- Wambaugh, J. F. et al. (2019) — Evaluating in vitro–in vivo extrapolation. *Toxicol. Sci.*
+- Breen et al. (2021) — httk Review
+- Chen, R. T. Q. et al. (2018) — Neural Ordinary Differential Equations. *NeurIPS*
+- Lundberg, S. M. & Lee, S.-I. (2017) — A Unified Approach to Interpreting Model Predictions. *NIPS*
+- Gal, Y. & Ghahramani, Z. (2016) — Dropout as a Bayesian Approximation. *ICML*
+- Kipf, T. N. & Welling, M. (2017) — Semi-Supervised Classification with Graph Convolutional Networks. *ICLR*
