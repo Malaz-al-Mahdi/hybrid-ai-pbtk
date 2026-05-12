@@ -31,6 +31,7 @@ Outputs
 """
 
 import sys
+import time
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -47,6 +48,7 @@ from utils import (
     load_smiles_cache,
     mol_to_graph, N_ATOM_FEAT,
     train_gcn, predict_gcn, MolGCN,
+    GCN_EPOCHS as EPOCHS,
     engineer_features as engineer,
     compute_metrics, print_metrics,
     clint_uL_to_cl_h, calc_aed, calc_ber, concern_label,
@@ -448,8 +450,8 @@ if AED_BER_CSV.exists():
     ber_ref = pd.read_csv(AED_BER_CSV)
     ber_ref["CAS"] = ber_ref["CAS"].astype(str).str.strip()
     df_ber = df_ber.merge(
-        ber_ref[["CAS","AC50_10pct_uM","AED_median","BER"]].rename(
-            columns={"AED_median": "AED_httk_ref", "BER": "BER_httk_ref"}),
+        ber_ref[["CAS","AC50_5pct_uM","AED_median","BER"]].rename(
+            columns={"AC50_5pct_uM": "AC50_10pct_uM", "AED_median": "AED_httk_ref", "BER": "BER_httk_ref"}),
         on="CAS", how="left",
     )
 else:

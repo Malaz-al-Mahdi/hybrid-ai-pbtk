@@ -33,8 +33,8 @@ integriert ueber das R-Paket [httk](https://cran.r-project.org/package=httk).
 │   ├── 07_xai_shap_analysis.py         Stufe 7:  SHAP global + BER + Ausreisseranalyse
 │   ├── 08_bayesian_ber.py              Stufe 8:  Bayesianische BER-Unsicherheit (MC Dropout)
 │   ├── 09_invivo_validation.R          Stufe 9:  In-vivo-Validierung (Wetmore 2012)
-│   ├── 10_gcn_clint.py                 Stufe 10: GCN LOO-CV auf Pilotchemikalien
-│   ├── 11_gcn_all777.py                Stufe 11: GCN + RF/GB auf allen 777 + BER-Vergleich
+│   ├── 11_gcn_clint.py                 Stufe 10: GCN LOO-CV auf Pilotchemikalien
+│   ├── 13_gcn_all777.py                Stufe 11: GCN + RF/GB auf allen 777 + BER-Vergleich
 │   └── run_pipeline.ps1                Gesamte Pipeline (PowerShell, 11 Stufen)
 │
 ├── results/                            Automatisch generierte Ausgaben
@@ -127,10 +127,10 @@ python 08_bayesian_ber.py
 Rscript 09_invivo_validation.R
 
 # Stufe 10: GCN LOO-CV auf Pilotchemikalien
-python 10_gcn_clint.py
+python 11_gcn_clint.py
 
 # Stufe 11: GCN + RF/GB auf allen 777 Chemikalien + BER-Vergleich (httk/GCN/RF)
-python 11_gcn_all777.py
+python 13_gcn_all777.py
 ```
 
 ---
@@ -148,8 +148,8 @@ python 11_gcn_all777.py
 | 7 | `07_xai_shap_analysis.py` | SHAP global + BER + Ausreisser-Waterfall | `shap_rf_beeswarm.png`, `shap_outlier_waterfall_*.png` |
 | 8 | `08_bayesian_ber.py` | BNN MC Dropout | `bayesian_ber.csv` |
 | 9 | `09_invivo_validation.R` | In-vivo-Vergleich | `invivo_validation.csv` |
-| 10 | `10_gcn_clint.py` | GCN LOO-CV (Piloten) | `gcn_loo_cv_metrics.txt` |
-| 11 | `11_gcn_all777.py` | GCN + RF (777) + BER-Vergleich | `gcn_777_predictions.csv`, `ber_all777.csv` |
+| 10 | `11_gcn_clint.py` | GCN LOO-CV (Piloten) | `gcn_loo_cv_metrics.txt` |
+| 11 | `13_gcn_all777.py` | GCN + RF (777) + BER-Vergleich | `gcn_777_predictions.csv`, `ber_all777.csv` |
 
 ---
 

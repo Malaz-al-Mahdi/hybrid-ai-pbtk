@@ -1,0 +1,63 @@
+BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=BER-Analyse: RDKit-Modell vs. bestehendem RF-Modell
+=
+
+AED-Vergleich vs. httk-Referenz:
+             Methode   N  Spearman   GMFE  Bias  Pct_2fold  Pct_3fold  Pct_10fold
+ RF_old (19 Piloten) 631    0.5031  14.42  6.71       77.0       78.0        81.0
+RDKit-RF (544 Chem.) 631    0.0618 113.46  0.23       13.3       17.7        32.0
+
+BER-Uebereinstimmung (httk vs. RDKit): 12/17 (71%)

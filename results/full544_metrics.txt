@@ -1,0 +1,43 @@
+RF/GB Clint-Vorhersage -- Trainiert auf 500 httk-Chemikalien
+Bestes Modell: RandomForest
+============================================================
+
+SPLIT
+  Training : 500 Chemikalien (gemessener Clint > 0)
+  Test     : 44 Chemikalien (Hold-out)
+  Ohne Clint (Vorhersage): 233 Chemikalien
+
+[Train-Set RF   (n=500)]
+  R^2 log10  : 0.7679
+  RMSE log10 : 0.3391
+  Spearman   : 0.9084
+  GMFE       : 1.78x
+  <=2-fold   : 70%
+  <=3-fold   : 88%
+
+[Train-Set GB   (n=500)]
+  R^2 log10  : 0.7165
+  RMSE log10 : 0.3748
+  Spearman   : 0.8466
+  GMFE       : 1.98x
+  <=2-fold   : 60%
+  <=3-fold   : 82%
+
+[Test-Set RF    (44 Hold-out)]
+  R^2 log10  : 0.2010
+  RMSE log10 : 0.5928
+  Spearman   : 0.4994
+  GMFE       : 2.77x
+  <=2-fold   : 48%
+  <=3-fold   : 66%
+
+[Test-Set GB    (44 Hold-out)]
+  R^2 log10  : 0.0958
+  RMSE log10 : 0.6306
+  Spearman   : 0.4350
+  GMFE       : 2.87x
+  <=2-fold   : 43%
+  <=3-fold   : 66%
+
+VERGLEICH 19-Piloten-Modell:
+  R^2  log10        : -0.1454

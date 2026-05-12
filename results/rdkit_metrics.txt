@@ -1,0 +1,13 @@
+RF/GB mit RDKit-Deskriptoren vs. Basis-Modell
+Split: 500 Training / 44 Test
+============================================================
+
+Modell                                   R2    RMSE    GMFE    <=2f    <=3f
+---------------------------------------------------------------------------
+Basis(MW/logP/Fup) RF                0.2010  0.5928    2.77x     48%     66%
+Basis(MW/logP/Fup) GB                0.0958  0.6306    2.87x     43%     66%
+RDKit(28 Features) RF                0.3671  0.5276    2.58x     43%     75%
+RDKit(28 Features) GB                0.2925  0.5579    2.77x     43%     64%
+
+Verbesserung R2 (RF): +0.1661
+Verbesserung GMFE (RF): -0.19x
