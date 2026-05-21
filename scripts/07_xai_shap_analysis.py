@@ -78,13 +78,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils import engineer_features, FEATURE_NAMES, EPSILON
 
 # ── Required data ─────────────────────────────────────────────────────────────
-PILOT_CSV   = DATA  / "pilot_chemicals_imputed.csv"
+PILOT_CSV   = DATA  / "clint_all777_final.csv"
 AED_BER_CSV = RESULTS / "aed_ber_full.csv"
 FULL_CSV    = DATA  / "all_777_chemicals.csv"
 
 for p in (PILOT_CSV,):
     if not p.exists():
-        sys.exit(f"ERROR: {p} not found.  Run steps 01 and 02 first.")
+        sys.exit(f"ERROR: {p} not found.  Run steps 01 and 02b first.")
 
 
 # ── A: Random Forest Clint explainability ─────────────────────────────────────
@@ -501,7 +501,15 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
 
     # ─ Plot B: Waterfall fuer Top-5-Ausreisser ───────────────────────────────
     TARGET_CHEMS = ["Tacrine", "Phenylparaben", "Acibenzolar"]
-    good = val[~val["in_pilot"] & (val["fold_error"] <= 1.5)].nsmallest(5, "fold_error")
+    # When training on all measured chemicals (full-dataset model), all val chemicals
+    # are "in_pilot". Fall back to using all chemicals for outlier/good selection.
+    external_val = val[~val["in_pilot"]]
+    if len(external_val) < 5:
+        external_val = val
+
+    good = external_val[external_val["fold_error"] <= 1.5].nsmallest(5, "fold_error")
+    if len(good) == 0:
+        good = external_val.nsmallest(5, "fold_error")
 
     print(f"\n  Ziel-Ausreisser:")
     for name in TARGET_CHEMS:
@@ -513,7 +521,7 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
         else:
             print(f"    {name}: nicht im Validierungsset gefunden")
 
-    top5_out = val[~val["in_pilot"]].nlargest(5, "fold_error")
+    top5_out = external_val.nlargest(5, "fold_error")
     for rank, (_, row_v) in enumerate(top5_out.iterrows()):
         chem_idx  = val.index.get_loc(row_v.name)
         shap_chem = shap_values.values[chem_idx]
@@ -641,7 +649,9 @@ def main() -> None:
     print("=" * 65)
 
     pilot = pd.read_csv(PILOT_CSV)
-    print(f"Loaded {len(pilot)} pilot chemicals from {PILOT_CSV.name}")
+    if "Clint_source" in pilot.columns:
+        pilot = pilot[pilot["Clint_source"] == "httk_measured"].copy().reset_index(drop=True)
+    print(f"Loaded {len(pilot)} measured chemicals from {PILOT_CSV.name}")
 
     section_a_rf_clint(pilot)
     section_b_ber(pilot)

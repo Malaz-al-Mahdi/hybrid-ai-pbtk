@@ -46,11 +46,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from pathlib import Path
 from utils import (
     ROOT, DATA, RESULTS,
-    PILOT_IMPUTED as PILOT_CSV, AED_BER_CSV,
+    AED_BER_CSV,
     Q_H, clint_uL_to_cl_h,
 )
+PILOT_CSV = DATA / "clint_all777_final.csv"
 
 try:
     import torch
@@ -285,10 +287,13 @@ def plot_credible_intervals(result_df: pd.DataFrame, out_path: Path) -> None:
     """
     Waterfall plot of BER with 90 % posterior credible bands.
     """
-    df = result_df.dropna(subset=["BER_median"]).copy()
-    df = df.sort_values("BER_median").reset_index(drop=True)
+    df_all = result_df.dropna(subset=["BER_median"]).copy()
+    df_all = df_all.sort_values("BER_median").reset_index(drop=True)
+    # Limit to top-50 highest-concern chemicals for readability
+    TOP_N = 50
+    df = df_all.head(TOP_N)
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(16, 6))
     x  = np.arange(len(df))
     ax.scatter(x, np.log10(df["BER_median"].clip(1e-6)),
                color="steelblue", s=60, zorder=4, label="BER median")
@@ -305,10 +310,13 @@ def plot_credible_intervals(result_df: pd.DataFrame, out_path: Path) -> None:
     ax.axhline(0,  color="orange", lw=1.5, ls="--", label="BER = 1  (AED = Exposure)")
     ax.axhline(1,  color="red",    lw=1.0, ls=":",  label="BER = 10")
     ax.set_xticks(x)
-    ax.set_xticklabels(df["Chemical"].str[:18], rotation=55, ha="right", fontsize=7)
+    ax.set_xticklabels(df["Chemical"].str[:18], rotation=55, ha="right", fontsize=6)
     ax.set_ylabel("log₁₀(BER)  [lower = higher concern]", fontsize=11)
-    ax.set_title("Bayesian BER – Posterior Credible Intervals (90 %)\n"
-                 "MC Dropout, 2000 samples per chemical", fontsize=11)
+    ax.set_title(
+        f"Bayesian BER – Top-{TOP_N} Highest-Concern Chemicals (90 % credible intervals)\n"
+        f"MC Dropout, 2000 samples per chemical  |  Training: {len(df_all)} chemicals",
+        fontsize=11,
+    )
     ax.legend(fontsize=9)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
@@ -407,7 +415,9 @@ def main() -> None:
 
     # ─ Load data ─────────────────────────────────────────────────────────────
     pilot = pd.read_csv(PILOT_CSV)
-    print(f"Pilot chemicals:  {len(pilot)}")
+    if "Clint_source" in pilot.columns:
+        pilot = pilot[pilot["Clint_source"] == "httk_measured"].copy().reset_index(drop=True)
+    print(f"Training chemicals (measured Clint):  {len(pilot)}")
 
     aed_ber = None
     if AED_BER_CSV.exists():
