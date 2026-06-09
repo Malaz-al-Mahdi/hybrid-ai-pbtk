@@ -1,35 +1,3 @@
-###############################################################################
-# 09_invivo_validation.R
-# ---------------------------------------------------------------------------
-# Validation of AI-assisted PBTK/TK predictions against published in-vivo
-# pharmacokinetic data.
-#
-# Scientific rationale
-# ~~~~~~~~~~~~~~~~~~~~
-# The credibility of any predictive TK model requires head-to-head comparison
-# with measured in-vivo data.  httk bundles curated literature PK values from
-# Wetmore et al. (2012) and other sources, enabling systematic validation.
-#
-# Metrics computed
-# ~~~~~~~~~~~~~~~~
-#   • Pearson r and R² on log10(Css) scale
-#   • Root Mean Squared Error (RMSE) on log10 scale
-#   • Geometric Mean Ratio (GMR)  = geometric mean(predicted / observed)
-#   • Fraction within 2-, 3-, 10-fold of observed
-#
-# Models compared
-# ~~~~~~~~~~~~~~~
-#   A) 3compartmentss  – fast screening model (used in Step 5/6)
-#   B) PBTK            – physiologically based model (used in Step 3)
-#
-# Outputs
-# ~~~~~~~
-#   results/invivo_validation.csv          Full predicted vs. observed table
-#   results/invivo_validation_scatter.png  Log-log correlation plot
-#   results/invivo_validation_residuals.png Residual analysis
-#   results/invivo_validation_metrics.csv  Summary statistics
-###############################################################################
-
 suppressPackageStartupMessages({
   library(httk)
   library(ggplot2)
@@ -47,7 +15,6 @@ cat("========================================================\n")
 cat("Step 9 – In-vivo Validation of PBTK/TK Predictions\n")
 cat("========================================================\n\n")
 
-# ── Helper: ensure a package is installed ────────────────────────────────────
 ensure_pkg <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     message("Installing '", pkg, "' …")
@@ -58,17 +25,13 @@ ensure_pkg <- function(pkg) {
 }
 ensure_pkg("httk")
 
-# ── 1. Load in-vivo literature data ──────────────────────────────────────────
 cat("── 1. Loading in-vivo literature data …\n")
 
-# httk::Wetmore2012 contains measured plasma Css (µg/L) and literature
-# pharmacokinetic parameters for environmental chemicals.
 lit_available <- tryCatch(
   data("Wetmore2012", package = "httk", envir = environment()),
   error = function(e) NULL
 )
 
-# Also check alternative data sets
 invivo_df <- NULL
 
 for (ds_name in c("Wetmore2012", "invivo.data", "chem.invivo.PK.data",
@@ -85,7 +48,6 @@ for (ds_name in c("Wetmore2012", "invivo.data", "chem.invivo.PK.data",
   }, error = function(e) NULL)
 }
 
-# Fall back: use get_lit_css() on pilot chemicals
 pilot_csv <- file.path(DATA, "pilot_chemicals_imputed.csv")
 if (!is.null(invivo_df) && nrow(invivo_df) > 0) {
   cat("  Using built-in in-vivo dataset.\n\n")
@@ -94,7 +56,6 @@ if (!is.null(invivo_df) && nrow(invivo_df) > 0) {
   pilot <- read.csv(pilot_csv, stringsAsFactors = FALSE)
   cas_list <- pilot$CAS[!is.na(pilot$CAS)]
 
-  # get_lit_css returns a data.frame or NULL per chemical
   lit_rows <- lapply(cas_list, function(cas) {
     tryCatch({
       css_lit <- get_lit_css(chem.cas = cas, suppress.messages = TRUE)
@@ -118,15 +79,11 @@ if (!is.null(invivo_df) && nrow(invivo_df) > 0) {
   invivo_df <- NULL
 }
 
-# ── 2. Identify chemicals and predict Css ────────────────────────────────────
 cat("── 2. Predicting Css for literature chemicals …\n")
 
-# Determine which CAS numbers are available in httk
 all_cas <- get_cheminfo(suppress.messages = TRUE)
 
-# Collect chemicals to validate
 if (!is.null(invivo_df)) {
-  # Identify the CAS column
   cas_col <- intersect(c("CAS", "CASRN", "cas"), colnames(invivo_df))
   if (length(cas_col) == 0) {
     cat("  WARNING: cannot identify CAS column in literature dataset.\n")
@@ -138,7 +95,6 @@ if (!is.null(invivo_df)) {
   val_cas <- val_cas[val_cas %in% all_cas]
   cat("  Chemicals with HTTK parameters:", length(val_cas), "\n")
 } else {
-  # Synthetic self-consistency check: use pilot chemicals
   pilot <- read.csv(pilot_csv, stringsAsFactors = FALSE)
   val_cas <- pilot$CAS[pilot$CAS %in% all_cas]
   cat("  Using pilot chemicals for self-consistency check:", length(val_cas), "\n")
@@ -149,7 +105,6 @@ if (length(val_cas) == 0) {
   quit(status = 1)
 }
 
-# Predict Css with two models
 predict_css <- function(cas, model_name) {
   tryCatch(
     calc_css(
@@ -183,11 +138,9 @@ cat("  Predictions complete:", sum(!is.na(predictions$Css_3comp_uM)),
 cat("  Predictions complete:", sum(!is.na(predictions$Css_pbtk_uM)),
     "/ ", nrow(predictions), "for pbtk\n\n")
 
-# ── 3. Merge with in-vivo / literature data ──────────────────────────────────
 cat("── 3. Merging predictions with literature values …\n")
 
 if (!is.null(invivo_df)) {
-  # Identify Css column in literature
   css_candidates <- c("Css_lit_ugL", "Css", "css", "Css_uM", "css_uM",
                       "CSS", "plasma_css", "mean_css", "AUC", "Cmax")
   css_col <- intersect(css_candidates, colnames(invivo_df))[1]
@@ -199,12 +152,9 @@ if (!is.null(invivo_df)) {
                   by.x = "CAS", by.y = cas_col, all.x = FALSE)
   colnames(merged)[colnames(merged) == css_col] <- "Css_lit"
 
-  # Convert units if needed (rough heuristic: if max > 1000, likely µg/L)
   merged$Css_lit <- as.numeric(merged$Css_lit)
   merged <- merged[!is.na(merged$Css_lit) & merged$Css_lit > 0, ]
 
-  # For plotting we need comparable units – convert predictions to µg/L
-  # httk calc_css returns µM; convert: µg/L = µM * MW / 1000
   get_mw <- function(cas) {
     tryCatch(
       get_chem_id(chem.cas = cas, suppress.messages = TRUE)$MW,
@@ -215,25 +165,21 @@ if (!is.null(invivo_df)) {
   merged$Css_3comp_ugL <- merged$Css_3comp_uM * merged$MW / 1000
   merged$Css_pbtk_ugL  <- merged$Css_pbtk_uM  * merged$MW / 1000
 
-  # If literature already in µM, keep as is and use µM for all
   if (max(merged$Css_lit, na.rm = TRUE) < 100) {
-    # Likely µM
     merged$Css_lit_uM <- merged$Css_lit
     merged$Css_3comp_cmp <- merged$Css_3comp_uM
     merged$Css_pbtk_cmp  <- merged$Css_pbtk_uM
     unit_label <- "µM"
   } else {
-    # Likely µg/L
     merged$Css_lit_uM <- merged$Css_lit
     merged$Css_3comp_cmp <- merged$Css_3comp_ugL
     merged$Css_pbtk_cmp  <- merged$Css_pbtk_ugL
     unit_label <- "µg/L"
   }
 } else {
-  # Self-consistency: compare 3compartmentss vs. pbtk
   merged <- predictions[
     !is.na(predictions$Css_3comp_uM) & !is.na(predictions$Css_pbtk_uM), ]
-  merged$Css_lit_uM    <- merged$Css_pbtk_uM   # "reference"
+  merged$Css_lit_uM    <- merged$Css_pbtk_uM
   merged$Css_3comp_cmp <- merged$Css_3comp_uM
   merged$Css_pbtk_cmp  <- merged$Css_pbtk_uM
   unit_label <- "µM"
@@ -244,7 +190,6 @@ merged <- merged[is.finite(merged$Css_lit_uM) & merged$Css_lit_uM > 0 &
                    is.finite(merged$Css_3comp_cmp) & merged$Css_3comp_cmp > 0, ]
 cat("  Matched chemicals for validation:", nrow(merged), "\n\n")
 
-# ── 4. Compute validation metrics ────────────────────────────────────────────
 cat("── 4. Computing validation statistics …\n")
 
 compute_metrics <- function(obs, pred, model_name) {
@@ -293,7 +238,6 @@ metrics_csv <- file.path(RESULTS, "invivo_validation_metrics.csv")
 write.csv(metrics_df, metrics_csv, row.names = FALSE)
 cat("  Saved", metrics_csv, "\n\n")
 
-# ── 5. Export full prediction table ──────────────────────────────────────────
 out_df <- merged[, c("CAS", "Compound",
                       "Css_lit_uM", "Css_3comp_cmp", "Css_pbtk_cmp")]
 colnames(out_df) <- c("CAS", "Compound",
@@ -310,24 +254,20 @@ val_csv <- file.path(RESULTS, "invivo_validation.csv")
 write.csv(out_df, val_csv, row.names = FALSE)
 cat("  Saved", val_csv, "\n\n")
 
-# ── 6. Plots ──────────────────────────────────────────────────────────────────
 cat("── 6. Generating validation plots …\n")
 
-# Helper: fold-error colour coding
 fold_colour <- function(ratio) {
-  ifelse(ratio >= 0.5 & ratio <= 2.0, "#2196F3",    # within 2-fold: blue
-  ifelse(ratio >= 1/3 & ratio <= 3.0, "#4CAF50",    # within 3-fold: green
-  ifelse(ratio >= 0.1 & ratio <= 10.0,"#FF9800",    # within 10-fold: orange
-                                        "#F44336"))) # outside 10-fold: red
+  ifelse(ratio >= 0.5 & ratio <= 2.0, "#2196F3",
+  ifelse(ratio >= 1/3 & ratio <= 3.0, "#4CAF50",
+  ifelse(ratio >= 0.1 & ratio <= 10.0,"#FF9800",
+                                        "#F44336")))
 }
 
-# ── Plot A: log-log scatter (3compartmentss vs. literature) ──────────────────
 png(file.path(RESULTS, "invivo_validation_scatter.png"),
     width = 2400, height = 1200, res = 200)
 
 par(mfrow = c(1, ifelse(!is.null(invivo_df), 2, 1)), mar = c(5,5,4,2))
 
-# 3compartmentss
 sub3 <- merged[!is.na(merged$Css_3comp_cmp) & merged$Css_3comp_cmp > 0 &
                  is.finite(merged$Css_lit_uM) & merged$Css_lit_uM > 0, ]
 if (nrow(sub3) > 0) {
@@ -361,7 +301,6 @@ if (nrow(sub3) > 0) {
          pt.cex = 1.2)
 }
 
-# PBTK (if in-vivo data available)
 if (!is.null(invivo_df)) {
   subP <- merged[!is.na(merged$Css_pbtk_cmp) & merged$Css_pbtk_cmp > 0 &
                    is.finite(merged$Css_lit_uM) & merged$Css_lit_uM > 0, ]
@@ -396,13 +335,11 @@ if (!is.null(invivo_df)) {
 dev.off()
 cat("  Saved", file.path(RESULTS, "invivo_validation_scatter.png"), "\n")
 
-# ── Plot B: Residual analysis ─────────────────────────────────────────────────
 png(file.path(RESULTS, "invivo_validation_residuals.png"),
     width = 2000, height = 1000, res = 200)
 
 par(mfrow = c(1, 2), mar = c(5, 5, 4, 2))
 
-# Histogram of log10 fold-errors (3compartmentss)
 if (nrow(sub3) > 0) {
   log_ratio <- log10(sub3$Css_3comp_cmp / sub3$Css_lit_uM)
   hist(log_ratio, breaks = 20, col = "#2196F380", border = "white",
@@ -420,7 +357,6 @@ if (nrow(sub3) > 0) {
         side = 3, line = 0, cex = 0.7)
 }
 
-# Q-Q plot of log-errors
 if (nrow(sub3) > 0) {
   qqnorm(log_ratio, pch = 21, bg = "#2196F3", col = "black",
          main = "Normal Q-Q – log₁₀(Pred/Obs)\n3compartmentss")
@@ -430,7 +366,6 @@ if (nrow(sub3) > 0) {
 dev.off()
 cat("  Saved", file.path(RESULTS, "invivo_validation_residuals.png"), "\n\n")
 
-# ── 7. Summary ────────────────────────────────────────────────────────────────
 cat("========================================================\n")
 cat("Validation metrics summary:\n")
 cat("========================================================\n")

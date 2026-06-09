@@ -1,32 +1,3 @@
-"""
-02_rf_predict_clint.py
-----------------------
-Trains a Random Forest regressor to predict hepatic intrinsic clearance (Clint)
-from physicochemical descriptors (MW, logP, Fup).
-
-Key improvements over naive RF:
-  1. Feature engineering  – log-transforms + interaction terms (9 features total)
-  2. Fixed max_features=None – with only 3 raw features, sqrt(3)=1 is too restrictive
-  3. Gradient Boosting as alternative model – often better on small datasets
-  4. Primary metric on log10 scale – not dominated by outlier Thiram (Clint=816)
-  5. Geometric Mean Fold-Error (GMFE) – standard benchmark in TK literature
-
-Evaluation strategy:
-  - Leave-One-Out Cross-Validation (LOO-CV) on the pilot chemicals
-  - Both RF and GB evaluated; best model by log10-R^2 used for imputation
-  - External validation vs. Wetmore 2012 / httk literature (all 777 chemicals)
-    (merged from former 10_clint_literature_validation.py)
-
-Outputs:
-  data/rf_clint_predictions.csv         - LOO-CV predictions vs. true values
-  results/rf_loo_cv_metrics.txt         - summary statistics (internal)
-  results/rf_loo_cv_scatter.png         - observed vs. predicted scatter plot
-  data/pilot_chemicals_imputed.csv      - full table with RF-imputed Clint
-  results/clint_validation_metrics.csv  - internal + external metrics
-  results/clint_validation_external.csv - full external prediction table
-  results/clint_validation_scatter.png  - log-log scatter (4 panels)
-"""
-
 import sys
 import numpy as np
 import pandas as pd
@@ -53,7 +24,6 @@ from utils import (
 if not FULL_CSV.exists():
     sys.exit(f"ERROR: {FULL_CSV} not found. Run 01_extract_httk_data.R first.")
 
-# ---- 1. Load data -----------------------------------------------------------
 df = pd.read_csv(FULL_CSV)
 print(f"Loaded {len(df)} chemicals from {FULL_CSV.name}")
 print(df[["CAS", "Compound", "Clint"]].to_string(index=False))
@@ -78,31 +48,13 @@ print(f"\nEngineered feature matrix : {X.shape[0]} x {X.shape[1]}")
 print(f"Clint range : {y.min():.2f} - {y.max():.2f}  "
       f"(log10: {y_log.min():.2f} - {y_log.max():.2f})")
 
-
-# ---- 3. Model definitions with tuned hyperparameters -----------------------
-# Hyperparameter choices for small datasets (n~18 per fold):
-#
-# RF:
-#   max_features=None  -> use ALL 9 engineered features at every split
-#                         (sqrt(9)=3 was the old default -- too restrictive)
-#   min_samples_leaf=1 -> allow individual leaves (n is tiny)
-#   n_estimators=1000  -> many trees for stable variance reduction
-#   max_depth=None     -> let trees grow fully; bagging handles overfitting
-#
-# GB:
-#   learning_rate=0.05 -> conservative; prevents overfitting on small sets
-#   n_estimators=200   -> few but precise boosting rounds
-#   max_depth=2        -> shallow stumps for n~18 (avoids high variance)
-#   subsample=0.8      -> stochastic gradient boosting for regularisation
-#   min_samples_leaf=2 -> slight leaf regularisation
-
 def make_rf():
     return Pipeline([
         ("imputer", SimpleImputer(strategy="median")),
         ("scaler",  StandardScaler()),
         ("model",   RandomForestRegressor(
             n_estimators=1000,
-            max_features=None,       # all 9 features at every split
+            max_features=None,
             min_samples_leaf=1,
             max_depth=None,
             random_state=42,
@@ -124,8 +76,6 @@ def make_gb():
         )),
     ])
 
-
-# ---- 4. LOO-CV --------------------------------------------------------------
 loo            = LeaveOneOut()
 y_pred_rf      = np.full_like(y_log, np.nan)
 y_pred_gb      = np.full_like(y_log, np.nan)
@@ -140,13 +90,11 @@ for fold, (tr, te) in enumerate(loo.split(X)):
     y_tr        = y_log[tr]
     name        = df_clean.iloc[te[0]]["Compound"]
 
-    # Random Forest
     rf = make_rf()
     rf.fit(X_tr, y_tr)
     y_pred_rf[te] = rf.predict(X_te)
     feat_imp_rf  += rf.named_steps["model"].feature_importances_
 
-    # Gradient Boosting
     gb = make_gb()
     gb.fit(X_tr, y_tr)
     y_pred_gb[te] = gb.predict(X_te)
@@ -162,8 +110,6 @@ for fold, (tr, te) in enumerate(loo.split(X)):
 
 feat_imp_rf /= len(df_clean)
 
-
-# ---- 5. Select best model ---------------------------------------------------
 r2_rf_log = r2_score(y_log, y_pred_rf)
 r2_gb_log = r2_score(y_log, y_pred_gb)
 
@@ -177,8 +123,6 @@ else:
 print(f"\nLog10-R^2 : RF={r2_rf_log:.4f}   GB={r2_gb_log:.4f}")
 print(f"=> Best model: {best_name}")
 
-
-# ---- 6. Metrics -------------------------------------------------------------
 y_pred_orig = np.clip(10 ** y_pred_log - EPSILON, 0, None)
 
 rmse_log  = float(np.sqrt(mean_squared_error(y_log, y_pred_log)))
@@ -194,8 +138,6 @@ gmfe        = float(np.exp(np.mean(np.log(fold_errors))))
 pct_2fold   = float(np.mean(fold_errors <= 2.0) * 100)
 pct_3fold   = float(np.mean(fold_errors <= 3.0) * 100)
 
-
-# ---- 7. Per-chemical results ------------------------------------------------
 results_df = df_clean[["CAS", "Compound"]].copy()
 results_df["Clint_true"]    = y
 results_df["Clint_pred"]    = np.round(y_pred_orig, 4)
@@ -210,8 +152,6 @@ print("\nLOO-CV per-chemical results:")
 print(results_df[["Compound","Clint_true","Clint_pred",
                    "log10_true","log10_pred","fold_error"]].to_string(index=False))
 
-
-# ---- 8. Metrics report ------------------------------------------------------
 fi_pairs = sorted(zip(FEATURE_NAMES, feat_imp_rf), key=lambda x: -x[1])
 
 metrics_text = (
@@ -241,11 +181,8 @@ with open(RESULTS / "rf_loo_cv_metrics.txt", "w") as f:
     f.write(metrics_text)
 print(f"\n{metrics_text}")
 
-
-# ---- 9. Scatter plots -------------------------------------------------------
 fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
-# 9a. Original scale
 ax = axes[0]
 ax.scatter(y, y_pred_orig, edgecolors="steelblue", facecolors="lightblue", s=60)
 lim = max(y.max(), y_pred_orig.max()) * 1.1
@@ -255,7 +192,6 @@ ax.set_ylabel(f"Predicted Clint ({best_name})")
 ax.set_title(f"Original scale  |  R2={r2_orig:.3f}")
 ax.legend()
 
-# 9b. Log10 scale – primary evaluation
 ax = axes[1]
 sc = ax.scatter(y_log, y_pred_log,
                 c=np.log10(fold_errors), cmap="RdYlGn_r", s=80,
@@ -277,7 +213,6 @@ for i, row in results_df.iterrows():
                 (row["log10_true"], row["log10_pred"]),
                 fontsize=6, alpha=0.7)
 
-# 9c. RF vs GB comparison
 ax = axes[2]
 ax.scatter(y_log, y_pred_rf, label=f"RF  R2={r2_rf_log:.3f}",
            edgecolors="steelblue", facecolors="lightblue", s=60)
@@ -292,10 +227,6 @@ ax.legend(fontsize=9)
 plt.tight_layout()
 plt.savefig(RESULTS / "rf_loo_cv_scatter.png", dpi=150)
 print(f"Plot saved to results/rf_loo_cv_scatter.png")
-
-
-# ---- 10. Export imputed dataset ---------------------------------------------
-# Retrain best model on ALL labelled data (no LOO needed for imputation)
 
 if best_name == "GradientBoosting":
     final_pipe = make_gb()
@@ -318,17 +249,14 @@ df_all.loc[na_mask, "Clint_source"] = "RF_predicted"
 df_all.to_csv(DATA / "pilot_chemicals_imputed.csv", index=False)
 print(f"Saved data/pilot_chemicals_imputed.csv  ({len(df_all)} chemicals)")
 
-
-# ── 11. Externe Validierung vs. Wetmore 2012 / httk (ehemals Step 10) ────────
 print("\n" + "=" * 65)
-print("Step 2b – Externe Validierung vs. Wetmore 2012 / httk-Literatur")
+print("Step 2b - Externe Validierung vs. Wetmore 2012 / httk-Literatur")
 print("=" * 65)
 
 if not ALL_777_CSV.exists():
-    print(f"  WARNUNG: {ALL_777_CSV} nicht gefunden – externe Validierung uebersprungen.")
+    print(f"  WARNUNG: {ALL_777_CSV} nicht gefunden - externe Validierung uebersprungen.")
     print("Done.")
 else:
-    # Lade und standardisiere all_777_chemicals.csv
     full777 = pd.read_csv(ALL_777_CSV)
     full777 = full777.rename(columns={
         "Human.Clint":           "Clint",
@@ -339,7 +267,6 @@ else:
         full777[col] = pd.to_numeric(full777[col], errors="coerce")
     full777["Fup"] = full777["Fup"].clip(lower=1e-6)
 
-    # Nur Chemikalien mit gemessenem Clint (Literatur-Referenz)
     val777 = full777.dropna(subset=["Clint", "MW", "logP", "Fup"]).copy()
     val777 = val777[val777["Clint"] > 0].copy()
     print(f"\nChemikalien mit gemessenem Clint in httk: {len(val777)}")
@@ -357,7 +284,6 @@ else:
     val777["log10_pred"]  = np.round(pred_log777, 4)
     val777["fold_error"]  = np.round(10 ** np.abs(val777["log10_lit"] - val777["log10_pred"]), 3)
 
-    # ─ Metriken ────────────────────────────────────────────────────────────────
     print("\n--- Validierungsmetriken ---")
     all_val_metrics = []
 
@@ -384,7 +310,6 @@ else:
                     GMFE=round(gmfe,2), Pct_2fold=round(p2,1),
                     Pct_3fold=round(p3,1), Pct_10fold=round(p10,1))
 
-    # A) Intern (LOO-CV Ergebnisse)
     loo_csv_path = DATA / "rf_clint_predictions.csv"
     if loo_csv_path.exists():
         loo_data = pd.read_csv(loo_csv_path)
@@ -396,13 +321,11 @@ else:
                           "A) Intern LOO-CV (Piloten)")
         )
 
-    # B) Alle 777 Chemikalien
     all_val_metrics.append(
         _metrics_dict(val777["log10_lit"].values, val777["log10_pred"].values,
                       "B) Alle 777 httk-Chemikalien")
     )
 
-    # C) Extern (Piloten ausgeschlossen)
     ext777 = val777[~val777["in_pilot"]]
     if len(ext777) > 0:
         all_val_metrics.append(
@@ -410,7 +333,6 @@ else:
                           "C) Extern (ohne Piloten)")
         )
 
-    # D) Clint > 1 (aktive Clearance)
     val777_gt1 = val777[val777["Clint"] > 1.0]
     if len(val777_gt1) > 0:
         all_val_metrics.append(
@@ -422,7 +344,6 @@ else:
     metrics_val_df.to_csv(RESULTS / "clint_validation_metrics.csv", index=False)
     print(f"\nMetriken gespeichert: results/clint_validation_metrics.csv")
 
-    # ─ Export vollstaendige Validierungstabelle ────────────────────────────────
     export_cols = ["CAS", "Compound", "Clint", "Clint_pred",
                    "log10_lit", "log10_pred", "fold_error", "in_pilot"]
     export777 = val777[[c for c in export_cols if c in val777.columns]].copy()
@@ -431,7 +352,6 @@ else:
     export777.to_csv(RESULTS / "clint_validation_external.csv", index=False)
     print(f"Vollstaendige Tabelle: results/clint_validation_external.csv  ({len(export777)} Chemikalien)")
 
-    # ─ Scatter-Plots (4 Panels) ────────────────────────────────────────────────
     print("\nErstelle Validierungs-Plots ...")
 
     def fold_color(fe_arr):
@@ -441,7 +361,6 @@ else:
     fig_val = plt.figure(figsize=(20, 5))
     gs_val  = gridspec.GridSpec(1, 4, figure=fig_val, wspace=0.35)
 
-    # Panel A: Intern LOO-CV
     ax = fig_val.add_subplot(gs_val[0])
     if loo_csv_path.exists():
         loo_pos2 = loo_data[loo_data["Clint_true"] > 0].copy()
@@ -461,13 +380,12 @@ else:
                         [v+np.log10(3) for v in lims_a], alpha=0.08, color="green")
         m_a = all_val_metrics[0]
         ax.set_title(f"A) Intern LOO-CV (n={m_a['N']})\n"
-                     f"R²={m_a['R2_log']:.3f}  GMFE={m_a['GMFE']:.1f}x", fontsize=9)
+                     f"R^2={m_a['R2_log']:.3f}  GMFE={m_a['GMFE']:.1f}x", fontsize=9)
         ax.set_xlabel("log10(Clint gemessen)", fontsize=8)
         ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
         ax.set_xlim(lims_a); ax.set_ylim(lims_a)
         ax.grid(True, alpha=0.3)
 
-    # Panel B: Alle 777
     ax = fig_val.add_subplot(gs_val[1])
     fe_col_all = fold_color(val777["fold_error"].values)
     pilot_mask = val777["in_pilot"].values
@@ -482,13 +400,12 @@ else:
                     [v+np.log10(3) for v in lims_b], alpha=0.08, color="green")
     m_b = next(m for m in all_val_metrics if "777" in m["Set"])
     ax.set_title(f"B) Alle 777 Chemikalien (n={m_b['N']})\n"
-                 f"R²={m_b['R2_log']:.3f}  GMFE={m_b['GMFE']:.1f}x", fontsize=9)
+                 f"R^2={m_b['R2_log']:.3f}  GMFE={m_b['GMFE']:.1f}x", fontsize=9)
     ax.set_xlabel("log10(Clint Literatur)", fontsize=8)
     ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
     ax.set_xlim(lims_b); ax.set_ylim(lims_b)
     ax.legend(fontsize=7, loc="upper left"); ax.grid(True, alpha=0.3)
 
-    # Panel C: Extern
     ax = fig_val.add_subplot(gs_val[2])
     if len(ext777) > 0:
         fe_col_ext = fold_color(ext777["fold_error"].values)
@@ -498,7 +415,7 @@ else:
         ax.fill_between(lims_b, [v-np.log10(3) for v in lims_b],
                         [v+np.log10(3) for v in lims_b], alpha=0.08, color="green")
         m_c = next(m for m in all_val_metrics if "Extern" in m["Set"])
-        ax.set_title(f"C) Extern (n={m_c['N']})\nR²={m_c['R2_log']:.3f}  GMFE={m_c['GMFE']:.1f}x",
+        ax.set_title(f"C) Extern (n={m_c['N']})\nR^2={m_c['R2_log']:.3f}  GMFE={m_c['GMFE']:.1f}x",
                      fontsize=9)
         ax.set_xlabel("log10(Clint Literatur)", fontsize=8)
         ax.set_ylabel("log10(Clint vorhergesagt)", fontsize=8)
@@ -510,7 +427,6 @@ else:
                   Patch(facecolor="#F44336", label=">10-fold")]
     ax.legend(handles=legend_els, fontsize=6, loc="upper left")
 
-    # Panel D: Residual-Histogramm
     ax = fig_val.add_subplot(gs_val[3])
     log_res = (ext777["log10_pred"] - ext777["log10_lit"]).values if len(ext777) > 0 \
               else (val777["log10_pred"] - val777["log10_lit"]).values
@@ -527,7 +443,7 @@ else:
     ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
 
     plt.suptitle(
-        f"Clint Validierung: {best_name} (trainiert auf 19 Pilotchemikalien)\n"
+        f"Clint Validierung: {best_name}  |  Training: 500 httk-Chemikalien\n"
         "vs. Wetmore 2012 / httk-Literatur (Human.Clint)",
         fontsize=11, y=1.02,
     )

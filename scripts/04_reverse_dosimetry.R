@@ -1,30 +1,3 @@
-###############################################################################
-# 04_reverse_dosimetry.R
-# ---------------------------------------------------------------------------
-# Reverse Toxicokinetics: Converts in-vitro ToxCast AC50 values to
-# Administered Equivalent Doses (AED) using httk's Monte Carlo population
-# variability framework.
-#
-# For each pilot chemical the script:
-#   1) Retrieves active ToxCast assay hits (AC50 / modl_acc)
-#   2) Calculates the 5th-percentile AC50 as a conservative bioactivity
-#      concentration (most sensitive assay endpoint)
-#   3) Runs calc_mc_oral_equiv() with 1000 MC samples to propagate
-#      population variability in Clint, Fup, body weight, etc.
-#   4) Reports AED quantiles (median, 5th, 95th percentile)
-#
-# Two tracks are computed for every chemical:
-#   A) httk_native  – built-in httk parameters
-#   B) rf_imputed   – Clint overridden with RF prediction from Step 2
-#
-# Outputs:
-#   data/toxcast_ac50_pilot.csv        – ToxCast hit summary per chemical
-#   results/aed_monte_carlo.csv        – AED quantiles per chemical & track
-#   results/aed_mc_samples.csv         – full MC sample distributions
-#   results/aed_distributions.png      – box/violin plots
-###############################################################################
-
-# ---- Library bootstrap -----------------------------------------------------
 r_ver <- paste(
   R.version$major,
   strsplit(R.version$minor, ".", fixed = TRUE)[[1]][1],
@@ -49,7 +22,6 @@ ensure_pkg("httk")
 
 library(httk, lib.loc = .libPaths())
 
-# ---- Resolve project paths -------------------------------------------------
 args <- commandArgs(trailingOnly = FALSE)
 file_arg <- grep("^--file=", args, value = TRUE)
 script_dir <- if (length(file_arg) > 0) {
@@ -62,7 +34,6 @@ data_dir    <- file.path(project_dir, "data")
 results_dir <- file.path(project_dir, "results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 
-# ---- 0.  Load imputed chemical table --------------------------------------
 imputed_file <- file.path(data_dir, "pilot_chemicals_imputed.csv")
 if (!file.exists(imputed_file)) {
   stop("pilot_chemicals_imputed.csv not found. Run steps 01+02 first.")
@@ -70,12 +41,9 @@ if (!file.exists(imputed_file)) {
 imputed <- read.csv(imputed_file, stringsAsFactors = FALSE)
 cat(sprintf("Loaded %d pilot chemicals.\n\n", nrow(imputed)))
 
-# ---- 1.  Map CAS -> DTXSID & extract ToxCast AC50 data --------------------
-
 chem_table <- httk::chem.physical_and_invitro.data
 tc_data    <- httk::example.toxcast
 
-# Build CAS -> DTXSID lookup from httk's internal table
 cas_dtxsid <- chem_table[, c("CAS", "DTXSID")]
 cas_dtxsid <- cas_dtxsid[!is.na(cas_dtxsid$DTXSID) & cas_dtxsid$DTXSID != "", ]
 
@@ -99,7 +67,6 @@ for (i in seq_len(nrow(imputed))) {
     next
   }
 
-  # modl_acc = AC50 (concentration at 50% max activity) in log10(uM)
   ac50_vals <- 10^hits$modl_acc
   ac50_vals <- ac50_vals[!is.na(ac50_vals) & ac50_vals > 0]
 
@@ -134,16 +101,6 @@ print(ac50_df[, c("CAS", "Compound", "n_active_assays",
                    "AC50_5pct_uM", "AC50_median_uM")])
 cat("\n")
 
-# ---- 2.  Monte Carlo Reverse Dosimetry ------------------------------------
-#
-# For each chemical with ToxCast data, compute AED using the conservative
-# 5th-percentile AC50 as the target plasma concentration.
-#
-# Two tracks:
-#   A) httk_native:  calc_mc_oral_equiv with default httk params
-#   B) rf_imputed:   override Clint with the RF-predicted value via
-#                    add_chemtable() on a temporary copy, then revert
-
 N_SAMPLES <- 1000
 set.seed(42)
 
@@ -161,7 +118,6 @@ for (i in seq_len(nrow(ac50_df))) {
   cat(sprintf("[%02d/%02d] %s (AC50_5pct = %.4f uM)\n",
               i, nrow(ac50_df), compound, ac50_5))
 
-  # --- Track A: httk native ---
   tryCatch({
     mc_native <- calc_mc_oral_equiv(
       conc               = ac50_5,
@@ -200,12 +156,8 @@ for (i in seq_len(nrow(ac50_df))) {
     message(sprintf("  [native] MC failed for %s: %s", cas, e$message))
   })
 
-  # --- Track B: RF-imputed Clint ---
   if (!is.na(clint_rf)) {
     tryCatch({
-      # Override Clint temporarily using the parameters argument.
-      # We build the parameter set, replace Clint, then pass to
-      # calc_mc_oral_equiv via calc.analytic.css.arg.list.
       mc_rf <- calc_mc_oral_equiv(
         conc               = ac50_5,
         chem.cas           = cas,
@@ -217,10 +169,6 @@ for (i in seq_len(nrow(ac50_df))) {
         output.units       = "mgpkgpday"
       )
 
-      # Scale the AED samples by the ratio of clearances.
-      # AED is proportional to Clint (higher clearance -> higher required dose).
-      # This scaling approach preserves the MC variability structure while
-      # adjusting for the RF-predicted clearance.
       clint_native <- imp_row$Clint[1]
       if (!is.na(clint_native) && clint_native > 0 && clint_rf > 0) {
         scale_factor <- clint_rf / clint_native
@@ -255,8 +203,6 @@ for (i in seq_len(nrow(ac50_df))) {
   }
 }
 
-# ---- 3.  Export results ----------------------------------------------------
-
 if (length(aed_rows) == 0) {
   stop("No AED calculations succeeded.")
 }
@@ -272,7 +218,6 @@ write.csv(sample_df, file.path(results_dir, "aed_mc_samples.csv"), row.names = F
 cat(sprintf("\nSaved results/aed_monte_carlo.csv  (%d rows)\n", nrow(aed_df)))
 cat(sprintf("Saved results/aed_mc_samples.csv   (%d rows)\n", nrow(sample_df)))
 
-# ---- 4.  Summary table ----------------------------------------------------
 cat("\n============ AED Summary (mg/kg/day) ============\n")
 cat(sprintf("%-22s %-12s %10s %10s %10s\n",
             "Compound", "Track", "AED_5pct", "AED_med", "AED_95pct"))
@@ -286,9 +231,7 @@ for (j in seq_len(nrow(aed_df))) {
               aed_df$AED_95pct[j]))
 }
 
-# ---- 5.  Quick boxplot ----------------------------------------------------
 tryCatch({
-  # Aggregate for plotting: one boxplot per chemical, colored by track
   chemicals_with_both <- unique(
     aed_df$CAS[duplicated(aed_df$CAS)]
   )
@@ -300,14 +243,12 @@ tryCatch({
         width = max(900, n_chems * 80), height = 550)
     par(mar = c(10, 5, 3, 1))
 
-    # Create compound labels
     label_map <- unique(plot_samples[, c("CAS", "Compound")])
     plot_samples$label <- paste0(
       substr(plot_samples$Compound, 1, 15), "\n(",
       plot_samples$Track, ")"
     )
 
-    # Interleave native/rf for each chemical
     plot_samples$order_key <- paste0(plot_samples$CAS, "_", plot_samples$Track)
     order_levels <- c()
     for (cas_i in chemicals_with_both) {
@@ -331,7 +272,6 @@ tryCatch({
       outline = FALSE
     )
 
-    # X-axis labels
     compound_labels <- c()
     for (cas_i in chemicals_with_both) {
       cname <- label_map$Compound[label_map$CAS == cas_i][1]

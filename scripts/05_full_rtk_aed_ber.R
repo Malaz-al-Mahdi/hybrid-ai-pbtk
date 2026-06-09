@@ -1,30 +1,3 @@
-###############################################################################
-# 05_full_rtk_aed_ber.R
-# ---------------------------------------------------------------------------
-# Complete Reverse Toxicokinetics and Risk Prioritization workflow:
-#
-#   1. Builds the full chemical universe that is parameterizable with
-#      3compartmentss and mapped to ToxCast.
-#   2. Trains a Random Forest on the broader Wambaugh et al. (2019) HTTK
-#      training set and imputes missing/zero Clint values for all eligible
-#      chemicals.
-#   3. Retrieves bioactivity concentrations from ToxCast and derives a
-#      conservative AC50 5th percentile target concentration.
-#   4. Computes Administered Equivalent Doses (AED) with calc_mc_oral_equiv()
-#      using the best available Clint value for each chemical.
-#   5. Merges real-world exposure estimates with priority NHANES biomonitoring
-#      intake rates, then SEEM3 predictions, then example.seem as a fallback.
-#   6. Calculates Bioactivity-Exposure Ratios (BER) and exports rankings for
-#      risk prioritization.
-#
-# Outputs:
-#   data/all_777_chemicals.csv      - eligible chemicals with Clint/exposure data
-#   results/aed_ber_full.csv        - AED + BER for all successfully simulated chemicals
-#   results/aed_ber_summary.csv     - top-priority chemicals ranked by BER
-#   results/ber_ranking_plot.png    - BER waterfall ranking plot
-###############################################################################
-
-# ---- Library bootstrap -----------------------------------------------------
 r_ver <- paste(
   R.version$major,
   strsplit(R.version$minor, ".", fixed = TRUE)[[1]][1],
@@ -56,7 +29,6 @@ ensure_pkg("randomForest")
 library(httk, lib.loc = .libPaths())
 library(randomForest, lib.loc = .libPaths())
 
-# ---- Resolve project paths -------------------------------------------------
 args <- commandArgs(trailingOnly = FALSE)
 file_arg <- grep("^--file=", args, value = TRUE)
 script_dir <- if (length(file_arg) > 0) {
@@ -70,7 +42,6 @@ results_dir <- file.path(project_dir, "results")
 dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 
-# ---- Helpers ---------------------------------------------------------------
 first_numeric <- function(x) {
   if (length(x) == 0 || is.null(x) || is.na(x[1])) {
     return(NA_real_)
@@ -138,12 +109,7 @@ impute_with_medians <- function(df, feature_cols, medians) {
   out
 }
 
-# ---- Keep a copy of the original HTTK database -----------------------------
 httk_table_backup <- chem.physical_and_invitro.data
-
-###############################################################################
-# STEP 1: Build the eligible chemical universe
-###############################################################################
 
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 1: Building eligible chemical universe\n")
@@ -173,10 +139,6 @@ eligible$Fup_num <- vapply(eligible$Human.Funbound.plasma, first_numeric, numeri
 eligible$Rblood2plasma_num <- vapply(eligible$Human.Rblood2plasma, first_numeric, numeric(1))
 eligible$Clint_native <- vapply(eligible$Human.Clint, first_numeric, numeric(1))
 
-###############################################################################
-# STEP 2: RF-impute missing/zero Clint using Wambaugh et al. (2019)
-###############################################################################
-
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 2: RF imputation for all-chemical Clint coverage\n")
 cat(paste(rep("=", 70), collapse = ""), "\n\n")
@@ -184,9 +146,6 @@ cat(paste(rep("=", 70), collapse = ""), "\n\n")
 rf_training_raw <- get_httk_data("wambaugh2019")
 rf_training_source <- "wambaugh2019"
 if (is.null(rf_training_raw)) {
-  # Fallback: use the currently bundled httk table as training source.
-  # This keeps the pipeline functional across httk versions where wambaugh2019
-  # is not shipped as a standalone dataset.
   rf_training_raw <- chem.physical_and_invitro.data
   rf_training_source <- "chem.physical_and_invitro.data"
   cat("  NOTE: httk dataset 'wambaugh2019' not found. Falling back to 'chem.physical_and_invitro.data'.\n")
@@ -252,7 +211,6 @@ cat(sprintf("  Eligible chemicals needing imputation:  %d\n", sum(eligible$needs
 cat(sprintf("  Chemicals with measured Clint retained: %d\n\n",
             sum(!eligible$needs_clint_impute)))
 
-# Override only the chemicals that need imputation inside the in-memory httk DB.
 override_rows <- eligible[
   eligible$needs_clint_impute & !is.na(eligible$Clint_used) & eligible$Clint_used > 0,
   c("Compound", "CAS", "DTXSID", "Clint_used")
@@ -275,10 +233,6 @@ if (nrow(override_rows) > 0) {
     overwrite = TRUE
   )
 }
-
-###############################################################################
-# STEP 3: Retrieve ToxCast bioactivity thresholds
-###############################################################################
 
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 3: Retrieving conservative ToxCast AC50 targets\n")
@@ -327,10 +281,6 @@ cat(sprintf("  Chemicals with measured ToxCast hits:   %d\n",
             sum(eligible$AC50_source == "example.toxcast")))
 cat(sprintf("  Chemicals using 1 uM fallback:          %d\n\n",
             sum(eligible$AC50_source == "default_1uM")))
-
-###############################################################################
-# STEP 4: Merge real-world exposure data (NHANES -> SEEM3 -> example.seem)
-###############################################################################
 
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 4: Loading exposure data for BER\n")
@@ -450,10 +400,6 @@ cat(sprintf("  Chemicals still without exposure data:  %d\n\n",
 write.csv(eligible, file.path(data_dir, "all_777_chemicals.csv"), row.names = FALSE)
 cat(sprintf("  Saved data/all_777_chemicals.csv (%d rows)\n\n", nrow(eligible)))
 
-###############################################################################
-# STEP 5: Monte Carlo reverse dosimetry -> AED
-###############################################################################
-
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 5: Monte Carlo reverse dosimetry (AED)\n")
 cat(paste(rep("=", 70), collapse = ""), "\n\n")
@@ -525,10 +471,6 @@ rownames(aed_df) <- NULL
 
 cat(sprintf("\n  AED calculated for %d chemicals.\n\n", nrow(aed_df)))
 
-###############################################################################
-# STEP 6: BER calculation and prioritization
-###############################################################################
-
 cat(paste(rep("=", 70), collapse = ""), "\n")
 cat("STEP 6: BER calculation and prioritization\n")
 cat(paste(rep("=", 70), collapse = ""), "\n\n")
@@ -540,14 +482,12 @@ aed_df$Exposure_u95_mg_kg_day <- eligible$Exposure_u95_mg_kg_day[row_idx]
 aed_df$Exposure_source <- eligible$Exposure_source[row_idx]
 aed_df$Exposure_pathway <- eligible$Exposure_pathway[row_idx]
 
-# Primary BER uses the protective AED_95pct relative to the median real-world exposure.
 aed_df$BER <- ifelse(
   !is.na(aed_df$Exposure_median_mg_kg_day) & aed_df$Exposure_median_mg_kg_day > 0,
   aed_df$AED_95pct / aed_df$Exposure_median_mg_kg_day,
   NA_real_
 )
 
-# Optional BER bounds using exposure and AED uncertainty envelopes.
 aed_df$BER_low <- ifelse(
   !is.na(aed_df$Exposure_u95_mg_kg_day) & aed_df$Exposure_u95_mg_kg_day > 0,
   aed_df$AED_5pct / aed_df$Exposure_u95_mg_kg_day,
@@ -624,9 +564,9 @@ tryCatch({
     ylab = "log10(BER)",
     main = "Bioactivity-Exposure Ratio (BER) ranking\nLower BER indicates higher concern"
   )
-  abline(h = 0, lty = 2, col = "firebrick", lwd = 2)    # BER = 1
-  abline(h = 1, lty = 2, col = "darkorange", lwd = 1)   # BER = 10
-  abline(h = 2, lty = 2, col = "goldenrod", lwd = 1)    # BER = 100
+  abline(h = 0, lty = 2, col = "firebrick", lwd = 2)
+  abline(h = 1, lty = 2, col = "darkorange", lwd = 1)
+  abline(h = 2, lty = 2, col = "goldenrod", lwd = 1)
   legend(
     "topright",
     legend = c("BER < 1", "1-10", "10-100", ">100"),
@@ -639,7 +579,6 @@ tryCatch({
   message(sprintf("  Plot skipped: %s", e$message))
 })
 
-# Restore the original HTTK database state before exiting.
 chem.physical_and_invitro.data <- httk_table_backup
 
 cat("\n")

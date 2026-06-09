@@ -1,19 +1,3 @@
-"""
-utils.py
---------
-Gemeinsame Hilfsfunktionen und Klassen fuer das Forschungsprojekt.
-
-Inhalt
-~~~~~~
-  A. Pfadkonstanten
-  B. Toxikokinetische (PK) Konstanten und Funktionen
-  C. Feature Engineering fuer ML-Modelle (RF/GB)
-  D. Metrik-Berechnung (RMSE, R², GMFE, Fold-Error, Spearman)
-  E. SMILES-Abruf (PubChem + CIR)
-  F. Molekuelgraph-Konvertierung (RDKit)
-  G. GCN-Modell (GCNLayer, MolGCN, train_gcn, predict_gcn)
-"""
-
 import time
 import json
 import warnings
@@ -29,17 +13,12 @@ from scipy.stats import spearmanr
 
 warnings.filterwarnings("ignore")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# A. Pfadkonstanten
-# ══════════════════════════════════════════════════════════════════════════════
-
 ROOT    = Path(__file__).resolve().parent.parent
 DATA    = ROOT / "data"
 RESULTS = ROOT / "results"
 
 RESULTS.mkdir(exist_ok=True)
 
-# Standard-Datendateien
 PILOT_CSV       = DATA / "pilot_chemicals_full.csv"
 PILOT_IMPUTED   = DATA / "pilot_chemicals_imputed.csv"
 PILOT_GCN_CSV   = DATA / "pilot_chemicals_gcn.csv"
@@ -48,52 +27,21 @@ AED_BER_CSV     = RESULTS / "aed_ber_full.csv"
 GCN_PRED_CSV    = RESULTS / "gcn_777_predictions.csv"
 SMILES_CACHE    = DATA / "smiles_cache_777.csv"
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# B. Toxikokinetische Konstanten und Funktionen
-# ══════════════════════════════════════════════════════════════════════════════
-
-Q_H     = 1.5       # Hepatischer Blutfluss [L/h/kg]
-F_LIVER = 26e-3     # Leberanteil am Koerpergewicht [kg/kg]
-HEPATO  = 110e6     # Hepatozyten pro g Leber
-EPSILON = 1e-3      # Numerische Stabilisierung (log-Schutz)
-
+Q_H     = 1.5
+F_LIVER = 26e-3
+HEPATO  = 110e6
+EPSILON = 1e-3
 
 def clint_uL_to_cl_h(clint_uL: float, fup: float) -> float:
-    """
-    Well-Stirred-Modell: hepatische Clearance [L/h/kg].
-
-    Parameters
-    ----------
-    clint_uL : Clint in µL/min/Mio Zellen
-    fup      : Freie Fraktion im Plasma (0–1)
-
-    Returns
-    -------
-    CL_hepatisch [L/h/kg]
-    """
     fup      = max(float(fup), 1e-4)
     clint_uL = max(float(clint_uL), 0.0)
     clint_L  = clint_uL * 1e-6 * 60.0 * HEPATO * F_LIVER
     return Q_H * fup * clint_L / (Q_H + fup * clint_L)
 
-
 def css_per_unit_dose(cl_h: float) -> float:
-    """
-    Steady-State-Konzentration pro Einheitsdosis [mg/L pro mg/kg/day].
-
-    Css = Dose / (CL_h * 24)   [vollstaendige orale Absorption]
-    """
     return 1.0 / (max(cl_h, 1e-9) * 24.0)
 
-
 def calc_aed(ac50_uM: float, mw: float, clint_uL: float, fup: float) -> float:
-    """
-    Activity Equivalent Dose [mg/kg/day] via IVIVE (Well-Stirred-Modell).
-
-    AED = AC50 [mg/L] / Css_per_unit_dose [mg/L / (mg/kg/day)]
-        = AC50_uM * MW/1000 * CL_h * 24
-    """
     if any(np.isnan([ac50_uM, mw, clint_uL, fup])):
         return np.nan
     ac50_mg = float(ac50_uM) * float(mw) / 1000.0
@@ -103,9 +51,7 @@ def calc_aed(ac50_uM: float, mw: float, clint_uL: float, fup: float) -> float:
         return np.nan
     return ac50_mg / cps
 
-
 def calc_ber(aed: float, exposure: float) -> float:
-    """Bioactivity Exposure Ratio = AED / Exposure."""
     if any(v is None or (isinstance(v, float) and np.isnan(v))
            for v in [aed, exposure]):
         return np.nan
@@ -113,40 +59,19 @@ def calc_ber(aed: float, exposure: float) -> float:
         return np.nan
     return float(aed) / float(exposure)
 
-
 def concern_label(ber: float) -> str:
-    """Klassifizierung nach BER-Wert."""
     if np.isnan(ber):   return "no_data"
     if ber < 1:         return "HIGH  (BER<1)"
     if ber < 10:        return "MEDIUM (BER 1-10)"
     if ber < 100:       return "LOW   (BER 10-100)"
     return "NEGLIGIBLE (BER>100)"
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# C. Feature Engineering fuer RF / GB
-# ══════════════════════════════════════════════════════════════════════════════
-
 FEATURE_NAMES = [
     "log10_MW", "logP", "logP^2", "log10_Fup", "sqrt_Fup",
     "MW*logP",  "MW*Fup", "logP*Fup", "MW",
 ]
 
-
 def engineer_features(df_in: pd.DataFrame) -> np.ndarray:
-    """
-    9 Features aus MW, logP, Fup:
-      log10(MW), logP, logP², log10(Fup), sqrt(Fup),
-      MW*logP, MW*Fup, logP*Fup, MW
-
-    Parameters
-    ----------
-    df_in : DataFrame mit Spalten MW, logP, Fup (Zeilen = Chemikalien)
-
-    Returns
-    -------
-    np.ndarray mit Form (n, 9)
-    """
     mw  = np.clip(
         pd.to_numeric(df_in["MW"],   errors="coerce").fillna(300).values,
         1.0, None,
@@ -168,23 +93,10 @@ def engineer_features(df_in: pd.DataFrame) -> np.ndarray:
         mw,
     ])
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# D. Metriken
-# ══════════════════════════════════════════════════════════════════════════════
-
 def compute_metrics(
     y_true_log: np.ndarray,
     y_pred_log: np.ndarray,
 ) -> dict:
-    """
-    Berechnet Standardmetriken fuer log10-skalierte Vorhersagen.
-
-    Returns
-    -------
-    dict mit Schluesseln: r2, rmse, spearman_rho, spearman_p,
-                          gmfe, pct_2fold, pct_3fold, pct_10fold
-    """
     fe   = 10 ** np.abs(y_true_log - y_pred_log)
     rho, p = spearmanr(y_true_log, y_pred_log)
     return {
@@ -198,9 +110,7 @@ def compute_metrics(
         "pct_10fold":   float(np.mean(fe <= 10.0) * 100),
     }
 
-
 def print_metrics(m: dict, label: str = "", n: int | None = None) -> None:
-    """Gibt Metriken formatiert aus."""
     n_str = f"  (n={n})" if n is not None else ""
     print(f"\n  [{label}]{n_str}")
     print(f"    R^2       : {m['r2']:.4f}")
@@ -211,13 +121,7 @@ def print_metrics(m: dict, label: str = "", n: int | None = None) -> None:
           f"|  <=3-fold: {m['pct_3fold']:.0f}%  "
           f"|  <=10-fold: {m['pct_10fold']:.0f}%")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# E. SMILES-Abruf
-# ══════════════════════════════════════════════════════════════════════════════
-
 def _http_get(url: str, timeout: int = 5) -> bytes | None:
-    """Einfacher HTTP-GET mit Timeout; gibt None bei Fehler zurueck."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -225,9 +129,7 @@ def _http_get(url: str, timeout: int = 5) -> bytes | None:
     except Exception:
         return None
 
-
 def pubchem_smiles(cas: str) -> str | None:
-    """SMILES fuer eine CAS-Nummer via PubChem REST API."""
     raw = _http_get(
         "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"
         f"{urllib.parse.quote(cas)}/property/IsomericSMILES/JSON",
@@ -240,9 +142,7 @@ def pubchem_smiles(cas: str) -> str | None:
             pass
     return None
 
-
 def cir_smiles(cas: str) -> str | None:
-    """SMILES via NCI Chemical Identifier Resolver (cactus.nci.nih.gov)."""
     try:
         from rdkit import Chem
     except ImportError:
@@ -258,23 +158,10 @@ def cir_smiles(cas: str) -> str | None:
             return smi
     return None
 
-
 def fetch_smiles(cas: str) -> str | None:
-    """SMILES abrufen: PubChem zuerst, dann CIR als Fallback."""
     return pubchem_smiles(cas) or cir_smiles(cas)
 
-
 def load_smiles_cache(all_cas: list[str], verbose: bool = True) -> dict[str, str]:
-    """
-    Laedt SMILES aus lokalem Cache; fragt fuer fehlende CAS bei APIs an.
-
-    Liest/schreibt data/smiles_cache_777.csv.
-
-    Returns
-    -------
-    {cas: smiles}
-    """
-    # Cache einlesen
     cache: dict[str, str] = {}
     if SMILES_CACHE.exists():
         df_c = pd.read_csv(SMILES_CACHE, dtype=str)
@@ -283,7 +170,6 @@ def load_smiles_cache(all_cas: list[str], verbose: bool = True) -> dict[str, str
             if pd.notna(v) and v != "nan"
         }
 
-    # Pilot-SMILES (aus pilot_chemicals_gcn.csv) einspielen
     if PILOT_GCN_CSV.exists():
         pg = pd.read_csv(PILOT_GCN_CSV, dtype=str)
         for _, row in pg.iterrows():
@@ -295,13 +181,12 @@ def load_smiles_cache(all_cas: list[str], verbose: bool = True) -> dict[str, str
         print(f"Im Cache: {len(cache)}  |  Fehlend: {len(missing)}")
 
     if missing:
-        # Netzwerk-Test
         test = pubchem_smiles("80-05-7")
         if not test:
             test = cir_smiles("80-05-7")
         if not test:
             if verbose:
-                print("Kein Netzwerkzugriff – verwende vorhandenen Cache")
+                print("Kein Netzwerkzugriff - verwende vorhandenen Cache")
             return cache
 
         if verbose:
@@ -328,16 +213,10 @@ def load_smiles_cache(all_cas: list[str], verbose: bool = True) -> dict[str, str
         print(f"SMILES verfuegbar: {len(cache)} / {len(all_cas)}")
     return cache
 
-
 def _save_smiles_cache(cache: dict[str, str]) -> None:
     pd.DataFrame(list(cache.items()), columns=["CAS", "SMILES"]).to_csv(
         SMILES_CACHE, index=False
     )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# F. Molekuelgraph-Konvertierung (RDKit)
-# ══════════════════════════════════════════════════════════════════════════════
 
 try:
     import torch
@@ -372,15 +251,6 @@ try:
     N_ATOM_FEAT = len(_atom_features(Chem.MolFromSmiles("C").GetAtomWithIdx(0)))
 
     def mol_to_graph(smiles: str):
-        """
-        Konvertiert SMILES in Molekuelgraph (X, A) fuer GCN.
-
-        Returns
-        -------
-        (X, A) – Feature-Matrix [n_atoms, N_ATOM_FEAT] und
-                  normalisierte Adjazenzmatrix [n_atoms, n_atoms]
-        oder None, wenn SMILES ungueltig.
-        """
         mol = Chem.MolFromSmiles(str(smiles))
         if mol is None:
             return None
@@ -401,18 +271,12 @@ try:
 
 except ImportError:
     _GCN_AVAILABLE = False
-    N_ATOM_FEAT    = 40   # Standardwert
+    N_ATOM_FEAT    = 40
 
-    def mol_to_graph(smiles: str):  # noqa: F811
+    def mol_to_graph(smiles: str):
         raise ImportError("rdkit oder torch fehlt.")
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# G. GCN-Modell
-# ══════════════════════════════════════════════════════════════════════════════
-
 if _GCN_AVAILABLE:
-    # Hyperparameter
     GCN_H1, GCN_H2, GCN_H3 = 128, 64, 32
     GCN_DROPOUT  = 0.30
     GCN_EPOCHS   = 500
@@ -421,7 +285,6 @@ if _GCN_AVAILABLE:
     GCN_PATIENCE = 80
 
     class GCNLayer(nn.Module):
-        """Einzelne Graph-Convolutional-Schicht: H' = A * H * W."""
 
         def __init__(self, in_dim: int, out_dim: int):
             super().__init__()
@@ -431,11 +294,6 @@ if _GCN_AVAILABLE:
             return self.linear(A @ H)
 
     class MolGCN(nn.Module):
-        """
-        3-schichtiger Graph Convolutional Network fuer Molekuel-Clint-Vorhersage.
-
-        Architektur: N_ATOM_FEAT -> H1 -> H2 -> H3 -> [mean pooling] -> MLP -> 1
-        """
 
         def __init__(
             self,
@@ -470,13 +328,6 @@ if _GCN_AVAILABLE:
         wd:      float = GCN_WD,
         seed:    int   = 42,
     ) -> "MolGCN":
-        """
-        Trainiert MolGCN auf einem Satz von (X, A)-Graphen und log10(Clint)-Werten.
-
-        Returns
-        -------
-        Trainiertes MolGCN-Modell mit angeheftetem _scaler_y.
-        """
         import torch.optim as optim
 
         torch.manual_seed(seed)
@@ -521,7 +372,6 @@ if _GCN_AVAILABLE:
 
     @torch.no_grad()
     def predict_gcn(model: "MolGCN", X, A) -> float:
-        """Einzelvorhersage: gibt log10(Clint) zurueck."""
         model.eval()
         raw = float(model(A, X).item())
         return float(model._scaler_y.inverse_transform([[raw]])[0, 0])

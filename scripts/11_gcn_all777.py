@@ -1,35 +1,3 @@
-"""
-13_gcn_all777.py
-----------------
-GCN + RF/GB Analyse aller 777 httk-Chemikalien + BER-Berechnung.
-
-Vorgehen
-~~~~~~~~
-  1. SMILES-Abruf (multi-source):
-       PubChem REST  -> cactus.nci.nih.gov (CIR) -> lokal gespeichert
-     Resultat wird in data/smiles_cache_777.csv zwischengespeichert.
-  2. Molekuelgraphen (RDKit) fuer alle Chemikalien mit gueltigen SMILES
-  3. GCN auf 19 Pilotchemikalien trainieren, auf alle 777 mit SMILES anwenden
-  4. RF/GB (MW/logP/Fup – kein SMILES noetig) auf ALLE 777 anwenden
-  5. Metriken und Plots
-  6. BER-Berechnung fuer alle 777 Chemikalien (httk / GCN / RF) –
-     ehemals 14_ber_all777.py
-
-Outputs
-~~~~~~~
-  data/smiles_cache_777.csv
-  results/gcn_777_predictions.csv
-  results/gcn_777_metrics.txt
-  results/gcn_777_scatter.png
-  results/gcn_777_clint_distribution.png
-  results/ber_all777.csv
-  results/ber_all777_metrics.txt
-  results/ber_all777_waterfall.png
-  results/ber_all777_aed_scatter.png
-  results/ber_all777_comparison.png
-  results/ber_all777_distribution.png
-"""
-
 import sys
 import time
 import warnings
@@ -40,45 +8,49 @@ import pandas as pd
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+from sklearn.model_selection import train_test_split
+
+import utils as _utils
+
 from utils import (
     ROOT, DATA, RESULTS,
-    PILOT_CSV, ALL_777_CSV as FULL_CSV, PILOT_GCN_CSV as PILOT_GCN,
+    ALL_777_CSV as FULL_CSV, PILOT_GCN_CSV as PILOT_GCN,
     AED_BER_CSV,
     EPSILON,
     load_smiles_cache,
-    mol_to_graph, N_ATOM_FEAT,
-    train_gcn, predict_gcn, MolGCN,
-    GCN_EPOCHS as EPOCHS,
     engineer_features as engineer,
     compute_metrics, print_metrics,
     clint_uL_to_cl_h, calc_aed, calc_ber, concern_label,
 )
 
-try:
+TRAIN_SIZE = 500
+TEST_SIZE  = 44
+
+GCN_AVAILABLE = getattr(_utils, "_GCN_AVAILABLE", False)
+if GCN_AVAILABLE:
+    from utils import (
+        mol_to_graph, N_ATOM_FEAT,
+        train_gcn, predict_gcn, MolGCN,
+        GCN_EPOCHS as EPOCHS,
+    )
     import torch
     from rdkit import Chem
-except ImportError:
-    sys.exit("ERROR: rdkit + torch fehlen.  pip install rdkit torch")
+    torch.manual_seed(42)
+else:
+    EPOCHS = 500
+    print("WARNUNG: GCN nicht verfuegbar (rdkit/torch) - RF/GB wird trainiert,")
+    print("         vorhandene GCN-Vorhersagen aus CSV werden fuer Plots genutzt.")
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.ensemble import GradientBoostingRegressor
 from scipy.stats import spearmanr
 
-torch.manual_seed(42); np.random.seed(42)
+np.random.seed(42)
 
 print("=" * 65)
 print("Step 13 - GCN + RF/GB auf allen 777 httk-Chemikalien")
 print("=" * 65)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 1. Daten laden
-# ═══════════════════════════════════════════════════════════════════════════════
-
-pilot = pd.read_csv(PILOT_CSV)
-df_tr = pilot.dropna(subset=["Clint"]).copy()
-df_tr["Fup"] = df_tr["Fup"].clip(lower=1e-6)
 
 full  = pd.read_csv(FULL_CSV)
 full  = full.rename(columns={"Human.Clint":"Clint","Human.Funbound.plasma":"Fup"})
@@ -87,13 +59,22 @@ for col in ["Clint","Fup","MW","logP"]:
 full["Fup"] = full["Fup"].clip(lower=1e-6)
 full["CAS"] = full["CAS"].astype(str).str.strip()
 
-print(f"\nPilot (Training): {len(df_tr)} Chemikalien")
+measured = full[full["Clint"] > 0].copy().reset_index(drop=True)
+measured["log10_Clint"] = np.log10(measured["Clint"] + EPSILON)
+measured["strat_bin"]   = pd.cut(measured["log10_Clint"], bins=6, labels=False)
+
+df_tr, df_te = train_test_split(
+    measured,
+    test_size=TEST_SIZE,
+    stratify=measured["strat_bin"],
+    random_state=42,
+)
+df_tr = df_tr.reset_index(drop=True)
+df_te = df_te.reset_index(drop=True)
+
+print(f"\nTrainingsset: {len(df_tr)} Chemikalien")
+print(f"Hold-out-Test: {len(df_te)} Chemikalien")
 print(f"Vollstaendiger httk-Datensatz: {len(full)} Chemikalien")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 2. SMILES laden / abrufen (via utils.load_smiles_cache)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 print("\n--- SMILES-Abruf ---")
 all_cas    = full["CAS"].tolist()
@@ -103,72 +84,71 @@ full["SMILES"] = full["CAS"].map(smiles_map)
 n_smiles = full["SMILES"].notna().sum()
 print(f"Chemikalien mit SMILES: {n_smiles} / {len(full)}")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 3. GCN trainieren (auf Pilot-Set)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 print("\n--- GCN Trainings-Graphen ---")
 pilot_gcn = pd.read_csv(PILOT_GCN) if PILOT_GCN.exists() else pd.DataFrame()
 
 train_graphs, train_y, train_names = [], [], []
-for _, row in df_tr.iterrows():
-    cas  = str(row["CAS"]).strip()
-    smi  = smiles_map.get(cas)
-    if not smi or smi == "nan":
-        # Fallback aus pilot_chemicals_gcn.csv
-        pg_row = pilot_gcn[pilot_gcn["CAS"].astype(str) == cas]
-        if len(pg_row):
-            smi = pg_row.iloc[0]["SMILES"]
-    if not smi or not isinstance(smi, str):
-        print(f"  WARNUNG: Kein SMILES fuer {row.get('Compound','?')} (CAS={cas})")
-        continue
-    g = mol_to_graph(smi)
-    if g is None:
-        continue
-    train_graphs.append(g)
-    train_y.append(np.log10(float(row["Clint"]) + EPSILON))
-    train_names.append(row.get("Compound","?"))
-    X_g, _ = g
-    mol_tmp = Chem.MolFromSmiles(smi)
-    n_bonds = mol_tmp.GetNumBonds() if mol_tmp else 0
-    print(f"  {str(row.get('Compound',''))[:30]:<30}: {X_g.shape[0]:>3} Atome, "
-          f"{n_bonds:>3} Bindungen")
-
-y_train = np.array(train_y)
-print(f"\nGCN Trainingsdaten: {len(train_graphs)} Graphen")
-
 gcn = None
-if len(train_graphs) >= 5:
-    print(f"\n--- GCN Training (max {EPOCHS} Epochen) ---")
-    t0  = time.time()
-    gcn = train_gcn(train_graphs, y_train)
-    print(f"Training abgeschlossen in {time.time()-t0:.1f}s")
+if not GCN_AVAILABLE:
+    print("  GCN-Training uebersprungen (rdkit/torch nicht verfuegbar)")
 else:
-    print("Zu wenige Graphen fuer GCN-Training – GCN wird uebersprungen")
+    for _, row in df_tr.iterrows():
+        cas  = str(row["CAS"]).strip()
+        smi  = smiles_map.get(cas)
+        if not smi or smi == "nan":
+            pg_row = pilot_gcn[pilot_gcn["CAS"].astype(str) == cas]
+            if len(pg_row):
+                smi = pg_row.iloc[0]["SMILES"]
+        if not smi or not isinstance(smi, str):
+            print(f"  WARNUNG: Kein SMILES fuer {row.get('Compound','?')} (CAS={cas})")
+            continue
+        g = mol_to_graph(smi)
+        if g is None:
+            continue
+        train_graphs.append(g)
+        train_y.append(np.log10(float(row["Clint"]) + EPSILON))
+        train_names.append(row.get("Compound","?"))
+        X_g, _ = g
+        mol_tmp = Chem.MolFromSmiles(smi)
+        n_bonds = mol_tmp.GetNumBonds() if mol_tmp else 0
+        print(f"  {str(row.get('Compound',''))[:30]:<30}: {X_g.shape[0]:>3} Atome, "
+              f"{n_bonds:>3} Bindungen")
 
+    y_train = np.array(train_y)
+    print(f"\nGCN Trainingsdaten: {len(train_graphs)} Graphen")
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 8. RF/GB trainieren (auf Pilot-Set)
-# ═══════════════════════════════════════════════════════════════════════════════
+    if len(train_graphs) >= 5:
+        print(f"\n--- GCN Training (max {EPOCHS} Epochen) ---")
+        t0  = time.time()
+        gcn = train_gcn(train_graphs, y_train)
+        print(f"Training abgeschlossen in {time.time()-t0:.1f}s")
+    else:
+        print("Zu wenige Graphen fuer GCN-Training - GCN wird uebersprungen")
 
 X_tr   = engineer(df_tr)
 imp    = SimpleImputer(strategy="median")
 sc_rf  = StandardScaler()
 X_tr_s = sc_rf.fit_transform(imp.fit_transform(X_tr))
+y_tr_log = np.log10(df_tr["Clint"].values + EPSILON)
 gb     = GradientBoostingRegressor(
     n_estimators=200, learning_rate=0.05, max_depth=2,
     subsample=0.8, min_samples_leaf=2, random_state=42)
-gb.fit(X_tr_s, y_train[:len(X_tr_s)])
+gb.fit(X_tr_s, y_tr_log)
 print(f"RF/GB trainiert ({len(X_tr_s)} Chemikalien)")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 9. Vorhersage fuer alle 777
-# ═══════════════════════════════════════════════════════════════════════════════
-
 print(f"\n--- Vorhersage fuer {len(full)} Chemikalien ---")
-pilot_cas_set = set(df_tr["CAS"].astype(str).str.strip())
+train_cas_set = set(df_tr["CAS"].astype(str).str.strip())
+
+gcn_prev: dict[str, tuple[float, float]] = {}
+prev_path = RESULTS / "gcn_777_predictions.csv"
+if not GCN_AVAILABLE and prev_path.exists():
+    prev_df = pd.read_csv(prev_path)
+    for _, pr in prev_df.dropna(subset=["GCN_log10_pred"]).iterrows():
+        gcn_prev[str(pr["CAS"]).strip()] = (
+            float(pr["GCN_log10_pred"]),
+            float(pr["GCN_Clint_pred"]) if pd.notna(pr.get("GCN_Clint_pred")) else np.nan,
+        )
+    print(f"  GCN-Fallback: {len(gcn_prev)} Vorhersagen aus {prev_path.name}")
 
 rows_out   = []
 n_gcn_ok   = 0
@@ -180,12 +160,10 @@ for idx, row in full.iterrows():
     smi   = row.get("SMILES", None)
     clint = float(row["Clint"]) if pd.notna(row.get("Clint")) else np.nan
 
-    # RF/GB Vorhersage (immer moeglich)
     rf_feats = engineer(row.to_frame().T)
     rf_log   = float(gb.predict(sc_rf.transform(imp.transform(rf_feats)))[0])
     rf_clint = max(10**rf_log - EPSILON, 0)
 
-    # GCN Vorhersage (nur wenn SMILES verfuegbar)
     gcn_log = gcn_clint = np.nan
     g = None
     if gcn and pd.notna(smi) and str(smi) != "nan":
@@ -195,10 +173,12 @@ for idx, row in full.iterrows():
         gcn_log   = predict_gcn(gcn, X_g, A_g)
         gcn_clint = max(10**gcn_log - EPSILON, 0)
         n_gcn_ok += 1
+    elif cas in gcn_prev:
+        gcn_log, gcn_clint = gcn_prev[cas]
+        n_gcn_ok += 1
     else:
         n_gcn_skip += 1
 
-    # Fold-Errors
     fe_gcn = fe_rf = np.nan
     if pd.notna(clint) and clint > 0:
         lit_log = np.log10(clint + EPSILON)
@@ -216,7 +196,7 @@ for idx, row in full.iterrows():
         "RF_Clint_pred":  round(rf_clint, 4),
         "fold_error_GCN": fe_gcn,
         "fold_error_RF":  fe_rf,
-        "in_pilot": cas in pilot_cas_set,
+        "in_train": cas in train_cas_set,
         "has_smiles": pd.notna(smi) and str(smi) != "nan",
     })
 
@@ -228,11 +208,6 @@ result_df.to_csv(RESULTS / "gcn_777_predictions.csv", index=False)
 print(f"\nErgebnisse gespeichert: results/gcn_777_predictions.csv")
 print(f"  GCN-Vorhersagen: {n_gcn_ok}")
 print(f"  Nur RF/GB (kein SMILES): {n_gcn_skip}")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 10. Metriken
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def metrics_report(log_lit, log_pred, label):
     m = compute_metrics(log_lit, log_pred)
@@ -250,22 +225,20 @@ print("="*65)
 has_lit = result_df.dropna(subset=["Clint_lit","RF_log10_pred"])
 has_lit = has_lit[has_lit["Clint_lit"] > 0].copy()
 has_lit["log10_lit"] = np.log10(has_lit["Clint_lit"] + EPSILON)
-ext     = has_lit[~has_lit["in_pilot"]]
+ext     = has_lit[~has_lit["in_train"]]
 
 all_metrics = []
-# RF auf alle / extern
 all_metrics.append(metrics_report(has_lit["log10_lit"].values,
     has_lit["RF_log10_pred"].values, "RF/GB -- alle mit Lit-Clint"))
 if len(ext):
     all_metrics.append(metrics_report(ext["log10_lit"].values,
         ext["RF_log10_pred"].values, "RF/GB -- extern"))
 
-# GCN (falls vorhanden)
 gcn_sub = has_lit.dropna(subset=["GCN_log10_pred"])
 if len(gcn_sub) >= 5:
     all_metrics.append(metrics_report(gcn_sub["log10_lit"].values,
         gcn_sub["GCN_log10_pred"].values, "GCN  -- alle mit Lit-Clint + SMILES"))
-    gcn_ext = gcn_sub[~gcn_sub["in_pilot"]]
+    gcn_ext = gcn_sub[~gcn_sub["in_train"]]
     if len(gcn_ext) >= 5:
         all_metrics.append(metrics_report(gcn_ext["log10_lit"].values,
             gcn_ext["GCN_log10_pred"].values, "GCN  -- extern"))
@@ -274,72 +247,68 @@ metrics_df = pd.DataFrame(all_metrics)
 with open(RESULTS / "gcn_777_metrics.txt", "w") as f:
     f.write("GCN + RF/GB auf 777 httk-Chemikalien\n")
     f.write("=" * 52 + "\n\n")
-    f.write(f"Trainingsset: {len(train_graphs)} Pilotchemikalien\n")
+    f.write(f"Trainingsset RF/GB: {len(df_tr)} httk-Chemikalien\n")
+    f.write(f"Trainingsset GCN:   {len(train_graphs)} Graphen (mit SMILES)\n")
     f.write(f"GCN-Vorhersagen: {n_gcn_ok}\n")
     f.write(f"RF/GB-Vorhersagen: {len(result_df)}\n\n")
     f.write(metrics_df.to_string(index=False))
 print(f"\nMetriken -> results/gcn_777_metrics.txt")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 11. Plots
-# ═══════════════════════════════════════════════════════════════════════════════
-
 def fold_col(fe_arr):
     return ["#2196F3" if f<=2 else "#4CAF50" if f<=3 else "#FF9800" if f<=10
             else "#F44336" for f in fe_arr]
 
-# ── Plot A: RF/GB Scatter (alle 777 mit Lit-Clint) ───────────────────────────
 fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
 ax = axes[0]
 fe_arr = has_lit["fold_error_RF"].fillna(999).values
 cols   = fold_col(fe_arr)
-ax.scatter(has_lit.loc[~has_lit["in_pilot"],"log10_lit"],
-           has_lit.loc[~has_lit["in_pilot"],"RF_log10_pred"],
-           c=[cols[i] for i in range(len(has_lit)) if not has_lit["in_pilot"].values[i]],
-           s=12, alpha=0.6, linewidths=0, label="Extern")
-ax.scatter(has_lit.loc[has_lit["in_pilot"],"log10_lit"],
-           has_lit.loc[has_lit["in_pilot"],"RF_log10_pred"],
-           c="gold", s=80, edgecolors="k", lw=0.8, zorder=5, label="Pilot (Training)")
+ax.scatter(has_lit.loc[~has_lit["in_train"],"log10_lit"],
+           has_lit.loc[~has_lit["in_train"],"RF_log10_pred"],
+           c=[cols[i] for i in range(len(has_lit)) if not has_lit["in_train"].values[i]],
+           s=12, alpha=0.6, linewidths=0, label="Extern / Hold-out")
+ax.scatter(has_lit.loc[has_lit["in_train"],"log10_lit"],
+           has_lit.loc[has_lit["in_train"],"RF_log10_pred"],
+           c="gold", s=80, edgecolors="k", lw=0.8, zorder=5,
+           label=f"Training (n={len(df_tr)})")
 lims = [has_lit["log10_lit"].min()-0.5, has_lit["log10_lit"].max()+0.5]
 ax.plot(lims, lims, "k--", lw=1.2)
 ax.fill_between(lims, [v-np.log10(3) for v in lims],
                 [v+np.log10(3) for v in lims], alpha=0.07, color="green")
 m0 = all_metrics[0]
-ax.set_title(f"RF/GB  (n={m0['N']})\nR²={m0['R2']:.3f}  GMFE={m0['GMFE']:.1f}x  "
+ax.set_title(f"RF/GB  (n={m0['N']})\nR^2={m0['R2']:.3f}  GMFE={m0['GMFE']:.1f}x  "
              f"<=3-fold={m0['Pct_3fold']:.0f}%", fontsize=10)
 ax.set_xlabel("log10(Clint Literatur)"); ax.set_ylabel("log10(Clint RF/GB)")
 ax.legend(fontsize=8); ax.grid(True, alpha=0.25)
 
-# ── Plot B: GCN Scatter oder Hinweis ─────────────────────────────────────────
 ax = axes[1]
 if len(gcn_sub) >= 5:
     fe2   = gcn_sub["fold_error_GCN"].fillna(999).values
     c2    = fold_col(fe2)
-    ax.scatter(gcn_sub.loc[~gcn_sub["in_pilot"],"log10_lit"],
-               gcn_sub.loc[~gcn_sub["in_pilot"],"GCN_log10_pred"],
-               c=[c2[i] for i in range(len(gcn_sub)) if not gcn_sub["in_pilot"].values[i]],
-               s=12, alpha=0.6, linewidths=0, label="Extern")
-    ax.scatter(gcn_sub.loc[gcn_sub["in_pilot"],"log10_lit"],
-               gcn_sub.loc[gcn_sub["in_pilot"],"GCN_log10_pred"],
-               c="gold", s=80, edgecolors="k", lw=0.8, zorder=5, label="Pilot (Training)")
+    ax.scatter(gcn_sub.loc[~gcn_sub["in_train"],"log10_lit"],
+               gcn_sub.loc[~gcn_sub["in_train"],"GCN_log10_pred"],
+               c=[c2[i] for i in range(len(gcn_sub)) if not gcn_sub["in_train"].values[i]],
+               s=12, alpha=0.6, linewidths=0, label="Extern / Hold-out")
+    ax.scatter(gcn_sub.loc[gcn_sub["in_train"],"log10_lit"],
+               gcn_sub.loc[gcn_sub["in_train"],"GCN_log10_pred"],
+               c="gold", s=80, edgecolors="k", lw=0.8, zorder=5,
+               label=f"Training (n={len(df_tr)})")
     lims2 = [gcn_sub["log10_lit"].min()-0.5, gcn_sub["log10_lit"].max()+0.5]
     ax.plot(lims2, lims2, "k--", lw=1.2)
     m_gcn = [m for m in all_metrics if "GCN" in m["Modell"]]
     if m_gcn:
         mg = m_gcn[0]
-        ax.set_title(f"GCN  (n={mg['N']})\nR²={mg['R2']:.3f}  GMFE={mg['GMFE']:.1f}x  "
+        ax.set_title(f"GCN  (n={mg['N']})\nR^2={mg['R2']:.3f}  GMFE={mg['GMFE']:.1f}x  "
                      f"<=3-fold={mg['Pct_3fold']:.0f}%", fontsize=10)
     ax.set_xlabel("log10(Clint Literatur)"); ax.set_ylabel("log10(Clint GCN)")
     ax.legend(fontsize=8); ax.grid(True, alpha=0.25)
 else:
     ax.text(0.5, 0.5,
             f"GCN: {n_gcn_ok} Chemikalien mit SMILES\n"
-            "(PubChem API in dieser Umgebung\nnicht erreichbar – nur RF/GB verfuegbar)",
+            "(PubChem API in dieser Umgebung\nnicht erreichbar - nur RF/GB verfuegbar)",
             ha="center", va="center", transform=ax.transAxes, fontsize=11,
             bbox=dict(boxstyle="round", fc="#FFF9C4", ec="#F9A825"))
-    ax.set_title("GCN – SMILES-Abruf nicht moeglich", fontsize=10)
+    ax.set_title("GCN - SMILES-Abruf nicht moeglich", fontsize=10)
     ax.axis("off")
 
 from matplotlib.patches import Patch
@@ -348,15 +317,17 @@ legend_els = [Patch(facecolor="#2196F3", label="<=2-fold"),
               Patch(facecolor="#FF9800", label="<=10-fold"),
               Patch(facecolor="#F44336", label=">10-fold")]
 axes[0].legend(handles=legend_els+[plt.scatter([],[],c="gold",s=50,
-               edgecolors="k",label="Pilot (Training)")], fontsize=7, loc="upper left")
-plt.suptitle("Clint-Vorhersage: 777 httk-Chemikalien | Trainiert auf 19 Piloten",
-             fontsize=11, y=1.01)
+               edgecolors="k",label=f"Training (n={len(df_tr)})")],
+               fontsize=7, loc="upper left")
+plt.suptitle(
+    f"Clint-Vorhersage: 777 httk-Chemikalien | Trainiert auf {len(df_tr)} httk-Chemikalien",
+    fontsize=11, y=1.01,
+)
 plt.tight_layout()
 plt.savefig(RESULTS / "gcn_777_scatter.png", dpi=150, bbox_inches="tight")
 plt.close()
 print("Saved: results/gcn_777_scatter.png")
 
-# ── Plot B: Vorhersageverteilung + Ausreisser ─────────────────────────────────
 fig, axes = plt.subplots(1, 3, figsize=(17, 5))
 
 ax = axes[0]
@@ -397,11 +368,6 @@ plt.savefig(RESULTS / "gcn_777_clint_distribution.png", dpi=150)
 plt.close()
 print("Saved: results/gcn_777_clint_distribution.png")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 12. Abschlusszusammenfassung
-# ═══════════════════════════════════════════════════════════════════════════════
-
 print("\n" + "="*65)
 print("ABSCHLUSSZUSAMMENFASSUNG GCN + RF/GB")
 print("="*65)
@@ -414,20 +380,10 @@ print()
 print(metrics_df[["Modell","N","R2","RMSE_log","GMFE",
                    "Pct_3fold","Pct_10fold"]].to_string(index=False))
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 13. BER-Berechnung fuer alle 777 Chemikalien (ehemals 14_ber_all777.py)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 print("\n" + "="*65)
 print("Step 13b - BER fuer alle 777 httk-Chemikalien")
 print("="*65)
 
-# ── Daten zusammenfuehren ────────────────────────────────────────────────────
-# full (already loaded above) hat die SEEM/AC50-Spalten aus all_777_chemicals.csv
-# result_df (already computed above) hat GCN/RF-Vorhersagen
-
-# SEEM-Spalten sichern, falls vorhanden
 seem_cols = [c for c in ["SEEM_mg_kg_day","SEEM_l95","SEEM_u95","SEEM_pathway","has_SEEM"]
              if c in full.columns]
 
@@ -438,14 +394,12 @@ df_ber = full[merge_cols].copy()
 df_ber = df_ber.rename(columns={"Clint": "Clint_httk"})
 df_ber["CAS"] = df_ber["CAS"].astype(str).str.strip()
 
-# GCN / RF Vorhersagen einfuegen
 df_ber = df_ber.merge(
     result_df[["CAS","GCN_Clint_pred","RF_Clint_pred",
                "GCN_log10_pred","RF_log10_pred","has_smiles"]],
     on="CAS", how="left",
 )
 
-# AC50 aus aed_ber_full.csv (Step 05)
 if AED_BER_CSV.exists():
     ber_ref = pd.read_csv(AED_BER_CSV)
     ber_ref["CAS"] = ber_ref["CAS"].astype(str).str.strip()
@@ -467,7 +421,6 @@ if seem_col:
 print(f"  mit GCN-Clint    : {df_ber['GCN_Clint_pred'].notna().sum()}")
 print(f"  mit httk-Clint   : {df_ber['Clint_httk'].notna().sum()}")
 
-# ── AED und BER berechnen ────────────────────────────────────────────────────
 print("\nBerechne AED/BER fuer alle 777 Chemikalien ...")
 
 rows_ber = []
@@ -521,7 +474,6 @@ result_ber["concern_RF"]   = result_ber["BER_RF"].apply(concern_label)
 result_ber.to_csv(RESULTS / "ber_all777.csv", index=False)
 print(f"Gespeichert: results/ber_all777.csv")
 
-# ── Metriken ─────────────────────────────────────────────────────────────────
 ber_ok  = result_ber.dropna(subset=["BER_httk"])
 aed_ok  = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
 
@@ -570,7 +522,6 @@ with open(RESULTS / "ber_all777_metrics.txt", "w") as f:
                           "SEEM_mg_kg_day","concern_httk"]].to_string(index=False))
 print("Metriken -> results/ber_all777_metrics.txt")
 
-# ── BER Plots ────────────────────────────────────────────────────────────────
 ber_plot = result_ber.dropna(subset=["BER_httk"]).copy()
 ber_plot = ber_plot.sort_values("BER_httk").reset_index(drop=True)
 
@@ -600,7 +551,6 @@ if len(ber_plot):
     plt.close()
     print("Saved: results/ber_all777_waterfall.png")
 
-# AED Scatter GCN/RF vs httk
 both_aed = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
 if len(both_aed) > 1:
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -632,7 +582,6 @@ if len(both_aed) > 1:
     plt.close()
     print("Saved: results/ber_all777_aed_scatter.png")
 
-# AED/BER Verteilung
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 ax = axes[0]
 aed_all = result_ber.dropna(subset=["AED_httk","AED_GCN","AED_RF"])
@@ -669,7 +618,6 @@ plt.tight_layout()
 plt.savefig(RESULTS / "ber_all777_distribution.png", dpi=150)
 plt.close()
 print("Saved: results/ber_all777_distribution.png")
-
 
 print("\n" + "="*65)
 print("ABSCHLUSSZUSAMMENFASSUNG GESAMT")

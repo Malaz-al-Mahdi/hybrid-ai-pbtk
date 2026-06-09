@@ -1,23 +1,3 @@
-###############################################################################
-# 03_httk_pbtk_simulation.R
-# ---------------------------------------------------------------------------
-# Reads the RF-imputed parameter table and runs httk PBTK simulations for
-# each pilot chemical.  Two simulation tracks:
-#
-#   A) "httk_native"  – uses httk's built-in Clint (ground truth baseline)
-#   B) "rf_imputed"   – overrides Clint with the RF prediction
-#
-# Comparison of Cmax, AUC, and css (steady-state concentration) between the
-# two tracks quantifies how sensitive PBTK output is to the ML-predicted
-# clearance.
-#
-# Outputs:
-#   results/pbtk_comparison.csv    – per-chemical TK summary statistics
-#   results/pbtk_comparison.png    – visual comparison plots
-#   results/pbtk_curves/           – individual concentration-time plots
-###############################################################################
-
-# Prefer the per-user Windows R library when available.
 r_ver <- paste(
   R.version$major,
   strsplit(R.version$minor, ".", fixed = TRUE)[[1]][1],
@@ -52,8 +32,6 @@ script_dir <- if (length(file_arg) > 0) {
 }
 project_dir <- normalizePath(file.path(script_dir, ".."), winslash = "/", mustWork = FALSE)
 
-# ---- 0. Setup --------------------------------------------------------------
-
 data_dir    <- file.path(project_dir, "data")
 results_dir <- file.path(project_dir, "results")
 curves_dir  <- file.path(results_dir, "pbtk_curves")
@@ -68,13 +46,10 @@ imputed <- read.csv(imputed_file, stringsAsFactors = FALSE)
 cat(sprintf("Loaded %d chemicals from pilot_chemicals_imputed.csv\n",
             nrow(imputed)))
 
-# ---- 1. Helper: run PBTK with optional Clint override ---------------------
-
 run_pbtk_safe <- function(cas, clint_override = NULL, label = "native",
                           days = 28, doses.per.day = 1,
-                          daily.dose = 1) {  # mg/kg/day
+                          daily.dose = 1) {
   tryCatch({
-    # Build parameter list – use 3compartmentss (faster) or pbtk
     params <- parameterize_pbtk(chem.cas = cas)
 
     if (!is.null(clint_override)) {
@@ -92,7 +67,6 @@ run_pbtk_safe <- function(cas, clint_override = NULL, label = "native",
 
     out_df <- as.data.frame(out)
 
-    # Extract key TK statistics
     Cplasma <- out_df$Cplasma
     time     <- out_df$time
 
@@ -112,8 +86,6 @@ run_pbtk_safe <- function(cas, clint_override = NULL, label = "native",
   })
 }
 
-# ---- 2. Run simulations for each chemical ----------------------------------
-
 comparison_rows <- list()
 
 for (i in seq_len(nrow(imputed))) {
@@ -124,16 +96,13 @@ for (i in seq_len(nrow(imputed))) {
 
   cat(sprintf("\n[%02d/%02d] %s (%s)\n", i, nrow(imputed), compound, cas))
 
-  # Track A: httk native parameters
   res_native <- run_pbtk_safe(cas, clint_override = NULL, label = "httk_native")
 
-  # Track B: RF-imputed Clint
   res_rf <- NULL
   if (!is.na(clint_rf)) {
     res_rf <- run_pbtk_safe(cas, clint_override = clint_rf, label = "rf_imputed")
   }
 
-  # Collect summary
   if (!is.null(res_native)) {
     comparison_rows[[length(comparison_rows) + 1]] <- data.frame(
       CAS       = cas,
@@ -159,7 +128,6 @@ for (i in seq_len(nrow(imputed))) {
     )
   }
 
-  # ---- Individual concentration-time plot ----------------------------------
   if (!is.null(res_native) || !is.null(res_rf)) {
     safe_name <- gsub("[^A-Za-z0-9_-]", "_", compound)
     png(file.path(curves_dir, sprintf("%s_%s.png", safe_name, cas)),
@@ -194,8 +162,6 @@ for (i in seq_len(nrow(imputed))) {
   }
 }
 
-# ---- 3. Compile & export comparison table ----------------------------------
-
 if (length(comparison_rows) == 0) {
   writeLines(
     c(
@@ -212,9 +178,6 @@ write.csv(comp_df, file.path(results_dir, "pbtk_comparison.csv"),
           row.names = FALSE)
 cat(sprintf("\nSaved results/pbtk_comparison.csv (%d rows)\n", nrow(comp_df)))
 
-# ---- 4. Summary comparison plot -------------------------------------------
-
-# Reshape to wide for paired comparisons
 native_df <- comp_df[comp_df$Track == "httk_native", ]
 rf_df     <- comp_df[comp_df$Track == "rf_imputed", ]
 
@@ -227,7 +190,6 @@ if (nrow(merged) > 0) {
       width = 1200, height = 400)
   par(mfrow = c(1, 3), mar = c(4, 4, 3, 1))
 
-  # Cmax comparison
   lim <- range(c(merged$Cmax_native, merged$Cmax_rf), na.rm = TRUE)
   plot(merged$Cmax_native, merged$Cmax_rf,
        xlab = "Cmax (httk native)", ylab = "Cmax (RF imputed)",
@@ -235,7 +197,6 @@ if (nrow(merged) > 0) {
        xlim = lim, ylim = lim)
   abline(0, 1, lty = 2)
 
-  # AUC comparison
   lim <- range(c(merged$AUC_native, merged$AUC_rf), na.rm = TRUE)
   plot(merged$AUC_native, merged$AUC_rf,
        xlab = "AUC (httk native)", ylab = "AUC (RF imputed)",
@@ -243,7 +204,6 @@ if (nrow(merged) > 0) {
        xlim = lim, ylim = lim)
   abline(0, 1, lty = 2)
 
-  # Css comparison
   lim <- range(c(merged$Css_native, merged$Css_rf), na.rm = TRUE)
   plot(merged$Css_native, merged$Css_rf,
        xlab = "Css (httk native)", ylab = "Css (RF imputed)",
@@ -254,8 +214,6 @@ if (nrow(merged) > 0) {
   dev.off()
   cat("Saved results/pbtk_comparison.png\n")
 }
-
-# ---- 5. Print fold-change summary -----------------------------------------
 
 if (nrow(merged) > 0) {
   merged$FC_Cmax <- merged$Cmax_rf / merged$Cmax_native

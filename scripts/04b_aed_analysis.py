@@ -1,21 +1,3 @@
-"""
-04b_aed_analysis.py
--------------------
-Reads the Monte Carlo AED results from Step 4 (R) and produces
-publication-quality visualizations and a summary report:
-
-  1) Paired comparison: native vs. RF-imputed AED per chemical
-  2) Population variability fan chart (5th / median / 95th percentile)
-  3) Cumulative AED distribution across the pilot set
-  4) Summary statistics table exported to CSV & printed
-
-Outputs:
-  results/aed_paired_comparison.png
-  results/aed_variability_fan.png
-  results/aed_cumulative.png
-  results/aed_summary_report.csv
-"""
-
 import sys
 from pathlib import Path
 import numpy as np
@@ -37,7 +19,6 @@ for f in [AED_FILE, SAMPLES_FILE, AC50_FILE]:
     if not f.exists():
         sys.exit(f"ERROR: {f} not found. Run 04_reverse_dosimetry.R first.")
 
-# ---- 1.  Load data --------------------------------------------------------
 aed = pd.read_csv(AED_FILE)
 samples = pd.read_csv(SAMPLES_FILE)
 ac50 = pd.read_csv(AC50_FILE)
@@ -46,11 +27,8 @@ print(f"AED summary:  {len(aed)} rows")
 print(f"MC samples:   {len(samples)} rows")
 print(f"AC50 summary: {len(ac50)} chemicals\n")
 
-# Short compound names for plot labels
 aed["short_name"] = aed["Compound"].str[:16]
 samples["short_name"] = samples["Compound"].str[:16]
-
-# ---- 2.  Paired AED comparison (native vs RF) -----------------------------
 
 native = aed[aed["Track"] == "httk_native"].set_index("CAS")
 rf = aed[aed["Track"] == "rf_imputed"].set_index("CAS")
@@ -66,7 +44,6 @@ if len(paired) > 0:
     ax.scatter(x, y, s=70, edgecolors="steelblue", facecolors="lightblue",
                zorder=3)
 
-    # Error bars: 5th-95th percentile
     xerr = np.array([
         x - paired["AED_5pct_nat"].values,
         paired["AED_95pct_nat"].values - x
@@ -89,7 +66,6 @@ if len(paired) > 0:
     lim_max = max(np.max(x), np.max(y)) * 2.0
     ax.plot([lim_min, lim_max], [lim_min, lim_max], "k--", alpha=0.4,
             label="1:1 line")
-    # 3-fold envelope
     ax.fill_between([lim_min, lim_max],
                     [lim_min / 3, lim_max / 3],
                     [lim_min * 3, lim_max * 3],
@@ -107,8 +83,6 @@ if len(paired) > 0:
     print("Saved results/aed_paired_comparison.png")
     plt.close()
 
-# ---- 3.  Population variability fan chart ----------------------------------
-
 native_aed = aed[aed["Track"] == "httk_native"].sort_values("AED_median")
 
 if len(native_aed) > 0:
@@ -125,7 +99,6 @@ if len(native_aed) > 0:
     ax.plot(x_pos, medians, "o-", color="steelblue", markersize=6,
             label="Median AED")
 
-    # Overlay RF track if available
     rf_aed = aed[aed["Track"] == "rf_imputed"]
     if len(rf_aed) > 0:
         rf_ordered = rf_aed.set_index("CAS").loc[native_aed["CAS"].values]
@@ -148,8 +121,6 @@ if len(native_aed) > 0:
     plt.savefig(RESULTS / "aed_variability_fan.png", dpi=150)
     print("Saved results/aed_variability_fan.png")
     plt.close()
-
-# ---- 4.  Cumulative AED distribution across all chemicals -----------------
 
 native_samples = samples[samples["Track"] == "httk_native"]
 
@@ -182,8 +153,6 @@ if len(native_samples) > 0:
     print("Saved results/aed_cumulative.png")
     plt.close()
 
-# ---- 5.  Summary report ---------------------------------------------------
-
 report = aed.pivot_table(
     index=["CAS", "Compound"],
     columns="Track",
@@ -193,13 +162,11 @@ report = aed.pivot_table(
 report.columns = ["_".join(col).strip() for col in report.columns.values]
 report = report.reset_index()
 
-# Add AC50 info
 report = report.merge(
     ac50[["CAS", "n_active_assays", "AC50_5pct_uM", "AC50_median_uM"]],
     on="CAS", how="left"
 )
 
-# Fold-change between native and RF
 nat_col = [c for c in report.columns if "AED_median_httk_native" in c]
 rf_col  = [c for c in report.columns if "AED_median_rf_imputed" in c]
 if nat_col and rf_col:

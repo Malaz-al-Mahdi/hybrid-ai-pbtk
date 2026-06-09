@@ -1,44 +1,3 @@
-"""
-07_xai_shap_analysis.py
------------------------
-Explainable AI (XAI) for the toxicokinetic / risk-prioritisation pipeline.
-
-Scientific rationale
-~~~~~~~~~~~~~~~~~~~~
-ML models used in regulatory toxicology must be interpretable – regulators
-and risk assessors need to understand *why* a model predicts a high or low
-Clint (and thus a high or low BER) for a given chemical.  SHAP (SHapley
-Additive exPlanations) provides a unified, theoretically grounded framework
-for local and global feature attribution.
-
-This script applies SHAP to:
-  A) Random Forest model for Clint prediction (Step 2, simple 3-feature model)
-     → Which physicochemical features most drive log10(Clint)?
-     → Are there non-linear or interaction effects?
-  B) BER prediction from AED/exposure data (Step 5/6)
-     → Which input variables explain the BER ranking?
-  C) Outlier SHAP – full 9-feature model on all 777 httk chemicals
-     → Why does the model fail for Tacrine, Phenylparaben, Acibenzolar?
-     → Waterfall plots per outlier + comparison with well-predicted chemicals
-     (merged from former 12_shap_outlier_analysis.py)
-
-Plots
-~~~~~
-  results/shap_rf_summary_bar.png        Global RF SHAP bar chart (Section A)
-  results/shap_rf_beeswarm.png           RF SHAP beeswarm plot (Section A)
-  results/shap_rf_dependence_*.png       Feature dependence plots (Section A)
-  results/shap_ber_beeswarm.png          BER explainability beeswarm (Section B)
-  results/shap_outlier_global_bar.png    Global bar + beeswarm (Section C)
-  results/shap_outlier_waterfall_*.png   Per-outlier waterfall plots (Section C)
-  results/shap_outlier_comparison.png    Outlier vs. well-predicted (Section C)
-
-Data exports
-~~~~~~~~~~~~
-  results/shap_rf_values.csv             Per-chemical SHAP values (RF, Section A)
-  results/shap_ber_values.csv            Per-chemical SHAP values (BER, Section B)
-  results/shap_outlier_values.csv        All 777 SHAP values + fold-errors (Section C)
-"""
-
 import sys
 from pathlib import Path
 
@@ -54,7 +13,6 @@ ROOT    = Path(__file__).resolve().parent.parent
 DATA    = ROOT / "data"
 RESULTS = ROOT / "results"
 
-# ── Dependency check ──────────────────────────────────────────────────────────
 try:
     import shap
 except ImportError:
@@ -73,11 +31,9 @@ try:
 except ImportError:
     sys.exit("ERROR: scikit-learn is required.  pip install scikit-learn")
 
-# ── Shared utilities (feature engineering, engineered FEATURE_NAMES) ──────────
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils import engineer_features, FEATURE_NAMES, EPSILON
 
-# ── Required data ─────────────────────────────────────────────────────────────
 PILOT_CSV   = DATA  / "clint_all777_final.csv"
 AED_BER_CSV = RESULTS / "aed_ber_full.csv"
 FULL_CSV    = DATA  / "all_777_chemicals.csv"
@@ -86,16 +42,9 @@ for p in (PILOT_CSV,):
     if not p.exists():
         sys.exit(f"ERROR: {p} not found.  Run steps 01 and 02b first.")
 
-
-# ── A: Random Forest Clint explainability ─────────────────────────────────────
-
 def section_a_rf_clint(pilot: pd.DataFrame) -> None:
-    """
-    Retrain the Random Forest from Step 2 and compute SHAP values.
-    """
-    print("\n── A) RF Clint prediction – SHAP analysis ──")
+    print("\n-- A) RF Clint prediction - SHAP analysis --")
 
-    # Features used in Step 2
     feature_cols = ["MW", "logP", "Fup"]
     available    = [c for c in feature_cols if c in pilot.columns]
 
@@ -105,7 +54,7 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
             target_col = col
             break
     if target_col is None:
-        print("  WARNING: no Clint column found – skipping RF section.")
+        print("  WARNING: no Clint column found - skipping RF section.")
         return
 
     sub = pilot[available + [target_col]].dropna()
@@ -114,7 +63,6 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
 
     print(f"  Training data: {len(sub)} chemicals  |  features: {available}")
 
-    # ─ Train RF (same hyper-params as Step 2) ────────────────────────────────
     rf = RandomForestRegressor(
         n_estimators=500,
         max_features="sqrt",
@@ -126,11 +74,10 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
 
     cv_r2 = cross_val_score(rf, X, y, cv=min(5, len(sub)),
                              scoring="r2").mean()
-    print(f"  RF cross-validated R² = {cv_r2:.3f}")
+    print(f"  RF cross-validated R^2 = {cv_r2:.3f}")
 
-    # ─ SHAP TreeExplainer ────────────────────────────────────────────────────
     explainer   = shap.TreeExplainer(rf)
-    shap_values = explainer(X)           # shap.Explanation object
+    shap_values = explainer(X)
 
     shap_df = pd.DataFrame(
         shap_values.values,
@@ -144,7 +91,6 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
     shap_df.to_csv(shap_csv, index=False)
     print(f"  Saved {shap_csv}")
 
-    # ─ Plot 1: Global bar chart ───────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(7, 4))
     mean_abs = np.abs(shap_values.values).mean(axis=0)
     order    = np.argsort(mean_abs)[::-1]
@@ -155,8 +101,8 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
         color=[colors[k] for k in range(len(order))],
         edgecolor="black", linewidth=0.5,
     )
-    ax.set_xlabel("Mean |SHAP value|  (impact on log₁₀(Clint))", fontsize=10)
-    ax.set_title("Global Feature Importance – RF Clint Model (SHAP)", fontsize=11)
+    ax.set_xlabel("Mean |SHAP value|  (impact on log1₀(Clint))", fontsize=10)
+    ax.set_title("Global Feature Importance - RF Clint Model (SHAP)", fontsize=11)
     ax.grid(axis="x", alpha=0.3)
     plt.tight_layout()
     p1 = RESULTS / "shap_rf_summary_bar.png"
@@ -164,7 +110,6 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
     plt.close()
     print(f"  Saved {p1}")
 
-    # ─ Plot 2: Beeswarm ───────────────────────────────────────────────────────
     fig, axes = plt.subplots(1, len(available), figsize=(4 * len(available), 5),
                              sharey=False)
     if len(available) == 1:
@@ -185,7 +130,7 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
         axes[k].grid(True, alpha=0.3)
         plt.colorbar(sc, ax=axes[k], label=feat, fraction=0.04, pad=0.04)
 
-    fig.suptitle("SHAP Beeswarm – RF Clint Prediction\n"
+    fig.suptitle("SHAP Beeswarm - RF Clint Prediction\n"
                  "Each dot = one chemical; colour = feature value",
                  fontsize=11)
     plt.tight_layout()
@@ -194,7 +139,6 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
     plt.close()
     print(f"  Saved {p2}")
 
-    # ─ Plot 3 & 4: Dependence plots ───────────────────────────────────────────
     for feat_main, feat_interact in [
         ("logP", "Fup"),
         ("Fup",  "logP"),
@@ -237,25 +181,16 @@ def section_a_rf_clint(pilot: pd.DataFrame) -> None:
         plt.close()
         print(f"  Saved {dep_path}")
 
-
-# ── B: BER explainability ─────────────────────────────────────────────────────
-
 def section_b_ber(pilot: pd.DataFrame) -> None:
-    """
-    Fit a gradient-boosted regressor to predict log10(BER) from chemical
-    descriptors and compute SHAP values.  This makes the BER ranking
-    interpretable: we can explain *why* a chemical is high-priority.
-    """
-    print("\n── B) BER ranking – SHAP analysis ──")
+    print("\n-- B) BER ranking - SHAP analysis --")
 
     if not AED_BER_CSV.exists():
-        print(f"  WARNING: {AED_BER_CSV} not found – skipping BER section.")
+        print(f"  WARNING: {AED_BER_CSV} not found - skipping BER section.")
         return
 
     ber_df  = pd.read_csv(AED_BER_CSV)
     ber_sub = ber_df[ber_df["BER"].notna() & (ber_df["BER"] > 0)].copy()
 
-    # Merge with pilot descriptors (CAS-based)
     merge_cols = ["MW", "logP", "Fup"]
     cas_col    = "CAS" if "CAS" in pilot.columns else None
     if cas_col and "CAS" in ber_sub.columns:
@@ -268,14 +203,13 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
 
     feature_cols = [c for c in merge_cols if c in merged.columns]
 
-    # Supplement with derived columns from AED/BER table
     for col in ("AED_median", "AC50_5pct_uM", "Exposure_median_mg_kg_day"):
         if col in merged.columns:
             feature_cols.append(col)
 
     sub = merged[feature_cols + ["BER"]].dropna()
     if len(sub) < 5:
-        print(f"  Only {len(sub)} complete rows – not enough for SHAP.  Skipping.")
+        print(f"  Only {len(sub)} complete rows - not enough for SHAP.  Skipping.")
         return
 
     X_ber = sub[feature_cols].values.astype(np.float32)
@@ -288,12 +222,11 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     gb.fit(X_ber, y_ber)
     cv_r2 = cross_val_score(gb, X_ber, y_ber,
                              cv=min(5, len(sub)), scoring="r2").mean()
-    print(f"  GB BER model cross-validated R² = {cv_r2:.3f}")
+    print(f"  GB BER model cross-validated R^2 = {cv_r2:.3f}")
 
     explainer_ber = shap.TreeExplainer(gb)
     shap_ber      = explainer_ber(X_ber)
 
-    # Save
     shap_ber_df = pd.DataFrame(
         shap_ber.values,
         columns=[f"SHAP_{c}" for c in feature_cols],
@@ -305,7 +238,6 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     shap_ber_df.to_csv(shap_csv_ber, index=False)
     print(f"  Saved {shap_csv_ber}")
 
-    # Beeswarm plot
     fig, axes = plt.subplots(1, len(feature_cols),
                               figsize=(4 * len(feature_cols), 5), sharey=False)
     if len(feature_cols) == 1:
@@ -325,8 +257,8 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
         axes[k].grid(True, alpha=0.3)
         plt.colorbar(sc, ax=axes[k], label=feat, fraction=0.04, pad=0.04)
 
-    fig.suptitle("SHAP Beeswarm – BER Risk Prioritisation\n"
-                 "Each dot = one chemical; SHAP → impact on log₁₀(BER)",
+    fig.suptitle("SHAP Beeswarm - BER Risk Prioritisation\n"
+                 "Each dot = one chemical; SHAP -> impact on log1₀(BER)",
                  fontsize=11)
     plt.tight_layout()
     p_ber = RESULTS / "shap_ber_beeswarm.png"
@@ -334,8 +266,7 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     plt.close()
     print(f"  Saved {p_ber}")
 
-    # ─ Local explanation: top-3 highest-concern chemicals ────────────────────
-    top3_idx = np.argsort(y_ber)[:3]   # lowest BER = highest concern
+    top3_idx = np.argsort(y_ber)[:3]
     fig, axes = plt.subplots(1, len(top3_idx), figsize=(5 * len(top3_idx), 5))
     if len(top3_idx) == 1:
         axes = [axes]
@@ -352,13 +283,13 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
         ax.axvline(0, color="black", lw=0.8)
         chem_name = str(shap_ber_df.iloc[idx]["Chemical"])[:20]
         ax.set_title(
-            f"{chem_name}\nlog₁₀(BER)={y_ber[idx]:.2f}  (base={base:.2f})",
+            f"{chem_name}\nlog1₀(BER)={y_ber[idx]:.2f}  (base={base:.2f})",
             fontsize=9,
         )
         ax.set_xlabel("SHAP", fontsize=9)
         ax.grid(axis="x", alpha=0.3)
 
-    fig.suptitle("Local SHAP Explanation – Top-3 Highest-Concern Chemicals",
+    fig.suptitle("Local SHAP Explanation - Top-3 Highest-Concern Chemicals",
                  fontsize=11)
     plt.tight_layout()
     local_path = RESULTS / "shap_ber_local_top3.png"
@@ -366,29 +297,19 @@ def section_b_ber(pilot: pd.DataFrame) -> None:
     plt.close()
     print(f"  Saved {local_path}")
 
-
-# ── C: Outlier SHAP – full 9-feature model on all 777 chemicals ──────────────
-
 def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
-    """
-    Train the full 9-feature model (same as Step 2) and run SHAP analysis
-    on ALL 777 httk chemicals.  Highlights outliers Tacrine, Phenylparaben.
-    Merged from former 12_shap_outlier_analysis.py.
-    """
-    print("\n── C) Outlier SHAP – alle 777 httk-Chemikalien ──")
+    print("\n-- C) Outlier SHAP - alle 777 httk-Chemikalien --")
 
     if not FULL_CSV.exists():
-        print(f"  WARNING: {FULL_CSV} not found – skipping outlier section.")
+        print(f"  WARNING: {FULL_CSV} not found - skipping outlier section.")
         return
 
-    # ─ Trainingsdaten ─────────────────────────────────────────────────────────
     df_train = pilot.dropna(subset=["Clint"]).copy()
     df_train["Fup"] = df_train["Fup"].clip(lower=1e-6)
     X_train  = engineer_features(df_train)
     y_train  = np.log10(df_train["Clint"].values + EPSILON)
     print(f"  Training: {len(df_train)} Pilotchemikalien  |  {X_train.shape[1]} Features")
 
-    # ─ Bestes Modell ──────────────────────────────────────────────────────────
     best_name = "GradientBoosting"
     loo_csv   = DATA / "rf_clint_predictions.csv"
     if loo_csv.exists():
@@ -413,7 +334,6 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
         )
     model.fit(X_tr_sc, y_train)
 
-    # ─ Alle 777 Chemikalien laden ─────────────────────────────────────────────
     full = pd.read_csv(FULL_CSV)
     full = full.rename(columns={
         "Human.Clint":           "Clint",
@@ -439,7 +359,6 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
     val["in_pilot"] = val["CAS"].astype(str).str.strip().isin(pilot_cas)
     print(f"  Validierungsset: {len(val)} Chemikalien mit gemessenem Clint")
 
-    # ─ SHAP TreeExplainer ─────────────────────────────────────────────────────
     print("  Berechne SHAP-Werte ...")
     explainer   = shap.TreeExplainer(model)
     shap_values = explainer(X_val_sc)
@@ -462,7 +381,6 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
     shap_df.to_csv(out_csv, index=False)
     print(f"  Saved {out_csv.name}")
 
-    # ─ Plot A: Globale Feature-Importance + Beeswarm ─────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     ax = axes[0]
@@ -499,10 +417,7 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
     plt.close()
     print("  Saved: results/shap_outlier_global_bar.png")
 
-    # ─ Plot B: Waterfall fuer Top-5-Ausreisser ───────────────────────────────
     TARGET_CHEMS = ["Tacrine", "Phenylparaben", "Acibenzolar"]
-    # When training on all measured chemicals (full-dataset model), all val chemicals
-    # are "in_pilot". Fall back to using all chemicals for outlier/good selection.
     external_val = val[~val["in_pilot"]]
     if len(external_val) < 5:
         external_val = val
@@ -574,7 +489,6 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
         plt.close()
         print(f"  Saved: {out_path.name}")
 
-    # ─ Plot C: Vergleich Ausreisser vs. gut vorhergesagte Chemikalien ─────────
     COMPARE_CHEMS = {"Ausreisser": [], "Gut": []}
     for name in TARGET_CHEMS:
         row = val[val["Compound"].str.contains(name, case=False, na=False)]
@@ -622,7 +536,6 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
         plt.close()
         print("  Saved: results/shap_outlier_comparison.png")
 
-    # ─ Mechanistische Erklaerung ──────────────────────────────────────────────
     print(f"\n  Wichtigstes Feature: {FEATURE_NAMES[np.argmax(mean_abs_shap)]}")
     print(f"  SHAP Basiswert:      {base_value:.3f}")
     for name in TARGET_CHEMS:
@@ -640,12 +553,9 @@ def section_c_outlier_shap(pilot: pd.DataFrame) -> None:
             direction = "erhoehend" if shap_c[feat_idx] > 0 else "erniedrigend"
             print(f"    {FEATURE_NAMES[feat_idx]:20s}: SHAP={shap_c[feat_idx]:+.3f}  ({direction})")
 
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main() -> None:
     print("=" * 65)
-    print("Step 7 – Explainable AI (SHAP) for Clint and BER")
+    print("Step 7 - Explainable AI (SHAP) for Clint and BER")
     print("=" * 65)
 
     pilot = pd.read_csv(PILOT_CSV)
@@ -664,7 +574,6 @@ def main() -> None:
     for fname in sorted(RESULTS.glob("shap_*.csv")):
         print(f"  {fname.name}")
     print("\nDone.\n")
-
 
 if __name__ == "__main__":
     main()

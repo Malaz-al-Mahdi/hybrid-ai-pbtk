@@ -1,41 +1,3 @@
-"""
-06_neural_ode_tk.py
--------------------
-Neural Ordinary Differential Equations for continuous-time toxicokinetic
-(TK) modeling.
-
-Scientific rationale
-~~~~~~~~~~~~~~~~~~~~
-Classical PK models solve analytically or numerically for observed time
-points.  When data are sparse (e.g. only 3–5 plasma measurements per
-subject) the classical model must assume a compartment structure.  Neural
-ODEs instead *learn* the vector field dC/dt = f_theta(C, t; z_chem) from
-data, where z_chem encodes the chemical's physicochemical properties.  This
-allows:
-  - Interpolation at unobserved times  (handling sparse / irregular data)
-  - Learning non-standard compartment dynamics without hand-crafting structure
-  - Full gradient flow through the integrator for end-to-end training
-
-Implementation details
-~~~~~~~~~~~~~~~~~~~~~~
-  - Training data: plasma C(t) generated from the analytical 1-compartment
-    oral model using PBTK parameters from Step 1/2 / full RTK export.
-  - Architecture: ChemEncoder (4-feature MLP → latent embedding z) +
-    ODEFunc (MLP vector field using [C, z] as input) + differentiable RK4
-    integrator implemented in PyTorch.
-  - Evaluation:
-      * pilot set   → Leave-One-Out CV
-      * full set    → train on all chemicals + reconstruction metrics
-  - Sparse-data demo: train on 5 irregularly spaced observations, predict
-    the full 0–48 h profile.
-
-Outputs
-~~~~~~~
-  results/neural_ode_curves.png        Full C(t): true vs. predicted
-  results/neural_ode_sparse_demo.png   Sparse-data interpolation demo
-  results/neural_ode_metrics.csv       Per-chemical MAE, RMSE, R²
-"""
-
 import sys
 from pathlib import Path
 
@@ -52,7 +14,6 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA    = ROOT / "data"
 RESULTS = ROOT / "results"
 
-# ── Check dependencies ────────────────────────────────────────────────────────
 try:
     import torch
     import torch.nn as nn
@@ -76,46 +37,30 @@ if not PILOT_CSV.exists() and not FULL_CSV.exists():
 torch.manual_seed(42)
 np.random.seed(42)
 
-# ── PK constants ─────────────────────────────────────────────────────────────
-Q_H       = 1.5       # hepatic blood flow  [L / h / kg BW]
-F_LIVER   = 26e-3     # liver weight fraction  [kg liver / kg BW]
-HEPATO    = 110e6     # hepatocellularity  [cells / g liver]
-KA        = 1.2       # oral absorption rate constant  [h⁻¹]
-DOSE      = 1.0       # oral dose  [mg / kg BW]
-DOSE_UG   = DOSE * 1e3  # µg / kg BW
-T_MAX     = 48.0      # simulation horizon  [h]
-N_EVAL    = 100       # evaluation time points
+Q_H       = 1.5
+F_LIVER   = 26e-3
+HEPATO    = 110e6
+KA        = 1.2
+DOSE      = 1.0
+DOSE_UG   = DOSE * 1e3
+T_MAX     = 48.0
+N_EVAL    = 100
 
-# ── Neural ODE hyperparameters ────────────────────────────────────────────────
 EMBED_DIM  = 8
 HIDDEN_DIM = 32
 EPOCHS     = 600
-LR         = 5e-4      # conservative LR – avoids NaN on raw concentration scale
-PATIENCE   = 80        # early-stopping patience
-
-# ── Helper: PK parameter conversions ─────────────────────────────────────────
+LR         = 5e-4
+PATIENCE   = 80
 
 def clint_to_cl(clint_uL_min_Mcells: float, fup: float) -> float:
-    """
-    Convert in-vitro Clint to whole-body hepatic blood clearance [L/h/kg].
-
-    Well-stirred liver model:
-        CL_h = Q_H * fu * Clint_liver / (Q_H + fu * Clint_liver)
-    """
     clint_L_h_kg = clint_uL_min_Mcells * 1e-6 * 60.0 * HEPATO * F_LIVER
     fup_safe = max(float(fup), 1e-4)
     cl_h = Q_H * fup_safe * clint_L_h_kg / (Q_H + fup_safe * clint_L_h_kg)
     return max(cl_h, 1e-6)
 
-
 def estimate_vd(logP: float) -> float:
-    """
-    Crude QSPR estimate of volume of distribution [L/kg].
-    Rule of thumb: log(Vd) ≈ 0.4 * logP (Lombardo et al. regression).
-    """
     vd = 0.5 * 10 ** (0.4 * np.clip(float(logP), -2.0, 6.0))
     return float(np.clip(vd, 0.4, 200.0))
-
 
 def generate_trajectory(
     clint: float,
@@ -123,22 +68,12 @@ def generate_trajectory(
     logP: float,
     t_eval: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Solve the 2-state 1-compartment oral PK ODE and return C_plasma(t).
-
-    States: y = [A_gut (µg/kg), C_plasma (µg/L = ng/mL)]
-
-        dA_gut/dt = -ka * A_gut
-        dC/dt     = ka * A_gut / Vd  -  ke * C
-
-    Returns (t_eval, C_plasma).
-    """
     if t_eval is None:
         t_eval = np.linspace(0.0, T_MAX, N_EVAL)
 
     cl_h = clint_to_cl(clint, fup)
     vd   = estimate_vd(logP)
-    ke   = cl_h / vd                               # h⁻¹
+    ke   = cl_h / vd
     f_oral = float(np.clip(1.0 - cl_h / Q_H, 0.05, 1.0))
 
     y0 = [f_oral * DOSE_UG, 0.0]
@@ -154,13 +89,7 @@ def generate_trajectory(
     )
     return sol.t, sol.y[1]
 
-
-# ── Dataset ───────────────────────────────────────────────────────────────────
-
 def standardize_training_table(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Harmonise pilot/full-dataset column names to a common schema.
-    """
     def choose(*names: str) -> str | None:
         for name in names:
             if name in df.columns:
@@ -203,24 +132,12 @@ def standardize_training_table(df: pd.DataFrame) -> pd.DataFrame:
     out = out.dropna(subset=["Compound", "MW", "logP", "Fup", "Clint_final"]).reset_index(drop=True)
     return out
 
-
 def load_training_data() -> tuple[pd.DataFrame, str]:
-    """
-    Prefer the full chemical universe when available.
-    """
     source = FULL_CSV if FULL_CSV.exists() else PILOT_CSV
     df = pd.read_csv(source)
     return standardize_training_table(df), source.name
 
-
 def build_dataset(df: pd.DataFrame):
-    """
-    Generate (features, t_eval, C_true) tuples for all chemicals.
-    Returns:
-        features_arr  ndarray  (n_chems, 4)   [MW, logP, Fup, Clint]
-        trajs         list of ndarray (N_EVAL,)
-        t_eval        ndarray (N_EVAL,)
-    """
     features_list = []
     trajs         = []
     t_eval        = np.linspace(0.0, T_MAX, N_EVAL)
@@ -238,11 +155,7 @@ def build_dataset(df: pd.DataFrame):
 
     return np.array(features_list, dtype=np.float32), trajs, t_eval
 
-
-# ── Model ─────────────────────────────────────────────────────────────────────
-
 class ChemEncoder(nn.Module):
-    """Maps 4 physicochemical features to a latent chemical embedding."""
     def __init__(self, n_feat=4, embed_dim=EMBED_DIM):
         super().__init__()
         self.net = nn.Sequential(
@@ -255,14 +168,7 @@ class ChemEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
 
-
 class ODEFunc(nn.Module):
-    """
-    Neural ODE vector field:
-        dC/dt = f_theta(C, z_chem)
-
-    Inputs:  [C (scalar), z_chem (embed_dim)] → dC/dt (scalar)
-    """
     def __init__(self, embed_dim=EMBED_DIM, hidden_dim=HIDDEN_DIM):
         super().__init__()
         self.net = nn.Sequential(
@@ -277,13 +183,7 @@ class ODEFunc(nn.Module):
         inp = torch.cat([C.unsqueeze(-1), z], dim=-1)
         return self.net(inp).squeeze(-1)
 
-
 class NeuralODETK(nn.Module):
-    """
-    Full Neural ODE model:
-      1. Encode chemical features → z
-      2. Integrate dC/dt = ODEFunc(C, z) using RK4
-    """
     def __init__(self, n_feat=4, embed_dim=EMBED_DIM, hidden_dim=HIDDEN_DIM):
         super().__init__()
         self.encoder  = ChemEncoder(n_feat, embed_dim)
@@ -303,23 +203,18 @@ class NeuralODETK(nn.Module):
 
     def forward(
         self,
-        features: torch.Tensor,     # (n_feat,)
-        C0: torch.Tensor,            # scalar
-        t_eval: torch.Tensor,        # (T,)
+        features: torch.Tensor,
+        C0: torch.Tensor,
+        t_eval: torch.Tensor,
     ) -> torch.Tensor:
-        """Return predicted C(t) at times t_eval, shape (T,)."""
-        z  = self.encoder(features.unsqueeze(0))   # (1, embed_dim)
-        C  = C0.unsqueeze(0)                        # (1,)
+        z  = self.encoder(features.unsqueeze(0))
+        C  = C0.unsqueeze(0)
         Cs = [C]
         for i in range(len(t_eval) - 1):
             dt = float(t_eval[i + 1] - t_eval[i])
             C  = self._rk4_step(C, z, dt)
             Cs.append(C)
-        # Each C has shape (1,), so cat gives (T,). Do not squeeze dim=1.
-        return torch.cat(Cs, dim=0)                 # (T,)
-
-
-# ── Training utilities ────────────────────────────────────────────────────────
+        return torch.cat(Cs, dim=0)
 
 def train_one_chemical(
     model: NeuralODETK,
@@ -331,18 +226,12 @@ def train_one_chemical(
     n_epochs: int = EPOCHS,
     patience: int = PATIENCE,
 ) -> list[float]:
-    """Fine-tune / train the model on a single chemical's C(t) curve.
-
-    Concentrations are normalised to [0, 1] during training so that
-    the ODE vector field operates on a numerically stable scale.
-    """
     criterion = nn.MSELoss()
     losses    = []
     best_loss = float("inf")
     best_state = {k: v.clone() for k, v in model.state_dict().items()}
     wait      = 0
 
-    # Normalise target to [0, 1] to prevent scale-induced NaN
     C_max = float(C_true.max()) if float(C_true.max()) > 1e-9 else 1.0
     C_true_n = C_true / C_max
     C0_n     = C0     / C_max
@@ -352,7 +241,6 @@ def train_one_chemical(
         C_pred = model(feat_t, C0_n, t_tensor)
         loss   = criterion(C_pred, C_true_n)
 
-        # Abort if NaN appears and restore best known weights
         if not torch.isfinite(loss):
             model.load_state_dict(best_state)
             break
@@ -374,19 +262,12 @@ def train_one_chemical(
     model.load_state_dict(best_state)
     return losses
 
-
-# ── Leave-One-Out evaluation ──────────────────────────────────────────────────
-
 def loo_evaluation(
     features_arr: np.ndarray,
     trajs: list,
     t_eval: np.ndarray,
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """
-    Leave-one-out CV: for each chemical, train on the other 19, then predict.
-    Returns a DataFrame of metrics.
-    """
     scaler  = StandardScaler()
     feat_sc = scaler.fit_transform(features_arr).astype(np.float32)
 
@@ -401,7 +282,6 @@ def loo_evaluation(
         model = NeuralODETK()
         opt   = optim.Adam(model.parameters(), lr=LR, weight_decay=1e-5)
 
-        # ─ Train on all others ───────────────────────────────────────────────
         for j in train_idx:
             feat_t  = torch.tensor(feat_sc[j])
             C_true  = torch.tensor(trajs[j], dtype=torch.float32)
@@ -412,7 +292,6 @@ def loo_evaluation(
                 n_epochs=300, patience=50
             )
 
-        # ─ Predict held-out chemical (no further training) ───────────────────
         model.eval()
         with torch.no_grad():
             feat_t  = torch.tensor(feat_sc[test_idx])
@@ -421,10 +300,8 @@ def loo_evaluation(
             C_max   = float(C_true.max()) if float(C_true.max()) > 1e-9 else 1.0
             C0_n    = torch.tensor(C_true[0] / C_max, dtype=torch.float32)
             C_pred_n = model(feat_t, C0_n, t_tens).numpy()
-            # Rescale back to original units
             C_pred  = C_pred_n * C_max
 
-        # Replace any NaN / Inf that survived (e.g. untrained LOO fold)
         C_pred = np.where(np.isfinite(C_pred), C_pred, C_true)
 
         mae  = float(np.mean(np.abs(C_pred - C_true)))
@@ -440,10 +317,9 @@ def loo_evaluation(
             "RMSE_ngmL": round(rmse, 4),
             "R2":        round(r2,   4) if np.isfinite(r2) else None,
         })
-        print(f"  [{test_idx+1:2d}/{n}] {name:<24}  MAE={mae:.3f}  RMSE={rmse:.3f}  R²={r2:.3f}")
+        print(f"  [{test_idx+1:2d}/{n}] {name:<24}  MAE={mae:.3f}  RMSE={rmse:.3f}  R^2={r2:.3f}")
 
     return pd.DataFrame(metrics_rows)
-
 
 def evaluate_trained_model(
     model: NeuralODETK,
@@ -452,9 +328,6 @@ def evaluate_trained_model(
     t_eval: np.ndarray,
     df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """
-    Reconstruction metrics after training on the full dataset.
-    """
     rows = []
     n = len(df)
     t_tens = torch.tensor(t_eval, dtype=torch.float32)
@@ -485,9 +358,6 @@ def evaluate_trained_model(
                 print(f"    evaluated {i+1:4d}/{n}", flush=True)
     return pd.DataFrame(rows)
 
-
-# ── Plotting utilities ────────────────────────────────────────────────────────
-
 def plot_curves(
     features_arr: np.ndarray,
     trajs: list,
@@ -497,20 +367,12 @@ def plot_curves(
     out_path: Path,
     n_show: int = 8,
 ) -> None:
-    """Plot true vs. predicted C(t) for a selection of chemicals.
-
-    Uses joint multi-chemical training: in each epoch we iterate through
-    every chemical once and accumulate gradient updates.  This gives clear
-    progress output and is roughly equivalent to `n_epochs` full passes
-    over the dataset.
-    """
     import time as _time
     model = NeuralODETK()
     opt   = optim.Adam(model.parameters(), lr=LR, weight_decay=1e-5)
     feat_sc = scaler.transform(features_arr).astype(np.float32)
 
     n_chems = len(df)
-    # Scale epochs with dataset size: small pilots → more epochs, big sets → fewer
     if n_chems <= 50:
         n_epochs = 150
     elif n_chems <= 200:
@@ -519,7 +381,6 @@ def plot_curves(
         n_epochs = 15
     print(f"  Joint training on {n_chems} chemicals for {n_epochs} epochs …")
 
-    # Pre-compute per-chemical tensors to avoid allocating every epoch
     feat_tensors = [torch.tensor(feat_sc[j]) for j in range(n_chems)]
     t_tens       = torch.tensor(t_eval, dtype=torch.float32)
     C_tensors    = []
@@ -596,7 +457,6 @@ def plot_curves(
     print(f"Saved {out_path}")
     return model, feat_sc
 
-
 def plot_sparse_demo(
     model: NeuralODETK,
     feat_sc: np.ndarray,
@@ -607,19 +467,13 @@ def plot_sparse_demo(
     n_sparse: int = 5,
     demo_idx: int = 0,
 ) -> None:
-    """
-    Demonstrate sparse-data handling:
-    Fine-tune on n_sparse random observations, predict full curve.
-    """
     rng       = np.random.default_rng(42)
     sparse_t_idx = sorted(rng.choice(len(t_eval), size=n_sparse, replace=False))
     sparse_t     = t_eval[sparse_t_idx]
     sparse_C     = trajs[demo_idx][sparse_t_idx]
     name         = df.iloc[demo_idx]["Compound"]
 
-    # Fine-tune on sparse observations only
     sparse_model = NeuralODETK()
-    # Copy weights from globally trained model as warm start
     sparse_model.load_state_dict(model.state_dict())
     opt = optim.Adam(sparse_model.parameters(), lr=LR * 0.3, weight_decay=1e-4)
 
@@ -654,7 +508,7 @@ def plot_sparse_demo(
     ax.set_xlabel("Time (h)", fontsize=12)
     ax.set_ylabel("Plasma concentration (ng/mL)", fontsize=12)
     ax.set_title(
-        f"Neural ODE – Sparse-data interpolation\n"
+        f"Neural ODE - Sparse-data interpolation\n"
         f"{name}: trained on {n_sparse} observations, predicts full C(t)",
         fontsize=11,
     )
@@ -665,25 +519,20 @@ def plot_sparse_demo(
     plt.close()
     print(f"Saved {out_path}")
 
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main() -> None:
     print("=" * 65)
-    print("Step 6 – Neural ODE for Toxicokinetic Modeling")
+    print("Step 6 - Neural ODE for Toxicokinetic Modeling")
     print("=" * 65, "\n")
 
     df, source_name = load_training_data()
     print(f"Loaded {len(df)} chemicals from {source_name}.\n")
 
-    # ── 1. Generate PK training trajectories ─────────────────────────────────
     print("Generating 1-compartment PK trajectories …")
     features_arr, trajs, t_eval = build_dataset(df)
     print(f"  {len(trajs)} chemicals  |  {len(t_eval)} time points each")
-    print(f"  Cmax range: {min(c.max() for c in trajs):.1f} – "
+    print(f"  Cmax range: {min(c.max() for c in trajs):.1f} - "
           f"{max(c.max() for c in trajs):.1f} ng/mL\n")
 
-    # ── 2. Validation / training setup ───────────────────────────────────────
     metrics_path = RESULTS / "neural_ode_metrics.csv"
     if len(df) <= MAX_LOO_CHEMICALS:
         metrics = loo_evaluation(features_arr, trajs, t_eval, df)
@@ -691,7 +540,7 @@ def main() -> None:
         print(f"\nSaved {metrics_path}")
         mean_r2   = metrics["R2"].mean()
         mean_rmse = metrics["RMSE_ngmL"].mean()
-        print(f"\nLOO-CV summary:  mean R² = {mean_r2:.3f}  |  mean RMSE = {mean_rmse:.3f} ng/mL")
+        print(f"\nLOO-CV summary:  mean R^2 = {mean_r2:.3f}  |  mean RMSE = {mean_rmse:.3f} ng/mL")
     else:
         print(
             f"Skipping LOO-CV because {len(df)} chemicals would be too slow.\n"
@@ -699,7 +548,6 @@ def main() -> None:
         )
         metrics = None
 
-    # ── 3. Train on all chemicals and plot curves ─────────────────────────────
     print("\nTraining full model for visualisation …")
     scaler = StandardScaler()
     scaler.fit(features_arr)
@@ -717,11 +565,10 @@ def main() -> None:
         mean_r2   = metrics["R2"].mean()
         mean_rmse = metrics["RMSE_ngmL"].mean()
         print(
-            f"\nTrain-set summary:  mean R² = {mean_r2:.3f}  |  "
+            f"\nTrain-set summary:  mean R^2 = {mean_r2:.3f}  |  "
             f"mean RMSE = {mean_rmse:.3f} ng/mL"
         )
 
-    # ── 4. Sparse-data demonstration ─────────────────────────────────────────
     print("\nGenerating sparse-data demonstration …")
     plot_sparse_demo(
         trained_model, feat_sc, trajs, t_eval, df,
@@ -730,17 +577,15 @@ def main() -> None:
         demo_idx=0,
     )
 
-    # ── 5. Summary ───────────────────────────────────────────────────────────
     print("\n" + "=" * 65)
     print("Neural ODE summary")
     print("=" * 65)
     print(metrics.to_string(index=False))
     print(f"\nOutputs saved to results/")
-    print("  neural_ode_curves.png      – fitted C(t) profiles")
-    print("  neural_ode_sparse_demo.png – sparse interpolation demo")
-    print("  neural_ode_metrics.csv     – per-chemical LOO-CV metrics")
+    print("  neural_ode_curves.png      - fitted C(t) profiles")
+    print("  neural_ode_sparse_demo.png - sparse interpolation demo")
+    print("  neural_ode_metrics.csv     - per-chemical LOO-CV metrics")
     print("\nDone.\n")
-
 
 if __name__ == "__main__":
     main()
